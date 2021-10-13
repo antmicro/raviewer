@@ -1,3 +1,4 @@
 numpy
 opencv-python
 Pillow
+dearpygui==0.8.64
