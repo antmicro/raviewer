@@ -1,241 +1,273 @@
-import tkinter as tk
-import tkinter.font as tkFont
-from tkinter.filedialog import askopenfilename, asksaveasfile
+import os
+import numpy as np
+import cv2 as cv
+import array
 
-from .canvas import CanvasImage
+import dearpygui.dearpygui as dpg
+
+from .core import (load_image, get_displayable)
 from .image.color_format import AVAILABLE_FORMATS
-from .core import determine_color_format, get_displayable
+from .image.color_format import PixelFormat
+from .core import determine_color_format, get_displayable, save_image_as_file
 from PIL import Image
 
 
-class MainWindow(tk.Frame):
-    def __init__(self, args, master=tk.Tk()):
-        tk.Frame.__init__(self, master)
-        self.master = master
-        self.master.geometry('1200x600')
+class MainWindow():
+    def __init__(self, args):
+        #Viewport configuration
+        self.vp = dpg.create_viewport()
+        self.vp_size = {"width": 1200, "height": 800}
+        self.vp_color = (201, 201, 201)  #alias to #C9C9C9 background color
 
-        self.bg_color = "#C9C9C9"
-
-        self.photoframe = tk.Frame(self.master)
-        self.photoframe.rowconfigure(0, weight=1)
-        self.photoframe.columnconfigure(0, weight=1)
-        self.photoframe.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
-
-        self.pack()
-        self.init_width = args["width"]
+        self.width = 800
+        self.texture = None
+        self.img = None
         self.path_to_File = args["FILE_PATH"]
-        self.init_color_format = args["color_format"]
-        self.widget_font = tkFont.Font(family='Gill Sans MT',
-                                       size=10,
-                                       weight=tkFont.NORMAL)
-        self.img_tk = None
-        self.canvas = None
-        self.ent_width = None
+
+        #Init from args
         if self.path_to_File != None:
-            self.canvas = CanvasImage(self.photoframe, self.path_to_File,
-                                      self.init_color_format, self.init_width)
-            self.canvas.grid(row=0, column=0)
+            self.width = args["width"]
+            self.color_format = args["color_format"]
+
         self.create_widgets(args)
 
-    def open_file(self):
-        path = askopenfilename(filetypes=[("All Files", "*")])
+    def open_file(self, callback_id, data):
+        path = list(data["selections"].values())[0]
         if path:
             self.path_to_File = path
-            self.update_image()
+            self.update_image(fit_image=True)
+            dpg.enable_item(self.menu_bar_export)
 
-    def file_save(self):
-        if self.canvas.img != None:
-            im = Image.fromarray(get_displayable(self.canvas.img))
-            dialog = asksaveasfile(mode='wb',
-                                   defaultextension=".png",
-                                   filetypes=(("PNG file", "*.png"),
-                                              ("All Files", "*.*")))
-            if dialog is None:
-                return
-            im.save(dialog)
+    def file_save(self, callback_id, data):
+        path = data["file_path_name"]
+        if self.img != None:
+            im = Image.fromarray(get_displayable(self.img))
+            im.save(path)
 
-    def update_image(self):
-        if self.path_to_File is None:
-            self.warning_text.set("Path to file not specified")
-        elif self.var_width.get() <= 0:
-            self.warning_text.set("Width needs be greater than 0")
-            self.display_text.set(self.path_to_File.rsplit('/', 1)[-1])
-        else:
-            self.display_text.set(self.path_to_File.rsplit('/', 1)[-1])
-            if self.canvas is not None:
-                self.canvas.destroy()
+    def update_image(self, fit_image):
+        self.img = load_image(self.path_to_File, self.color_format, self.width)
+        self.img_arr = Image.fromarray(get_displayable(self.img))
+        self.img_arr.resize((int(self.img.height), int(self.img.width)))
+        dpg_image = np.frombuffer(self.img_arr.tobytes(),
+                                  dtype=np.uint8) / 255.0
+        self.raw_data = array.array('f', dpg_image)
 
-            self.warning_text.set("")
-            self.canvas = CanvasImage(self.photoframe, self.path_to_File,
-                                      self.v.get(), self.var_width.get())
-            self.canvas.set_antialiasing(self.antialiasing.get())
-            self.var_width.set(self.canvas.imwidth)
-            self.var_height.set(self.canvas.imheight)
-            self.canvas.grid()
+        #Set width and height
+        dpg.set_value(self.height_setter, self.img.height)
+        dpg.set_value(self.width_setter, self.img.width)
 
-    def update_width(self):
-        if not self.canvas:
-            self.update_image()
-            return
-        self.canvas.set_width(int(self.ent_width.get()))
-        self.var_width.set(self.canvas.imwidth)
-        self.var_height.set(self.canvas.imheight)
+        #Set Image color format in combo
+        dpg.set_value(self.combo, self.color_format)
 
-    def show_color_info_popup(self):
-        pop = tk.Toplevel(self.master)
-        pop.title("Color format description")
-        pop.geometry("600x150")
-        color_format = determine_color_format(self.v.get())
+        #Update color format info
+        self.update_color_info()
+
+        #Fit data to axis
+        if fit_image:
+            dpg.fit_axis_data(self.xx)
+            dpg.fit_axis_data(self.yy)
+
+        if (self.texture):
+            dpg.delete_item(self.texture)
+            dpg.delete_item(self.image_series)
+
+        self.add_texture(self.img.width, self.img.height, self.raw_data)
+        self.image_series = dpg.add_image_series(
+            texture_id=self.texture,
+            parent=self.yy,
+            label="Raw map",
+            bounds_min=[0, 0],
+            bounds_max=[self.img.width, self.img.height])
+        #Update plot filename
+        dpg.set_item_label(self.plot, self.path_to_File)
+
+    def add_texture(self, width, height, image_data):
+        with dpg.texture_registry():
+            texture_format = None
+            if self.img.color_format.pixel_format in [
+                    PixelFormat.RGBA, PixelFormat.BGRA, PixelFormat.ARGB,
+                    PixelFormat.ABGR
+            ]:
+                texture_format = dpg.mvFormat_Float_rgba
+            else:
+                texture_format = dpg.mvFormat_Float_rgb
+            self.texture = dpg.add_raw_texture(width=width,
+                                               height=height,
+                                               format=texture_format,
+                                               default_value=image_data)
+
+    def update_width(self, callback_id, data):
+        if self.img != None:
+            self.width = data
+            self.update_image(fit_image=True)
+
+    def update_color_info(self):
+        color_format = determine_color_format(self.color_format)
         custom_text= "Pixel format name:  " + color_format.name + "\nEndianness:  " \
-                        + str(color_format.endianness)[11:] + "\n Pixel format:  " + str(color_format.pixel_format)[12:]+\
+                        + str(color_format.endianness)[11:] + "\nPixel format:  " + str(color_format.pixel_format)[12:]+\
                         "\nPixel plane:  " + str(color_format.pixel_plane)[11:] + "\nBits per components:  " + str(color_format.bits_per_components)
+        dpg.set_value(self.color_info_text, custom_text)
 
-        pop_label = tk.Label(master=pop,
-                             text=custom_text,
-                             font=self.widget_font)
-        pop_label.pack(pady=20)
-        pop_frame = tk.Frame(pop)
-        pop_frame.pack(pady=5)
+    def format_color(self, callback_id, data):
+        self.color_format = data
+        self.update_color_info()
+        if self.img != None:
+            self.update_image(fit_image=True)
 
-    def set_antialiasing(self):
-        if self.canvas:
-            self.canvas.set_antialiasing(self.antialiasing.get())
+    def init_mainframe(self):
+        dpg.set_viewport_title(title='Raviewer')
+        dpg.set_viewport_width(self.vp_size["width"])
+        dpg.set_viewport_height(self.vp_size["height"])
+        dpg.set_viewport_clear_color(self.vp_color)
+        dpg.setup_dearpygui(viewport=self.vp)
+        dpg.show_viewport(self.vp)
+
+    def run_gui(self):
+        dpg.start_dearpygui()
+
+    def on_resize(self, id_callback, data):
+        dpg.set_item_height(self.viewport_window, data[1])
+        dpg.set_item_width(self.viewport_window, data[0])
+        dpg.set_item_width(self.settings_window, int(data[0] / 4))
+        relative_x_width = int(data[0] - int(data[0] / 4))
+        dpg.set_item_pos(self.settings_window, [relative_x_width, -1])
+        dpg.set_item_width(self.main_window, relative_x_width + 2)
+
+    def init_file_dialogs(self):
+        #Read from file button
+        with dpg.file_dialog(directory_selector=False,
+                             show=False,
+                             callback=self.open_file,
+                             id=self.file_selector_read):
+            dpg.add_file_extension("", color=(255, 255, 255, 255))
+        #Export image button
+        with dpg.file_dialog(directory_selector=False,
+                             show=False,
+                             callback=self.file_save,
+                             id=self.file_selector_export):
+            dpg.add_file_extension(".png", color=(255, 255, 0, 255))
 
     def create_widgets(self, args):
-        # Main window
-        self.master.title('Raw image data previewer')
-        self.master.configure(bg=self.bg_color)
+        # Main window frame settings
+        self.init_mainframe()
 
-        # Control buttons frame
-        frm_control = tk.Frame(master=self.master, width=300, bg=self.bg_color)
-        frm_control.pack(fill=tk.NONE, side=tk.RIGHT, expand=False)
+        self.viewport_window = dpg.generate_uuid()
+        self.main_window = dpg.generate_uuid()
+        self.settings_window = dpg.generate_uuid()
+        self.settings_window = dpg.generate_uuid()
+        self.plot = dpg.generate_uuid()
+        self.menu_bar_file = dpg.generate_uuid()
+        self.file_selector_read = dpg.generate_uuid()
+        self.file_selector_export = dpg.generate_uuid()
+        self.menu_bar_export = dpg.generate_uuid()
+        self.init_file_dialogs()
 
-        # Read from file label
-        self.display_text = tk.StringVar()
-        label_read = tk.Label(master=frm_control,
-                              textvariable=self.display_text,
-                              bg=self.bg_color,
-                              font=self.widget_font)
-        label_read.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
+        with dpg.window(label="Docker Window",
+                        no_move=True,
+                        id=self.viewport_window,
+                        no_resize=True,
+                        no_scrollbar=True,
+                        pos=[0, 0],
+                        width=-1,
+                        height=-1,
+                        no_collapse=True,
+                        no_close=True,
+                        no_title_bar=True,
+                        no_focus_on_appearing=True,
+                        autosize=False):
 
-        # Read from file button
-        btn_read = tk.Button(master=frm_control,
-                             width=20,
-                             height=3,
-                             text="Read data from file",
-                             font=self.widget_font,
-                             borderwidth=0,
-                             command=self.open_file)
-        btn_read.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+            dpg.set_viewport_resize_callback(callback=self.on_resize)
+            #Left Window
+            with dpg.child(label="Main Window",
+                           id=self.main_window,
+                           pos=[0, 0],
+                           menubar=True,
+                           width=self.vp_size["width"] - 300 + 2,
+                           autosize_x=False,
+                           autosize_y=True,
+                           border=False,
+                           height=self.vp_size["height"],
+                           horizontal_scrollbar=True):
+                with dpg.plot(label="Raw Image",
+                              no_menus=True,
+                              equal_aspects=True,
+                              id=self.plot,
+                              height=-1,
+                              width=-1):
+                    self.xx = dpg.add_plot_axis(label="Width",
+                                                axis=1000,
+                                                no_gridlines=False,
+                                                lock_min=False)
 
-        # Color format option button
-        option_list = list(AVAILABLE_FORMATS.keys())
-        self.v = tk.StringVar()
+                    self.yy = dpg.add_plot_axis(label="Height",
+                                                axis=1001,
+                                                no_gridlines=False,
+                                                lock_min=False)
+                #Add menu bar
+                with dpg.menu_bar():
+                    dpg.add_menu(label="File", id=self.menu_bar_file)
+                #Add menu bar items
+                dpg.add_menu_item(
+                    label="Open",
+                    parent=self.menu_bar_file,
+                    callback=lambda: dpg.show_item(self.file_selector_read))
+                dpg.add_menu_item(
+                    label="Export image",
+                    parent=self.menu_bar_file,
+                    enabled=False,
+                    id=self.menu_bar_export,
+                    callback=lambda: dpg.show_item(self.file_selector_export))
+            #Right Window
+            with dpg.child(label="Setings",
+                           id=self.settings_window,
+                           height=self.vp_size["height"],
+                           width=300,
+                           autosize_x=True,
+                           autosize_y=True,
+                           border=False,
+                           pos=[self.vp_size["width"] - 300, 0]):
+                with dpg.group(label="Up-group", horizontal=False, pos=[0,
+                                                                        25]):
 
-        for index in range(0, len(option_list)):
-            if args["color_format"] == option_list[index]:
-                self.v.set(option_list[index])
+                    option_list = list(AVAILABLE_FORMATS.keys())
+                    for index in range(0, len(option_list)):
+                        if args["color_format"] == option_list[index]:
+                            self.color_format = option_list[index]
 
-        self.v.trace("w", lambda x, y, z: self.update_image())
-        opt_color_formats = tk.OptionMenu(frm_control, self.v, *option_list)
-        opt_color_formats.config(width=18,
-                                 height=2,
-                                 font=self.widget_font,
-                                 borderwidth=0)
-        opt_color_formats.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+                    dpg.add_text(default_value="Color format", indent=5)
+                    self.combo = dpg.add_combo(
+                        label="Color format",
+                        default_value=self.color_format,
+                        items=list(option_list),
+                        indent=5,
+                        callback=self.format_color,
+                        height_mode=dpg.mvComboHeight_Regular,
+                        width=-1)
 
-        # Color description button
-        btn_color_description = tk.Button(master=frm_control,
-                                          width=20,
-                                          height=3,
-                                          text="Color format descripiton",
-                                          font=self.widget_font,
-                                          borderwidth=0,
-                                          command=self.show_color_info_popup)
-        btn_color_description.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+                    #Color description button
+                    self.color_info_text = dpg.add_text(
+                        label="Color format description", indent=5)
+                    self.update_color_info()
 
-        # Export image button
-        btn_export_image = tk.Button(master=frm_control,
-                                     width=20,
-                                     height=3,
-                                     text="Export image",
-                                     font=self.widget_font,
-                                     borderwidth=0,
-                                     command=self.file_save)
-        btn_export_image.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+                    #Resolution change entry
+                    with dpg.group(label="Resolution-change-group",
+                                   horizontal=False):
+                        self.width_setter = dpg.add_input_int(
+                            label="Width",
+                            min_value=1,
+                            default_value=0,
+                            max_value=4000,
+                            indent=5,
+                            callback=self.update_width,
+                            on_enter=True)
 
-        # Resolution change entry
-        frm_size = tk.Frame(master=frm_control,
-                            width=20,
-                            height=3,
-                            bg=self.bg_color)
+                        self.height_setter = dpg.add_input_int(label="Height",
+                                                               min_value=0,
+                                                               indent=5,
+                                                               default_value=0,
+                                                               readonly=True)
 
-        frm_width = tk.Frame(master=frm_size, width=10)
-        text_width = tk.Label(master=frm_width,
-                              text="Width",
-                              bg=self.bg_color,
-                              font=self.widget_font)
-        text_width.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
-        frm_width.pack(fill=tk.BOTH, side=tk.LEFT, expand=True, padx=2, pady=5)
-
-        frm_height = tk.Frame(master=frm_size, width=10)
-        text_height = tk.Label(master=frm_height,
-                               text="Height\n(Read only)",
-                               bg=self.bg_color,
-                               font=self.widget_font)
-        text_height.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
-        frm_height.pack(fill=tk.BOTH,
-                        side=tk.LEFT,
-                        expand=True,
-                        padx=2,
-                        pady=5)
-
-        if self.path_to_File is None:
-            self.var_width = tk.IntVar(value=800)
-            self.var_height = tk.IntVar(value=0)
-        else:
-            self.var_width = tk.IntVar(value=self.canvas.imwidth)
-            self.var_height = tk.IntVar(value=self.canvas.imheight)
-
-        validator = frm_width.register(lambda x: x.isdigit() or not x)
-        self.ent_width = tk.Spinbox(master=frm_width,
-                                    width=10,
-                                    font=self.widget_font,
-                                    from_=1,
-                                    to=1e6,
-                                    validate=tk.ALL,
-                                    validatecommand=(validator, '%P'),
-                                    textvariable=self.var_width)
-        self.ent_width.bind('<Return>', (lambda _: self.update_width()))
-
-        self.ent_height = tk.Entry(master=frm_height,
-                                   width=10,
-                                   font=self.widget_font,
-                                   background=self.bg_color,
-                                   textvariable=self.var_height)
-        self.ent_height.configure(state='readonly')
-
-        self.ent_height.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
-        self.ent_width.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
-        frm_size.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        # Anti-aliasing checkbox
-        self.antialiasing = tk.BooleanVar()
-        chk_antialiasing = tk.Checkbutton(master=frm_control,
-                                          width=20,
-                                          height=3,
-                                          text="Anti-aliasing",
-                                          font=self.widget_font,
-                                          borderwidth=0,
-                                          variable=self.antialiasing,
-                                          command=self.set_antialiasing)
-        chk_antialiasing.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        # Warning label
-        self.warning_text = tk.StringVar()
-        label_warning = tk.Label(master=frm_control,
-                                 textvariable=self.warning_text,
-                                 fg="#FF0000",
-                                 bg=self.bg_color,
-                                 font=self.widget_font)
-        label_warning.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
+                    dpg.set_item_height(self.viewport_window, 800)
+                    dpg.set_item_width(self.viewport_window, 1200)
+                    if self.path_to_File != None:
+                        self.update_image(fit_image=True)

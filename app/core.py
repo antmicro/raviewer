@@ -16,8 +16,8 @@ def load_image(file_path, color_format, width):
         print(type(e).__name__, e)
 
     image = parser.parse(image.data_buffer,
-                         determine_color_format(color_format), resolution[0],
-                         resolution[1])
+                         determine_color_format(color_format), width)
+
     return image
 
 
