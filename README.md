@@ -1,8 +1,10 @@
-# Raw image data previewer
+# Raviewer
 
-Raw image data previewer is an open-source utility dedicated to parsing and displaying binary data acquired straight from a camera.
+Copyright (c) 2021 [Antmicro](https://www.antmicro.com)
 
-![Main window](docs/img/ridp-1.png)
+Raviewer is an open-source utility dedicated to parsing and displaying binary data acquired straight from a camera.
+
+![Main window](docs/img/raviewer.png)
 
 This simple utility provides features like:
 
@@ -17,28 +19,29 @@ This simple utility provides features like:
 
 ## Requirements
 
-* Python >=v3.9
+* Python >= v3.9
 * numpy
 * opencv
 * PIL
+* dearpygui == 0.8.64
 
 ## Installation
 
-### Manjaro Linux
+### Arch Linux
 
 ```bash
 sudo pacman -Sy python-pip git
-git clone https://github.com/antmicro-labs/raw-image-data-previewer.git
-cd raw-image-data-previewer
+git clone https://github.com/antmicro/raviewer.git
+cd raviewer
 pip install -r requirements.txt
 ```
 
-### Ubuntu 20.04
+### Debian
 
 ```bash
 sudo apt-get install python3-pip git python3-pil.imagetk
-git clone https://github.com/antmicro-labs/raw-image-data-previewer.git
-cd raw-image-data-previewer
+git clone https://github.com/antmicro/raviewer.git
+cd raviewer
 python3 -m pip install -r requirements.txt
 ```
 
@@ -47,14 +50,14 @@ python3 -m pip install -r requirements.txt
 To start an empty GUI (without any data loaded) use:
 
 ```bash
-cd raw-image-data-previewer
+cd raviewer
 python3 -m app
 ```
 
 You can also start the GUI with already loaded data and parameters (like width and color format). More information about available arguments can be found in command-line help:
 
 ```bash
-cd raw-image-data-previewer
+cd raviewer
 python3 -m app --help
 ```
 
@@ -78,13 +81,6 @@ To create a new color format, simply:
 2. Provide parsing and displaying function by extending `AbstractParser` found in `common.py` or by using an existing one.
     * If you choose to implement a new one remember that `parse()` should return one dimensional `ndarray` with values read from the binary file. `display()` on the other hand should return RGB-formatted 3-dimensional `ndarray` consisting of original color format values converted to RGB24.
 3. The utility provides proper parser by checking color format parameters (mainly `PixelFormat`), so make sure, that your new color format has a valid translation of parameters to one of the parsers (this functionality can be found in `app/parser/factory.py`).
-
-## Contributors
-
-* Błażej Ułanowicz ([blazejulanowicz](https://github.com/blazejulanowicz))
-* Dawid Dopart ([DopartDawid](https://github.com/DopartDawid))
-* Maciej Tylak ([Ty7ak](https://github.com/Ty7ak))
-* Maciej Franikowski ([MaciejFranikowski](https://github.com/MaciejFranikowski))
 
 # License
 
