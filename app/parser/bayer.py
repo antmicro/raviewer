@@ -54,17 +54,43 @@ class ParserBayerRG(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // width)
 
-    def get_displayable(self, image):
+    def get_displayable(self, image, channels):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
         """
-
         return_data = numpy.reshape(
             image.processed_data, (image.height, image.width)).astype('float')
 
+        #Set RGGB channels
+        if not channels["r_y"]:
+            return_data[0::2, 0::2] = 0
+        if not channels["g_u"]:
+            return_data[1::2, 0::2] = 0
+            return_data[0::2, 1::2] = 0
+        if not channels["b_v"]:
+            return_data[1::2, 1::2] = 0
+
         return_data[:, :] = (255 * return_data[:, :]) / (
             2**image.color_format.bits_per_components[0] - 1)
-
         # Converting from Bayer BG (but data is Bayer RG) to RGB -> THIS IS A BUG IN OPENCV
         return cv.cvtColor(return_data.astype('uint8'), cv.COLOR_BAYER_BG2RGB)
+
+    def get_pixel_raw_components(self, image, row, column, index):
+        #Bayer interpolation
+        return image.processed_data[index:index + 1]
+
+    def crop_image2rawformat(self, img, up_row, down_row, left_column,
+                             right_column):
+        max_value = max(img.color_format.bits_per_components)
+        curr_dtype = None
+        if max_value <= 8:
+            curr_dtype = '>u1'
+        else:
+            curr_dtype = '>u2'
+        reshaped_image = numpy.reshape(
+            img.processed_data.astype(numpy.dtype(curr_dtype)),
+            (img.height, img.width))
+        truncated_image = reshaped_image[up_row:down_row,
+                                         left_column:right_column]
+        return truncated_image

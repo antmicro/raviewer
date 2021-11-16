@@ -42,7 +42,7 @@ class ParserGrayscale(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // width)
 
-    def get_displayable(self, image):
+    def get_displayable(self, image, channels):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
@@ -58,3 +58,14 @@ class ParserGrayscale(AbstractParser):
         return_data = cv.cvtColor(data_array.astype('uint8'),
                                   cv.COLOR_GRAY2RGB)
         return return_data
+
+    def get_pixel_raw_components(self, image, row, column, index):
+        return image.processed_data[index:index + 1]
+
+    def crop_image2rawformat(self, img, up_row, down_row, left_column,
+                             right_column):
+        reshaped_image = numpy.reshape(img.processed_data.astype(numpy.byte),
+                                       (img.height, img.width))
+        truncated_image = reshaped_image[up_row:down_row,
+                                         left_column:right_column]
+        return truncated_image

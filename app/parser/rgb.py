@@ -9,12 +9,11 @@ import numpy
 
 class ParserRGBA(AbstractParser):
     """An RGB/BGR implementation of a parser - ALPHA LAST"""
-    def get_displayable(self, image):
+    def get_displayable(self, image, channels):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
         """
-
         return_data = numpy.reshape(image.processed_data.astype('float64'),
                                     (image.height, image.width, 4))
 
@@ -29,7 +28,28 @@ class ParserRGBA(AbstractParser):
 
         if image.color_format.pixel_format == PixelFormat.BGRA:
             return_data = return_data[:, :, [2, 1, 0, 3]]
+
+        #Set RGB channels
+        if not channels["r_y"]:
+            return_data[:, :, 0] = 0
+        if not channels["g_u"]:
+            return_data[:, :, 1] = 0
+        if not channels["b_v"]:
+            return_data[:, :, 2] = 0
         return return_data.astype('uint8')
+
+    def get_pixel_raw_components(self, image, row, column, index):
+        step_bytes = len(image.color_format._bpcs)
+        return image.processed_data[index * step_bytes:index * step_bytes +
+                                    step_bytes]
+
+    def crop_image2rawformat(self, img, up_row, down_row, left_column,
+                             right_column):
+        reshaped_image = numpy.reshape(img.processed_data.astype(numpy.byte),
+                                       (img.height, img.width, 4))
+        truncated_image = reshaped_image[up_row:down_row,
+                                         left_column:right_column]
+        return truncated_image
 
 
 class ParserARGB(AbstractParser):
@@ -45,7 +65,6 @@ class ParserARGB(AbstractParser):
 
         Returns: instance of Image processed to chosen format
         """
-
         max_value = max(color_format.bits_per_components)
         curr_dtype = None
         if max_value <= 8:
@@ -90,7 +109,7 @@ class ParserARGB(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // (width * 4))
 
-    def get_displayable(self, image):
+    def get_displayable(self, image, channels):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
@@ -108,4 +127,25 @@ class ParserARGB(AbstractParser):
         else:
             return_data = return_data[:, :, [1, 2, 3, 0]]
 
+        #Set ARGB channels
+        if not channels["r_y"]:
+            return_data[:, :, 0] = 0
+        if not channels["g_u"]:
+            return_data[:, :, 1] = 0
+        if not channels["b_v"]:
+            return_data[:, :, 2] = 0
+
         return return_data.astype('uint8')
+
+    def get_pixel_raw_components(self, image, row, column, index):
+        step_bytes = len(image.color_format._bpcs)
+        return image.processed_data[index * step_bytes:index * step_bytes +
+                                    step_bytes]
+
+    def crop_image2rawformat(self, img, up_row, down_row, left_column,
+                             right_column):
+        reshaped_image = numpy.reshape(img.processed_data.astype(numpy.byte),
+                                       (img.height, img.width, 4))
+        truncated_image = reshaped_image[up_row:down_row,
+                                         left_column:right_column]
+        return truncated_image
