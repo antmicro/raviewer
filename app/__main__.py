@@ -4,9 +4,10 @@ import cv2 as cv
 
 import argparse
 import os
-from .core import (save_image_as_file, get_displayable, load_image)
+from .core import (get_displayable, load_image)
+from .utils import save_image_as_file
 from .image.color_format import AVAILABLE_FORMATS
-from .gui import MainWindow
+from .gui_init import AppInit
 
 parser = argparse.ArgumentParser(
     prog=__package__,
@@ -43,7 +44,7 @@ if isinstance(args["FILE_PATH"], str):
         raise Exception("Given path does not lead to a file")
 
 if args["export"] is None:
-    app = MainWindow(args)
+    app = AppInit(args)
     app.run_gui()
 else:
     img = load_image(args["FILE_PATH"], args["color_format"], args["width"])

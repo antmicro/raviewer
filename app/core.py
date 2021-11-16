@@ -1,10 +1,8 @@
-"""Main functionalities."""
+"""Main format functionalities dispatcher based on factory pattern."""
 
 from .image.image import (Image, RawDataContainer)
-from .image.color_format import AVAILABLE_FORMATS
 from .parser.factory import ParserFactory
-import cv2 as cv
-import os
+from .utils import determine_color_format
 
 
 def load_image(file_path, color_format, width):
@@ -15,42 +13,51 @@ def load_image(file_path, color_format, width):
     except Exception as e:
         print(type(e).__name__, e)
 
+    #Stride image
     image = parser.parse(image.data_buffer,
                          determine_color_format(color_format), width)
 
     return image
 
 
-def get_displayable(image):
+def get_displayable(image, channels={"r_y": True, "g_u": True, "b_v": True}):
 
     if image.color_format is None:
         raise Exception("Image should be already parsed!")
     parser = ParserFactory.create_object(image.color_format)
 
-    return parser.get_displayable(image)
+    return parser.get_displayable(image, channels)
 
 
-def determine_color_format(format_string):
-
-    if format_string in AVAILABLE_FORMATS.keys():
-        return AVAILABLE_FORMATS[format_string]
-    else:
-        raise NotImplementedError(
-            "Provided string is not name of supported format.")
+"""Resolve picked pixel's raw integrants."""
 
 
-def save_image_as_file(image, file_path):
+def get_pixel_raw_components(image: Image, row: int, column: int,
+                             pixel_index: int):
+    """
+    Keyword arguments:
+        Image: Image instance
+        row: row number on the plot
+        column: column number on the plot
+        pixel_index: relative pixel position from the first one
+    """
+    parser = ParserFactory.create_object(image.color_format)
+    return parser.get_pixel_raw_components(image, row, column, pixel_index)
 
-    directory = file_path.replace('\\', '/')
-    if directory.rfind('/') == -1:
-        directory = './'
-    else:
-        directory = directory[:directory.rfind("/")]
 
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
+"""Crop selected area to raw format."""
 
-    try:
-        cv.imwrite(file_path, cv.cvtColor(image, cv.COLOR_RGB2BGR))
-    except Exception as e:
-        print(type(e).__name__, e)
+
+def crop_image2rawformat(image: Image, up_row: int, down_row: int,
+                         left_column: int, right_column: int):
+    """
+    Keyword arguments:
+        Image: Image instance 
+        up_row:  position of up row within a selected area
+        down_row: position of down row within a selected area
+        left_column: position of left column within a selected area
+        right_column: position of right column within a selected area.   
+    """
+    parser = ParserFactory.create_object(image.color_format)
+    return parser.crop_image2rawformat(image, up_row, down_row, left_column,
+                                       right_column)
