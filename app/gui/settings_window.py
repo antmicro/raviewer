@@ -1,9 +1,9 @@
 """Representation of  right settings window in application's gui."""
 import dearpygui.dearpygui as dpg
 
-from .items_ids import *
-from .image.color_format import AVAILABLE_FORMATS
-from .events import Events
+from ..items_ids import *
+from ..image.color_format import AVAILABLE_FORMATS
+from ..src.events import Events
 
 
 class SettingsWindow():
@@ -27,6 +27,7 @@ class SettingsWindow():
                        autosize_y=True,
                        border=False,
                        parent=items["windows"]["viewport"],
+                       horizontal_scrollbar=True,
                        pos=[self.vp_size["width"] - 300, 0]):
             with dpg.group(label="Up-group", horizontal=False, pos=[0, 25]):
                 dpg.add_text(default_value="Color format",
@@ -35,8 +36,7 @@ class SettingsWindow():
 
                 option_list = list(AVAILABLE_FORMATS.keys())
 
-                dpg.add_combo(label="Color format",
-                              id=items["buttons"]["combo"],
+                dpg.add_combo(id=items["buttons"]["combo"],
                               default_value=self.events.color_format,
                               items=list(option_list),
                               indent=5,
@@ -56,6 +56,7 @@ class SettingsWindow():
                         id=items["buttons"]["width_setter"],
                         label="Width",
                         min_value=1,
+                        width=170,
                         default_value=0,
                         max_value=4000,
                         indent=5,
@@ -66,28 +67,34 @@ class SettingsWindow():
                                       id=items["buttons"]["height_setter"],
                                       min_value=0,
                                       indent=5,
+                                      width=170,
                                       default_value=0,
                                       readonly=True)
 
                 dpg.add_separator()
-                dpg.add_color_picker(label="Color-picker",
+                dpg.add_color_picker(label="Color picker",
                                      id=items["buttons"]["color_picker"],
                                      no_alpha=True,
+                                     picker_mode=dpg.mvColorPicker_bar,
+                                     no_side_preview=True,
+                                     width=170,
+                                     no_small_preview=True,
+                                     no_label=True,
                                      indent=5)
                 with dpg.group(label="Resolution-change-group",
                                horizontal=True):
                     dpg.add_button(label=" Y:  0 ",
-                                   width=58,
+                                   width=51,
                                    id=items["buttons"]["ychannel"],
                                    indent=5)
                     dpg.add_button(label=" U:  0 ",
-                                   width=58,
+                                   width=51,
                                    id=items["buttons"]["uchannel"])
                     dpg.add_button(label=" V:  0 ",
-                                   width=58,
+                                   width=51,
                                    id=items["buttons"]["vchannel"])
                 dpg.add_separator()
-                dpg.add_text(default_value="Available channels mask: ",
+                dpg.add_text(default_value="Available channels mask",
                              indent=5)
                 with dpg.group(horizontal=True):
                     dpg.add_checkbox(label="R",
@@ -106,17 +113,16 @@ class SettingsWindow():
 
                 dpg.set_item_height(items["windows"]["viewport"], 800)
                 dpg.set_item_width(items["windows"]["viewport"], 1200)
-
-                dpg.add_text(default_value="Selected image resolution: 0x0",
-                             indent=5,
-                             show=True,
-                             id=items["static_text"]["image_resolution"])
                 dpg.add_separator()
+                dpg.add_text(default_value="Add/Skip data at the start of the data",
+                             indent=5,
+                             show=True)
                 with dpg.group(horizontal=True):
                     dpg.add_text(indent=5, default_value="Count:")
                     dpg.add_input_int(width=130,
-                                      min_value=0,
+                                      min_value=-1000000,
                                       max_value=1000000,
+                                      callback=self.events.align,
                                       id=items["buttons"]["nnumber"])
                 with dpg.group(horizontal=True):
                     dpg.add_text(indent=5, default_value="Value:")
@@ -124,23 +130,4 @@ class SettingsWindow():
                                       min_value=0,
                                       max_value=255,
                                       id=items["buttons"]["nvalues"])
-                with dpg.group(horizontal=True):
-                    dpg.add_text(indent=5, default_value="Mode:")
-                    dpg.add_radio_button(("Append", "Remove"),
-                                         default_value="Append",
-                                         horizontal=True,
-                                         id=items["buttons"]["append_remove"])
-                with dpg.theme(id="theme"):
-                    dpg.add_theme_color(dpg.mvThemeCol_Button, (200, 0, 0))
-                    dpg.add_theme_color(dpg.mvThemeCol_ButtonActive,
-                                        (250, 0, 0))
-                    dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered,
-                                        (220, 0, 0))
-                    dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 9)
-                    dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 6, 2)
-
-                dpg.add_button(label="Execute on image series",
-                               indent=5,
-                               callback=self.events.align)
-                dpg.set_item_theme(dpg.last_item(), "theme")
                 dpg.add_separator()

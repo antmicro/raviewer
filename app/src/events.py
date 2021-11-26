@@ -1,15 +1,15 @@
-"""Module containing every events description in application."""
+"""Module containing every event description in application."""
 
 import numpy as np
 import array
 import dearpygui.dearpygui as dpg
 
-from .items_ids import *
+from ..items_ids import *
 from .core import (load_image, get_displayable, get_pixel_raw_components,
                    crop_image2rawformat)
-from .parser.factory import ParserFactory
-from .image.color_format import PixelFormat
-from .image.color_format import AVAILABLE_FORMATS
+from ..parser.factory import ParserFactory
+from ..image.color_format import PixelFormat
+from ..image.color_format import AVAILABLE_FORMATS
 from PIL import Image
 from .utils import (RGBtoYUV, determine_color_format, save_image_as_file)
 from .hexviewer import Hexviewer
@@ -73,7 +73,7 @@ class Plot_events(Base_img):
         color_format = determine_color_format(Base_img.color_format)
         custom_text= "Pixel format name:  " +   color_format.name + "\nEndianness:  " \
                         + str(color_format.endianness)[11:] + "\nPixel format:  " + str(color_format.pixel_format)[12:]+\
-                        "\nPixel plane:  " + str(color_format.pixel_plane)[11:] + "\nBits per components:  " + str(color_format.bits_per_components)
+                        "\nPixel plane:  " + str(color_format.pixel_plane)[11:] + "\nBits per component:  " + str(color_format.bits_per_components)
         dpg.set_value(items["static_text"]["color_description"], custom_text)
 
     def align_image(self):
@@ -81,26 +81,24 @@ class Plot_events(Base_img):
         nvalues = dpg.get_value(items["buttons"]["nvalues"])
 
         raw_data = np.array(Base_img.img.data_buffer)
-        if dpg.get_value(items["buttons"]["append_remove"]) == "Append":
+        if nbytes > 0:
             raw_data = np.insert(raw_data, 0, [nvalues] * nbytes)
         else:
-            if nbytes > len(raw_data):
+            if abs(nbytes) > len(raw_data):
                 return
-            raw_data = raw_data[nbytes:]
+            raw_data = raw_data[abs(nbytes):]
         Base_img.img.data_buffer = raw_data.tobytes()
 
     def update_image(self, fit_image, channels=None, align=None):
-        if not align:
-            Base_img.img = load_image(Base_img.path_to_File,
-                                      Base_img.color_format, Base_img.width)
-        else:
+        Base_img.img = load_image(Base_img.path_to_File,
+                                  Base_img.color_format, Base_img.width)
+        if align:
+            self.align_image()
             parser = ParserFactory.create_object(
                 determine_color_format(Base_img.color_format))
-            self.align_image()
             Base_img.img = parser.parse(
                 Base_img.img.data_buffer,
                 determine_color_format(Base_img.color_format), Base_img.width)
-
         self.change_channel_labels()
         Base_img.img_postchanneled = get_displayable(
             Base_img.img, {
@@ -108,12 +106,8 @@ class Plot_events(Base_img):
                 "g_u": dpg.get_value(items["buttons"]["g_uchannel"]),
                 "b_v": dpg.get_value(items["buttons"]["b_vchannel"])
             })
-
-        img_arr = Image.fromarray(Base_img.img_postchanneled)
-        img_arr.resize((int(Base_img.img.height), int(Base_img.img.width)))
-        dpg_image = np.frombuffer(img_arr.tobytes(), dtype=np.uint8) / 255.0
+        dpg_image = np.frombuffer(Base_img.img_postchanneled.tobytes(), dtype=np.uint8) / 255.0 #BUG
         Base_img.raw_data = array.array('f', dpg_image)
-
         dpg.set_value(items["buttons"]["height_setter"], Base_img.img.height)
         dpg.set_value(items["buttons"]["width_setter"], Base_img.img.width)
 
@@ -141,9 +135,8 @@ class Plot_events(Base_img):
 
         dpg.set_item_label(items["plot"]["main_plot"], Base_img.path_to_File)
 
-        if items["windows"]["hex_tab"] != None:
-            if dpg.is_item_shown(items["windows"]["hex_tab"]):
-                self.show_hex_format()
+        if dpg.does_item_exist(items["windows"]["hex_tab"]) or dpg.get_value(items["menu_bar"]["hex"]):
+            self.show_hex_format()
 
         if dpg.does_item_exist(items["plot"]["annotation"]):
             dpg.delete_item(items["plot"]["annotation"])
@@ -321,10 +314,11 @@ class Plot_events(Base_img):
                             Base_img.down_row = Base_img.img.height - int(
                                 plot_mouse_y)
                 Base_img.selected_part = [x_resolution, y_resolution]
-                dpg.set_value(
-                    items["static_text"]["image_resolution"],
-                    "Selected image resolution: " + str(x_resolution) + "x" +
-                    str(y_resolution))
+                if x_resolution > 0 and y_resolution > 0:
+                    dpg.set_value(
+                        items["static_text"]["image_resolution"],
+                        "Selected image resolution: " + str(x_resolution) + "x" +
+                        str(y_resolution))
 
     def change_channel_labels(self):
         if Base_img.img.color_format.pixel_format in [
@@ -334,6 +328,10 @@ class Plot_events(Base_img):
             dpg.set_item_label(items["buttons"]["r_ychannel"], "Y")
             dpg.set_item_label(items["buttons"]["g_uchannel"], "U")
             dpg.set_item_label(items["buttons"]["b_vchannel"], "V")
+        elif Base_img.img.color_format.pixel_format == PixelFormat.MONO:
+            dpg.set_item_label(items["buttons"]["r_ychannel"], "None")
+            dpg.set_item_label(items["buttons"]["g_uchannel"], "None")
+            dpg.set_item_label(items["buttons"]["b_vchannel"], "None")
         else:
             dpg.set_item_label(items["buttons"]["r_ychannel"], "R")
             dpg.set_item_label(items["buttons"]["g_uchannel"], "G")
@@ -348,25 +346,51 @@ class Hexviewer_events(Base_img):
         pass
 
     def show_hex_format(self):
+        status=True
+        status = self.resolve_status()
+        if status:
+            return
+        else:
+            self.create_hexview()
+
+    def create_hexview(self):
+        self.hex_format = Hexviewer(Base_img.path_to_File, 16) 
+        self.hex_format.open_file()
+        #Create table with columns
+        self.create_table()
+        #Start processing data
+        self.hex_format.processed_content() 
+
+    def resolve_status(self):
         if Base_img.img != None:
-            if items["windows"]["hex_tab"] == None:
+            if not dpg.get_value(items["menu_bar"]["hex"]):
+                dpg.delete_item(items["windows"]["hex_mode"])
+                dpg.delete_item(items["windows"]["hex_tab"])
+                return True
+            if not dpg.does_item_exist(items["windows"]["hex_tab"]):
                 self.create_tab()
-            if dpg.is_item_shown(
-                    items["windows"]["hex_tab"]
-            ) and not self.hex_format.filename != Base_img.path_to_File:
-                return
-            if not dpg.is_item_shown(
-                    items["windows"]["hex_tab"]
-            ) and self.hex_format.filename == Base_img.path_to_File:
+            if dpg.is_item_shown(items["windows"]["hex_tab"]) and not self.hex_format.filename != Base_img.path_to_File:
+                if(dpg.get_value(items["windows"]["hex_tab"])):
+                    return True
+            if not dpg.is_item_shown(items["windows"]["hex_tab"]) and self.hex_format.filename == Base_img.path_to_File:
                 dpg.show_item(items["windows"]["hex_tab"])
                 if self.hex_format.status:
-                    return
+                    return True
             if dpg.does_item_exist(items["windows"]["hex_mode"]):
                 dpg.delete_item(items["windows"]["hex_mode"])
-            self.hex_format = Hexviewer(Base_img.path_to_File, 16)
-            self.hex_format.open_file()
-            dpg.add_table(parent=items["windows"]["hex_tab"],
-                          id=items["windows"]["hex_mode"],
+            dpg.show_item(items["windows"]["hex_tab"])
+            return False
+        return True
+
+    def create_tab(self):
+        items["windows"]["hex_tab"] = dpg.generate_uuid()
+        dpg.add_tab(label="Hexdump",
+                    parent=items["plot"]["tab"],
+                    id=items["windows"]["hex_tab"])
+
+    def create_table(self):
+        dpg.add_table(parent=items["windows"]["hex_tab"],
+                        id=items["windows"]["hex_mode"],
                           header_row=True,
                           no_host_extendX=False,
                           delay_search=True,
@@ -382,24 +406,12 @@ class Hexviewer_events(Base_img):
                           scrollX=True,
                           precise_widths=True,
                           resizable=True)
-            dpg.add_table_column(label="Offset(h)",
-                                 parent=items["windows"]["hex_mode"])
-            hex_offsets = ""
-            dpg.add_table_column(label=hex_offsets,
-                                 parent=items["windows"]["hex_mode"])
-            dpg.add_table_column(label="ASCII",
-                                 width=10,
-                                 parent=items["windows"]["hex_mode"])
-            dpg.show_item(items["windows"]["hex_tab"])
-            self.hex_format.processed_content()
-
-    def create_tab(self):
-        items["windows"]["hex_tab"] = dpg.generate_uuid()
-        dpg.add_tab(label="Hexadecimal",
-                    closable=True,
-                    parent=items["plot"]["tab"],
-                    id=items["windows"]["hex_tab"])
-
+        dpg.add_table_column(label="Offset(h)",
+                             parent=items["windows"]["hex_mode"])
+        dpg.add_table_column(label="Dump",parent=items["windows"]["hex_mode"])
+        dpg.add_table_column(label="ASCII",
+                            width=10,
+                            parent=items["windows"]["hex_mode"])
 
 class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     """Events general purpose and inherited from Hexviewer_events, Plot_events"""
@@ -459,3 +471,6 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     def set_channels(self):
         if Base_img.img != None:
             Plot_events.update_image(self, fit_image=False)
+
+    def show_gui_metrics(self):
+        dpg.show_tool(dpg.mvTool_Metrics)

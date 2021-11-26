@@ -1,7 +1,7 @@
 """Main format functionalities dispatcher based on factory pattern."""
 
-from .image.image import (Image, RawDataContainer)
-from .parser.factory import ParserFactory
+from ..image.image import (Image, RawDataContainer)
+from ..parser.factory import ParserFactory
 from .utils import determine_color_format
 
 

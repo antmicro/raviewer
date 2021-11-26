@@ -1,10 +1,11 @@
 """Inits the widgets/items building process and parses arguments."""
 import dearpygui.dearpygui as dpg
 
-from .items_ids import *
+from ..items_ids import *
 from .main_window import MainWindow
 from .settings_window import SettingsWindow
-from .events import Events
+from ..src.events import Events
+from ..styles_config import *
 
 
 class AppInit():
@@ -59,9 +60,25 @@ class AppInit():
                              id=items["file_selector"]["export_raw"]):
             pass
 
+    def init_mouse_handlers(self):
+            with dpg.handler_registry():
+                dpg.add_mouse_click_handler(
+                    callback=self.events.on_mouse_release,
+                    id=items["registries"]
+                    ["add_mouse_click_handler"],
+                    button=dpg.mvMouseButton_Left)
+                dpg.add_mouse_drag_handler(
+                    button=dpg.mvMouseButton_Middle,
+                    callback=self.events.on_image_drag)
+                dpg.add_mouse_click_handler(
+                    button=dpg.mvMouseButton_Middle,
+                    callback=self.events.on_image_down)
+
+    def init_styles(self):
+        pass
+
     def create_gui_widgets(self, args):
         self.init_viewport_spec()
-        self.init_file_dialogs()
         dpg.set_viewport_resize_callback(callback=self.on_resize)
 
         main_window = MainWindow(self.vp_size)
@@ -69,3 +86,7 @@ class AppInit():
 
         settings_window = SettingsWindow(self.vp_size, args)
         settings_window.create_widgets()
+
+        self.init_styles()
+        self.init_file_dialogs()
+        self.init_mouse_handlers()

@@ -2,7 +2,7 @@
 import numpy as np
 import os
 import cv2
-from .image.color_format import AVAILABLE_FORMATS
+from ..image.color_format import AVAILABLE_FORMATS
 """Convert RGB to YUV format values."""
 
 

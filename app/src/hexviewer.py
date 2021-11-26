@@ -3,7 +3,7 @@
 import dearpygui.dearpygui as dpg
 import binascii
 
-from .items_ids import *
+from ..items_ids import *
 
 
 class Hexviewer:
@@ -58,8 +58,8 @@ class Hexviewer:
     def processed_content(self):
         file_chunk = self.file_content.read(64)
         while len(file_chunk) != 0:
-            #Return while processing if we hide window
-            if not dpg.is_item_shown(items["windows"]["hex_tab"]):
+            #Return while processing if we hided window or unchecked tab
+            if not (dpg.is_item_shown(items["windows"]["hex_tab"]) and dpg.get_value(items["menu_bar"]["hex"])):
                 return
             with dpg.table_row(parent=items["windows"]["hex_mode"]):
                 dpg.add_text(self.form_offset(self.offset),
