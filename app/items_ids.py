@@ -40,6 +40,10 @@ items = {
         "export_tab": dpg.generate_uuid(),
         "file": dpg.generate_uuid(),
         "mode": dpg.generate_uuid(),
+        "hex": dpg.generate_uuid(),
+        "tools": dpg.generate_uuid(),
+        "metrics": dpg.generate_uuid(),
+        "font": dpg.generate_uuid(),
     },
     "texture": {
         "raw": None,
@@ -56,5 +60,20 @@ items = {
         "export": dpg.generate_uuid(),
         "export_image": dpg.generate_uuid(),
         "export_raw": dpg.generate_uuid(),
+    },
+    "fonts": {
+        "opensans_bold": dpg.generate_uuid(),
+        "opensans_bolditalic": dpg.generate_uuid(),
+        "opensans_extrabold": dpg.generate_uuid(),
+        "opensans_extrabolditalic": dpg.generate_uuid(),
+        "opensans_italic": dpg.generate_uuid(),
+        "opensans_light": dpg.generate_uuid(),
+        "opensans_lightitalic": dpg.generate_uuid(),
+        "opensans_regular": dpg.generate_uuid(),
+        "opensans_semibold": dpg.generate_uuid(),
+        "opensans_semibolditalic": dpg.generate_uuid(),
+    },
+    "theme": {
+        "global": dpg.generate_uuid(),
     },
 }
