@@ -4,16 +4,7 @@ Copyright (c) 2021 [Antmicro](https://www.antmicro.com)
 
 Raviewer is an open-source utility dedicated to parsing and displaying binary data acquired straight from a camera.
 
-![Main window](docs/img/raviewer.png)
-
-This simple utility provides features like:
-
-* previewing most used raw color formats
-    * RGB-like formats
-    * YUVs (packed, semiplanar, planar)
-    * Grayscales
-    * Bayer RGBs
-* exporting raw image data to more complex formats (ie. PNG, JPG)
+![Main window](resources/thumbnail/raviewer.png)
 
 # Installation
 
@@ -21,9 +12,10 @@ This simple utility provides features like:
 
 * Python >= v3.9
 * numpy
-* opencv
-* PIL
+* opencv-python
+* Pillow
 * dearpygui == 0.8.64
+* terminaltables
 
 ## Installation
 
@@ -31,18 +23,14 @@ This simple utility provides features like:
 
 ```bash
 sudo pacman -Sy python-pip git
-git clone https://github.com/antmicro/raviewer.git
-cd raviewer
-pip install -r requirements.txt
+pip install git+https://github.com/antmicro/raviewer.git
 ```
 
 ### Debian
 
 ```bash
 sudo apt-get install python3-pip git python3-pil.imagetk
-git clone https://github.com/antmicro/raviewer.git
-cd raviewer
-python3 -m pip install -r requirements.txt
+pip install git+https://github.com/antmicro/raviewer.git
 ```
 
 # Usage
@@ -50,21 +38,24 @@ python3 -m pip install -r requirements.txt
 To start an empty GUI (without any data loaded) use:
 
 ```bash
-cd raviewer
-python3 -m app
+raviewer
 ```
 
 You can also start the GUI with already loaded data and parameters (like width and color format). More information about available arguments can be found in command-line help:
 
 ```bash
-cd raviewer
-python3 -m app --help
+raviewer --help
 ```
 
-## Exporting images
+## Core Features
 
-The utility also provides a way to convert binary files containing image data to more complex formats (ie. PNG, JPG) without starting the grahpical interface.
-To use this option simply add the `--export` argument with the target filename with extension.
+* Hexadecimal preview mode
+* An option to append or remove n bytes from the beginning of the image series
+* Checkboxes controlling displayed channels
+* Convertion whole or selected part of image to more complex formats(JPEG, PNG) or raw data.
+* Terminal functionality
+* On click displaying raw data making up a pixel as decoded rgb and yuv
+* Theme menager adjusting font and theme preferences
 
 ## Supported formats information
 
@@ -76,11 +67,13 @@ Currently supported color formats and planned ones can be found [in the document
 
 Currently there are two classes that can describe color formats: `ColorFormat` and `SubsampledColorFormat` (found in `app/image/color_format.py`).
 To create a new color format, simply:
-
-1. Under `AVAILABLE_FORMATS` list in `color_format.py` add new instance of one of the color format classes with proper fields filled.
-2. Provide parsing and displaying function by extending `AbstractParser` found in `common.py` or by using an existing one.
-    * If you choose to implement a new one remember that `parse()` should return one dimensional `ndarray` with values read from the binary file. `display()` on the other hand should return RGB-formatted 3-dimensional `ndarray` consisting of original color format values converted to RGB24.
-3. The utility provides proper parser by checking color format parameters (mainly `PixelFormat`), so make sure, that your new color format has a valid translation of parameters to one of the parsers (this functionality can be found in `app/parser/factory.py`).
+#### *Step 1.*
+Under `AVAILABLE_FORMATS` list in `color_format.py` add new instance of one of the color format classes with proper fields filled.
+#### *Step 2.*
+Provide parsing and displaying function by extending `AbstractParser` found in `common.py` or by using an existing one.
+    If you choose to implement a new one remember that `parse()` should return one dimensional `ndarray` with values read from the binary file. `display()` on the other hand should return RGB-formatted 3-dimensional `ndarray` consisting of original color format values converted to RGB24.
+#### *Step 3.*
+The utility provides proper parser by checking color format parameters (mainly `PixelFormat`), so make sure, that your new color format has a valid translation of parameters to one of the parsers (this functionality can be found in `app/parser/factory.py`).
 
 # License
 
