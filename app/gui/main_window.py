@@ -20,7 +20,7 @@ class MainWindow():
     def create_widgets(self):
         with dpg.window(label="Main docker window",
                         no_move=True,
-                        id=items["windows"]["viewport"],
+                        tag=items["windows"]["viewport"],
                         no_resize=True,
                         no_scrollbar=True,
                         pos=[0, 0],
@@ -32,8 +32,8 @@ class MainWindow():
                         no_focus_on_appearing=True,
                         autosize=True):
 
-            with dpg.child(label="Main Window",
-                           id=items["windows"]["previewer"],
+            with dpg.child_window(label="Main Window",
+                           tag=items["windows"]["previewer"],
                            pos=[0, 0],
                            indent=0,
                            menubar=True,
@@ -44,14 +44,15 @@ class MainWindow():
                            height=self.vp_size["height"],
                            horizontal_scrollbar=True):
 
-                with dpg.tab_bar(id=items["plot"]["tab"]):
+                with dpg.tab_bar(tag=items["plot"]["tab"]):
                     with dpg.tab(label=" Preview", closable=False):
-                        dpg.add_text(default_value="Selected image resolution: 0x0",
+                        dpg.add_text(
+                            default_value="Selected image resolution: 0x0",
                             indent=5,
                             show=True,
-                            id=items["static_text"]["image_resolution"])
+                            tag=items["static_text"]["image_resolution"])
                         dpg.add_plot(label="Raw data",
-                                     id=items["plot"]["main_plot"],
+                                     tag=items["plot"]["main_plot"],
                                      no_menus=True,
                                      height=-1,
                                      crosshairs=True,
@@ -60,22 +61,21 @@ class MainWindow():
                                      width=-1)
                         dpg.add_plot_axis(label="Width",
                                           axis=1000,
-                                          id=items["plot"]["xaxis"],
+                                          tag=items["plot"]["xaxis"],
                                           no_gridlines=False,
                                           lock_min=False,
                                           parent=items["plot"]["main_plot"])
 
                         dpg.add_plot_axis(label="Height",
                                           axis=1001,
-                                          id=items["plot"]["yaxis"],
+                                          tag=items["plot"]["yaxis"],
                                           no_gridlines=False,
                                           lock_min=False,
                                           parent=items["plot"]["main_plot"])
 
                 with dpg.menu_bar():
-                    dpg.add_menu(label="File", id=items["menu_bar"]["file"])
-                    dpg.add_menu(label="View", id=items["menu_bar"]["mode"])
-                    dpg.add_menu(label="Preferences", id=items["menu_bar"]["tools"])
+                    dpg.add_menu(label="File", tag=items["menu_bar"]["file"])
+                    dpg.add_menu(label="View", tag=items["menu_bar"]["mode"])
 
                 dpg.add_menu_item(label="Open",
                                   parent=items["menu_bar"]["file"],
@@ -87,7 +87,7 @@ class MainWindow():
                                       "file_selector"]["export"]))
                 dpg.add_menu_item(label="Export part as image",
                                   parent=items["menu_bar"]["file"],
-                                  id=items["menu_bar"]["export_tab"],
+                                  tag=items["menu_bar"]["export_tab"],
                                   shortcut="| Middle Mouse",
                                   callback=lambda: dpg.show_item(items[
                                       "file_selector"]["export_image"]))
@@ -100,10 +100,6 @@ class MainWindow():
                 dpg.add_menu_item(label="Hexdump        ",
                                   parent=items["menu_bar"]["mode"],
                                   check=True,
-                                  id=items["menu_bar"]["hex"],
+                                  tag=items["menu_bar"]["hex"],
                                   callback=self.events.show_hex_format)
 
-                dpg.add_menu_item(label="Theme manager",
-                                  parent=items["menu_bar"]["tools"],
-                                  id=items["menu_bar"]["theme"],
-                                  callback=dpg.show_style_editor)

@@ -5,7 +5,8 @@ from ..items_ids import *
 from .main_window import MainWindow
 from .settings_window import SettingsWindow
 from ..src.events import Events
-from ..styles_config import *
+from ..styles_config.font_config import *
+from ..styles_config.theme_config import *
 
 
 class AppInit():
@@ -25,10 +26,11 @@ class AppInit():
         dpg.set_viewport_height(self.vp_size["height"])
         dpg.set_viewport_clear_color(self.vp_color)
         dpg.setup_dearpygui(viewport=self.vp)
-        dpg.show_viewport(self.vp)
+        dpg.show_viewport()
 
     def run_gui(self):
         dpg.start_dearpygui()
+        dpg.destroy_context()
 
     def on_resize(self, id_callback, data):
         dpg.set_item_height(items["windows"]["viewport"], data[1])
@@ -42,40 +44,39 @@ class AppInit():
         with dpg.file_dialog(directory_selector=False,
                              show=False,
                              callback=self.events.open_file,
-                             id=items["file_selector"]["read"]):
-            dpg.add_file_extension("", color=(255, 255, 255, 255))
+                             tag=items["file_selector"]["read"]):
+            dpg.add_file_extension(".*", color=(255, 255, 255, 255))
         with dpg.file_dialog(directory_selector=False,
                              show=False,
                              callback=self.events.file_save,
-                             id=items["file_selector"]["export"]):
+                             tag=items["file_selector"]["export"]):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
         with dpg.file_dialog(directory_selector=False,
                              show=False,
                              callback=self.events.export_as_image,
-                             id=items["file_selector"]["export_image"]):
+                             tag=items["file_selector"]["export_image"]):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
         with dpg.file_dialog(directory_selector=False,
                              show=False,
                              callback=self.events.export_as_raw,
-                             id=items["file_selector"]["export_raw"]):
+                             tag=items["file_selector"]["export_raw"]):
             pass
 
     def init_mouse_handlers(self):
-            with dpg.handler_registry():
-                dpg.add_mouse_click_handler(
-                    callback=self.events.on_mouse_release,
-                    id=items["registries"]
-                    ["add_mouse_click_handler"],
-                    button=dpg.mvMouseButton_Left)
-                dpg.add_mouse_drag_handler(
-                    button=dpg.mvMouseButton_Middle,
-                    callback=self.events.on_image_drag)
-                dpg.add_mouse_click_handler(
-                    button=dpg.mvMouseButton_Middle,
-                    callback=self.events.on_image_down)
+        with dpg.handler_registry():
+            dpg.add_mouse_click_handler(
+                callback=self.events.on_mouse_release,
+                tag=items["registries"]["add_mouse_click_handler"],
+                button=dpg.mvMouseButton_Left)
+            dpg.add_mouse_drag_handler(button=dpg.mvMouseButton_Middle,
+                                       callback=self.events.on_image_drag)
+            dpg.add_mouse_click_handler(button=dpg.mvMouseButton_Middle,
+                                        callback=self.events.on_image_down)
 
     def init_styles(self):
-        pass
+        dpg.bind_theme(items["theme"]["global"])
+        #INFO: Uncomment to bind font with the controls
+        #dpg.bind_font(items["fonts"]["opensans_bold"])
 
     def create_gui_widgets(self, args):
         self.init_viewport_spec()
@@ -90,3 +91,6 @@ class AppInit():
         self.init_styles()
         self.init_file_dialogs()
         self.init_mouse_handlers()
+
+        if args["FILE_PATH"] != None:
+            self.events.update_image(fit_image=True)

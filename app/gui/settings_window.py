@@ -19,8 +19,8 @@ class SettingsWindow():
         self.events = Events()
 
     def create_widgets(self):
-        with dpg.child(label="Setings",
-                       id=items["windows"]["settings"],
+        with dpg.child_window(label="Setings",
+                       tag=items["windows"]["settings"],
                        height=self.vp_size["height"],
                        width=300,
                        autosize_x=True,
@@ -32,11 +32,11 @@ class SettingsWindow():
             with dpg.group(label="Up-group", horizontal=False, pos=[0, 25]):
                 dpg.add_text(default_value="Color format",
                              indent=5,
-                             id=items["static_text"]["color_format"])
+                             tag=items["static_text"]["color_format"])
 
                 option_list = list(AVAILABLE_FORMATS.keys())
 
-                dpg.add_combo(id=items["buttons"]["combo"],
+                dpg.add_combo(tag=items["buttons"]["combo"],
                               default_value=self.events.color_format,
                               items=list(option_list),
                               indent=5,
@@ -46,14 +46,14 @@ class SettingsWindow():
 
                 dpg.add_text(label="Color format description",
                              indent=5,
-                             id=items["static_text"]["color_description"])
+                             tag=items["static_text"]["color_description"])
 
                 self.events.update_color_info()
 
                 with dpg.group(label="Resolution-change-group",
                                horizontal=False):
                     self.width_setter = dpg.add_input_int(
-                        id=items["buttons"]["width_setter"],
+                        tag=items["buttons"]["width_setter"],
                         label="Width",
                         min_value=1,
                         width=170,
@@ -64,7 +64,7 @@ class SettingsWindow():
                         on_enter=True)
 
                     dpg.add_input_int(label="Height",
-                                      id=items["buttons"]["height_setter"],
+                                      tag=items["buttons"]["height_setter"],
                                       min_value=0,
                                       indent=5,
                                       width=170,
@@ -73,7 +73,7 @@ class SettingsWindow():
 
                 dpg.add_separator()
                 dpg.add_color_picker(label="Color picker",
-                                     id=items["buttons"]["color_picker"],
+                                     tag=items["buttons"]["color_picker"],
                                      no_alpha=True,
                                      picker_mode=dpg.mvColorPicker_bar,
                                      no_side_preview=True,
@@ -85,49 +85,49 @@ class SettingsWindow():
                                horizontal=True):
                     dpg.add_button(label=" Y:  0 ",
                                    width=51,
-                                   id=items["buttons"]["ychannel"],
+                                   tag=items["buttons"]["ychannel"],
                                    indent=5)
                     dpg.add_button(label=" U:  0 ",
                                    width=51,
-                                   id=items["buttons"]["uchannel"])
+                                   tag=items["buttons"]["uchannel"])
                     dpg.add_button(label=" V:  0 ",
                                    width=51,
-                                   id=items["buttons"]["vchannel"])
+                                   tag=items["buttons"]["vchannel"])
                 dpg.add_separator()
-                dpg.add_text(default_value="Available channels mask",
-                             indent=5)
+                dpg.add_text(default_value="Available channels mask", indent=5)
                 with dpg.group(horizontal=True):
                     dpg.add_checkbox(label="R",
                                      callback=self.events.set_channels,
-                                     id=items["buttons"]["r_ychannel"],
+                                     tag=items["buttons"]["r_ychannel"],
                                      indent=5,
                                      default_value=True)
                     dpg.add_checkbox(label="G",
                                      callback=self.events.set_channels,
-                                     id=items["buttons"]["g_uchannel"],
+                                     tag=items["buttons"]["g_uchannel"],
                                      default_value=True)
                     dpg.add_checkbox(label="B",
                                      callback=self.events.set_channels,
-                                     id=items["buttons"]["b_vchannel"],
+                                     tag=items["buttons"]["b_vchannel"],
                                      default_value=True)
 
                 dpg.set_item_height(items["windows"]["viewport"], 800)
                 dpg.set_item_width(items["windows"]["viewport"], 1200)
                 dpg.add_separator()
-                dpg.add_text(default_value="Add/Skip data at the start of the data",
-                             indent=5,
-                             show=True)
+                dpg.add_text(
+                    default_value="Add/Skip data at the start of the data",
+                    indent=5,
+                    show=True)
                 with dpg.group(horizontal=True):
                     dpg.add_text(indent=5, default_value="Count:")
                     dpg.add_input_int(width=130,
                                       min_value=-1000000,
                                       max_value=1000000,
                                       callback=self.events.align,
-                                      id=items["buttons"]["nnumber"])
+                                      tag=items["buttons"]["nnumber"])
                 with dpg.group(horizontal=True):
                     dpg.add_text(indent=5, default_value="Value:")
                     dpg.add_input_int(width=130,
                                       min_value=0,
                                       max_value=255,
-                                      id=items["buttons"]["nvalues"])
+                                      tag=items["buttons"]["nvalues"])
                 dpg.add_separator()
