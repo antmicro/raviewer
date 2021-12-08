@@ -1,51 +1,90 @@
 #!/usr/bin/env python
-import cv2 as cv
 """Raviewer - terminal functionality."""
+
+#since dearpygui>0.8.64
+import dearpygui.dearpygui as dpg
+dpg.create_context()
 
 import argparse
 import os
-from .core import (get_displayable, load_image)
-from .utils import save_image_as_file
+from .src.core import (get_displayable, load_image)
+from .src.utils import save_image_as_file
 from .image.color_format import AVAILABLE_FORMATS
-from .gui_init import AppInit
+from .gui.gui_init import AppInit
+from tests import test_formats
 
-parser = argparse.ArgumentParser(
-    prog=__package__,
-    description="preview raw data as an image of chosen format")
 
-parser.add_argument("-f",
-                    "--FILE_PATH",
-                    help="file containing raw image data",
-                    default=None)
+def list_formats():
+    '''Print all supported formats'''
+    for f in AVAILABLE_FORMATS.keys():
+        print(f)
 
-parser.add_argument("-c",
-                    "--color_format",
-                    choices=AVAILABLE_FORMATS.keys(),
-                    default=list(AVAILABLE_FORMATS.keys())[0],
-                    help="target color format (default: %(default)s)")
 
-parser.add_argument("-w",
-                    "--width",
-                    metavar=("width"),
-                    type=int,
-                    default=800,
-                    help="target width (default: %(default)s)")
+def check_formats():
+    test_formats.test_all(AVAILABLE_FORMATS)
 
-parser.add_argument(
-    "-e",
-    "--export",
-    metavar="RESULT_PATH",
-    help="destination file for parsed image, and it's extension")
 
-args = vars(parser.parse_args())
+def run(file_path, width, color_format, export, args):
+    if export is None:
+        app = AppInit(args)
+        app.run_gui()
+    else:
+        img = load_image(file_path, color_format, width)
+        save_image_as_file(get_displayable(img), export)
 
-if isinstance(args["FILE_PATH"], str):
-    if not os.path.isfile(args["FILE_PATH"]):
-        raise Exception("Given path does not lead to a file")
 
-if args["export"] is None:
-    app = AppInit(args)
-    app.run_gui()
-else:
-    img = load_image(args["FILE_PATH"], args["color_format"], args["width"])
-    save_image_as_file(get_displayable(img), args["export"])
+def main():
+    parser = argparse.ArgumentParser(
+        prog=__package__,
+        description="Preview raw data as an image of chosen format")
+
+    parser.add_argument("-f",
+                        "--FILE_PATH",
+                        help="File containing raw image data",
+                        default=None)
+
+    parser.add_argument("-c",
+                        "--color_format",
+                        default=list(AVAILABLE_FORMATS.keys())[0],
+                        help="Target color format (default: %(default)s)")
+
+    parser.add_argument("-w",
+                        "--width",
+                        metavar=("width"),
+                        type=int,
+                        default=800,
+                        help="Target width (default: %(default)s)")
+
+    parser.add_argument("-e",
+                        "--export",
+                        metavar="RESULT_PATH",
+                        help="Destination file for parsed image")
+
+    parser.add_argument('--list-formats',
+                        action='store_true',
+                        help='Available predefined formats')
+
+    parser.add_argument('--check-formats',
+                        action='store_true',
+                        help='Test all formats')
+
+    args = vars(parser.parse_args())
+
+    if isinstance(args["FILE_PATH"], str):
+        if not os.path.isfile(args["FILE_PATH"]):
+            raise Exception("Given path does not lead to a file")
+
+    if args["list_formats"]:
+        list_formats()
+    elif args["check_formats"]:
+        check_formats()
+    else:
+        run(file_path=args["FILE_PATH"],
+            width=args["width"],
+            color_format=args["color_format"],
+            export=args["export"],
+            args=args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

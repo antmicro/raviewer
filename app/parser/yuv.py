@@ -338,15 +338,30 @@ class ParserYUV422(AbstractParser):
             conversion_const = cv.COLOR_YUV2RGB_YVYU
         elif image.color_format.pixel_format == PixelFormat.VYUY:
             conversion_const = cv.COLOR_YUV2RGB_UYVY
-            temp = numpy.copy(return_data[:, ::2, 0])
-            return_data[:, ::2, 0] = return_data[:, 1::2, 0]
-            return_data[:, 1::2, 0] = temp
 
         if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
             return_data = cv.cvtColor(return_data[:, :, 0], cv.COLOR_GRAY2RGB)
         else:
-            return_data = cv.cvtColor(return_data, conversion_const)
+            return_data = self.convert2RGB(return_data, conversion_const,
+                                           image)
         return return_data
+
+    def convert2RGB(self, data, conversion, image):
+        y = image.processed_data[self.yuv_442_offsets[image.color_format.
+                                                      pixel_format]["Y"]::2]
+        u = image.processed_data[self.yuv_442_offsets[image.color_format.
+                                                      pixel_format]["U"]::4]
+        v = image.processed_data[self.yuv_442_offsets[image.color_format.
+                                                      pixel_format]["V"]::4]
+        u = numpy.resize(numpy.array([x for x in u for _ in (0, 1)]), len(y))
+        v = numpy.resize(numpy.array([x for x in v for _ in (0, 1)]), len(y))
+        plane_y = y.reshape((image.height, image.width, 1))
+        plane_u = u.reshape((image.height, image.width, 1))
+        plane_v = v.reshape((image.height, image.width, 1))
+        yuv = numpy.concatenate((plane_y, plane_u, plane_v),
+                                axis=2).astype('uint8')
+        rgb = cv.cvtColor(yuv, cv.COLOR_YUV2RGB)
+        return rgb
 
     def get_pixel_raw_components(self, image, row, column, index):
         return image.processed_data[(index // 2) * 4:(index // 2) * 4 + 4]
@@ -399,8 +414,26 @@ class ParserYUV422Planar(ParserYUV422):
         if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
             return_data = cv.cvtColor(return_data[:, :, 0], cv.COLOR_GRAY2RGB)
         else:
-            return_data = cv.cvtColor(return_data, conversion_const)
+            return_data = self.convert2RGB(return_data, conversion_const,
+                                           image)
         return return_data
+
+    def convert2RGB(self, data, conversion, image):
+        y = image.processed_data[0:image.height * image.width:]
+        u = image.processed_data[image.height * image.width:image.height *
+                                 (3 * image.width // 2 + image.width % 2)]
+        v = image.processed_data[image.height *
+                                 (3 * image.width // 2 + image.width % 2):]
+
+        u = numpy.resize(numpy.array([x for x in u for _ in (0, 1)]), len(y))
+        v = numpy.resize(numpy.array([x for x in v for _ in (0, 1)]), len(y))
+        plane_y = y.reshape((image.height, image.width, 1))
+        plane_u = u.reshape((image.height, image.width, 1))
+        plane_v = v.reshape((image.height, image.width, 1))
+        yuv = numpy.concatenate((plane_y, plane_u, plane_v),
+                                axis=2).astype('uint8')
+        rgb = cv.cvtColor(yuv, cv.COLOR_YUV2RGB)
+        return rgb
 
     def get_pixel_raw_components(self, image, row, column, index):
         return [

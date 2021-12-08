@@ -90,8 +90,8 @@ class Plot_events(Base_img):
         Base_img.img.data_buffer = raw_data.tobytes()
 
     def update_image(self, fit_image, channels=None, align=None):
-        Base_img.img = load_image(Base_img.path_to_File,
-                                  Base_img.color_format, Base_img.width)
+        Base_img.img = load_image(Base_img.path_to_File, Base_img.color_format,
+                                  Base_img.width)
         if align:
             self.align_image()
             parser = ParserFactory.create_object(
@@ -106,7 +106,8 @@ class Plot_events(Base_img):
                 "g_u": dpg.get_value(items["buttons"]["g_uchannel"]),
                 "b_v": dpg.get_value(items["buttons"]["b_vchannel"])
             })
-        dpg_image = np.frombuffer(Base_img.img_postchanneled.tobytes(), dtype=np.uint8) / 255.0 #BUG
+        dpg_image = np.frombuffer(Base_img.img_postchanneled.tobytes(),
+                                  dtype=np.uint8) / 255.0
         Base_img.raw_data = array.array('f', dpg_image)
         dpg.set_value(items["buttons"]["height_setter"], Base_img.img.height)
         dpg.set_value(items["buttons"]["width_setter"], Base_img.img.width)
@@ -120,14 +121,13 @@ class Plot_events(Base_img):
             dpg.fit_axis_data(items["plot"]["yaxis"])
 
         if (items["texture"]["raw"]):
-            dpg.delete_item(items["texture"]["raw"])
             dpg.delete_item(Base_img.image_series)
 
         self.add_texture(Base_img.img.width, Base_img.img.height,
                          Base_img.raw_data)
 
         Base_img.image_series = dpg.add_image_series(
-            texture_id=items["texture"]["raw"],
+            texture_tag=items["texture"]["raw"],
             parent=items["plot"]["yaxis"],
             label="Raw map",
             bounds_min=[0, 0],
@@ -135,7 +135,8 @@ class Plot_events(Base_img):
 
         dpg.set_item_label(items["plot"]["main_plot"], Base_img.path_to_File)
 
-        if dpg.does_item_exist(items["windows"]["hex_tab"]) or dpg.get_value(items["menu_bar"]["hex"]):
+        if dpg.does_item_exist(items["windows"]["hex_tab"]) or dpg.get_value(
+                items["menu_bar"]["hex"]):
             self.show_hex_format()
 
         if dpg.does_item_exist(items["plot"]["annotation"]):
@@ -317,8 +318,8 @@ class Plot_events(Base_img):
                 if x_resolution > 0 and y_resolution > 0:
                     dpg.set_value(
                         items["static_text"]["image_resolution"],
-                        "Selected image resolution: " + str(x_resolution) + "x" +
-                        str(y_resolution))
+                        "Selected image resolution: " + str(x_resolution) +
+                        "x" + str(y_resolution))
 
     def change_channel_labels(self):
         if Base_img.img.color_format.pixel_format in [
@@ -346,7 +347,7 @@ class Hexviewer_events(Base_img):
         pass
 
     def show_hex_format(self):
-        status=True
+        status = True
         status = self.resolve_status()
         if status:
             return
@@ -354,12 +355,12 @@ class Hexviewer_events(Base_img):
             self.create_hexview()
 
     def create_hexview(self):
-        self.hex_format = Hexviewer(Base_img.path_to_File, 16) 
+        self.hex_format = Hexviewer(Base_img.path_to_File, 16)
         self.hex_format.open_file()
         #Create table with columns
         self.create_table()
         #Start processing data
-        self.hex_format.processed_content() 
+        self.hex_format.processed_content()
 
     def resolve_status(self):
         if Base_img.img != None:
@@ -369,10 +370,14 @@ class Hexviewer_events(Base_img):
                 return True
             if not dpg.does_item_exist(items["windows"]["hex_tab"]):
                 self.create_tab()
-            if dpg.is_item_shown(items["windows"]["hex_tab"]) and not self.hex_format.filename != Base_img.path_to_File:
-                if(dpg.get_value(items["windows"]["hex_tab"])):
+            if dpg.is_item_shown(
+                    items["windows"]["hex_tab"]
+            ) and not self.hex_format.filename != Base_img.path_to_File:
+                if (dpg.get_value(items["windows"]["hex_tab"])):
                     return True
-            if not dpg.is_item_shown(items["windows"]["hex_tab"]) and self.hex_format.filename == Base_img.path_to_File:
+            if not dpg.is_item_shown(
+                    items["windows"]["hex_tab"]
+            ) and self.hex_format.filename == Base_img.path_to_File:
                 dpg.show_item(items["windows"]["hex_tab"])
                 if self.hex_format.status:
                     return True
@@ -390,28 +395,29 @@ class Hexviewer_events(Base_img):
 
     def create_table(self):
         dpg.add_table(parent=items["windows"]["hex_tab"],
-                        id=items["windows"]["hex_mode"],
-                          header_row=True,
-                          no_host_extendX=False,
-                          delay_search=True,
-                          borders_innerH=False,
-                          borders_outerH=False,
-                          borders_innerV=True,
-                          borders_outerV=True,
-                          context_menu_in_body=True,
-                          row_background=False,
-                          policy=dpg.mvTable_SizingFixedFit,
-                          height=-1,
-                          scrollY=True,
-                          scrollX=True,
-                          precise_widths=True,
-                          resizable=True)
+                      id=items["windows"]["hex_mode"],
+                      header_row=True,
+                      no_host_extendX=False,
+                      delay_search=True,
+                      borders_innerH=False,
+                      borders_outerH=False,
+                      borders_innerV=True,
+                      borders_outerV=True,
+                      context_menu_in_body=True,
+                      row_background=False,
+                      policy=dpg.mvTable_SizingFixedFit,
+                      height=-1,
+                      scrollY=True,
+                      scrollX=True,
+                      precise_widths=True,
+                      resizable=True)
         dpg.add_table_column(label="Offset(h)",
                              parent=items["windows"]["hex_mode"])
-        dpg.add_table_column(label="Dump",parent=items["windows"]["hex_mode"])
+        dpg.add_table_column(label="Dump", parent=items["windows"]["hex_mode"])
         dpg.add_table_column(label="ASCII",
-                            width=10,
-                            parent=items["windows"]["hex_mode"])
+                             width=10,
+                             parent=items["windows"]["hex_mode"])
+
 
 class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     """Events general purpose and inherited from Hexviewer_events, Plot_events"""

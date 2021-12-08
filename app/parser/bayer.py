@@ -30,7 +30,8 @@ class ParserBayerRG(AbstractParser):
 
         processed_data = []
         if len(set(color_format.bits_per_components)) == 2 or len(
-                set(color_format.bits_per_components)) == 1:
+                set(color_format.bits_per_components)
+        ) == 1 and max_value % 8 == 0:
 
             raw_data = bytearray(raw_data)
             if len(raw_data) % numpy.dtype(curr_dtype).alignment != 0:
@@ -78,7 +79,9 @@ class ParserBayerRG(AbstractParser):
 
     def get_pixel_raw_components(self, image, row, column, index):
         #Bayer interpolation
-        return image.processed_data[index:index + 1]
+        step_bytes = len([i for i in image.color_format._bpcs if i != 0])
+        index = row // 2 * image.width // 2 * step_bytes + column // 2 * step_bytes
+        return image.processed_data[index:index + 3]
 
     def crop_image2rawformat(self, img, up_row, down_row, left_column,
                              right_column):
