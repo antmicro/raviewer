@@ -1,1 +1,2 @@
-"""Raw data image previewer."""
+import sys
+sys.path.append("..")
