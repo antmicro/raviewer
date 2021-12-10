@@ -81,22 +81,19 @@ class MainWindow():
                                   parent=items["menu_bar"]["file"],
                                   callback=lambda: dpg.show_item(items[
                                       "file_selector"]["read"]))
-                dpg.add_menu_item(label="Export image",
-                                  parent=items["menu_bar"]["file"],
-                                  callback=lambda: dpg.show_item(items[
-                                      "file_selector"]["export"]))
-                dpg.add_menu_item(label="Export part as image",
-                                  parent=items["menu_bar"]["file"],
-                                  tag=items["menu_bar"]["export_tab"],
-                                  shortcut="| Middle Mouse",
-                                  callback=lambda: dpg.show_item(items[
-                                      "file_selector"]["export_image"]))
-                dpg.add_menu_item(label="Export part as raw",
-                                  shortcut="| Middle Mouse",
-                                  parent=items["menu_bar"]["file"],
-                                  callback=lambda: dpg.show_item(items[
-                                      "file_selector"]["export_raw"]))
-
+                with dpg.menu(label="Export",
+                              parent=items["menu_bar"]["file"]):
+                    dpg.add_menu_item(label="Image",
+                                    callback=lambda: dpg.show_item(items[
+                                        "file_selector"]["export"]))
+                    with dpg.menu(label="Selection"):
+                        dpg.add_menu_item(label="PNG",
+                                tag=items["menu_bar"]["export_tab"],
+                        callback=lambda: dpg.show_item(items[
+                            "file_selector"]["export_image"]))
+                        dpg.add_menu_item(label="Raw",
+                                callback=lambda: dpg.show_item(items[
+                                    "file_selector"]["export_raw"]))
                 dpg.add_menu_item(label="Hexdump        ",
                                   parent=items["menu_bar"]["mode"],
                                   check=True,
