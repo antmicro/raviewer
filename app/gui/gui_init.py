@@ -25,7 +25,7 @@ class AppInit():
         dpg.set_viewport_width(self.vp_size["width"])
         dpg.set_viewport_height(self.vp_size["height"])
         dpg.set_viewport_clear_color(self.vp_color)
-        dpg.setup_dearpygui(viewport=self.vp)
+        dpg.setup_dearpygui()
         dpg.show_viewport()
 
     def run_gui(self):

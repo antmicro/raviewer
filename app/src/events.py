@@ -111,8 +111,11 @@ class Plot_events(Base_img):
         Base_img.raw_data = array.array('f', dpg_image)
         dpg.set_value(items["buttons"]["height_setter"], Base_img.img.height)
         dpg.set_value(items["buttons"]["width_setter"], Base_img.img.width)
-
         dpg.set_value(items["buttons"]["combo"], Base_img.color_format)
+
+        dpg.configure_item(items["buttons"]["width_setter"], enabled=True)
+        dpg.configure_item(items["buttons"]["nnumber"], enabled=True)
+        dpg.configure_item(items["buttons"]["nvalues"], enabled=True)
 
         self.update_color_info()
 

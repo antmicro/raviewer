@@ -56,9 +56,12 @@ class SettingsWindow():
                         tag=items["buttons"]["width_setter"],
                         label="Width",
                         min_value=1,
+                        min_clamped=True,
                         width=170,
                         default_value=0,
+                        enabled=False,
                         max_value=4000,
+                        max_clamped=True,
                         indent=5,
                         callback=self.events.update_width,
                         on_enter=True)
@@ -123,12 +126,14 @@ class SettingsWindow():
                                       min_value=-1000000,
                                       max_value=1000000,
                                       callback=self.events.align,
+                                      enabled=False,
                                       tag=items["buttons"]["nnumber"])
                 with dpg.group(horizontal=True):
                     dpg.add_text(indent=5, default_value="Value:")
                     dpg.add_input_int(width=130,
                                       min_value=0,
                                       max_value=255,
+                                      enabled=False,
                                       tag=items["buttons"]["nvalues"])
                 dpg.add_separator()
                 dpg.add_text(

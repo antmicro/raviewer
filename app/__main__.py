@@ -7,6 +7,7 @@ dpg.create_context()
 
 import argparse
 import os
+import sys
 from .src.core import (get_displayable, load_image)
 from .src.utils import save_image_as_file
 from .image.color_format import AVAILABLE_FORMATS
