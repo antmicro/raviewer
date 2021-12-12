@@ -318,8 +318,8 @@ class Plot_events(Base_img):
                 if x_resolution > 0 and y_resolution > 0:
                     dpg.set_value(
                         items["static_text"]["image_resolution"],
-                        "Selected image resolution: " + str(x_resolution) +
-                        "x" + str(y_resolution))
+                        "Size: " + str(x_resolution) +
+                        " x " + str(y_resolution))
 
     def change_channel_labels(self):
         if Base_img.img.color_format.pixel_format in [

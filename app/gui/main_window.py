@@ -46,11 +46,6 @@ class MainWindow():
 
                 with dpg.tab_bar(tag=items["plot"]["tab"]):
                     with dpg.tab(label=" Preview", closable=False):
-                        dpg.add_text(
-                            default_value="Selected image resolution: 0x0",
-                            indent=5,
-                            show=True,
-                            tag=items["static_text"]["image_resolution"])
                         dpg.add_plot(label="Raw data",
                                      tag=items["plot"]["main_plot"],
                                      no_menus=True,

@@ -131,3 +131,13 @@ class SettingsWindow():
                                       max_value=255,
                                       tag=items["buttons"]["nvalues"])
                 dpg.add_separator()
+                dpg.add_text(
+                        default_value="Selection",
+                        indent=5,
+                        show=True)
+                dpg.add_text(
+                        default_value="Size: 0 x 0",
+                        indent=5,
+                        show=True,
+                        tag=items["static_text"]["image_resolution"])
+                dpg.add_separator()
