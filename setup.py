@@ -25,7 +25,7 @@ setup(
         'numpy',
         'opencv-python',
         'Pillow',
-        'dearpygui==1.0.0',
+        'dearpygui==1.1.1',
         'terminaltables'
     ],
     classifiers=[
