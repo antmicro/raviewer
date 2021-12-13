@@ -23,6 +23,7 @@ class DummyPixelPlane(Enum):
 
 
 class TestRGBParserClass(unittest.TestCase):
+
     def setUp(self):
 
         self.RGB565_FORMAT = Mock(pixel_format=DummyPixelFormat.RGBA,
@@ -103,6 +104,7 @@ class TestRGBParserClass(unittest.TestCase):
 
 
 class TestARGBParserClass(unittest.TestCase):
+
     def setUp(self):
 
         self.ARGB444_FORMAT = Mock(pixel_format=DummyPixelFormat.ARGB,

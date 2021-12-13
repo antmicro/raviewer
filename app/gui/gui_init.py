@@ -11,6 +11,7 @@ from ..styles_config.theme_config import *
 
 class AppInit():
     """Main application class"""
+
     def __init__(self, args):
         """Set viewport frame configuration"""
         self.vp = dpg.create_viewport()

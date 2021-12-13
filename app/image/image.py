@@ -5,6 +5,7 @@ import numpy
 
 class RawDataContainer:
     """Structure for file data and communication."""
+
     def __init__(self, data_buffer):
         self.data_buffer = data_buffer
 
@@ -26,6 +27,7 @@ class RawDataContainer:
 
 class Image(RawDataContainer):
     """Container for image data."""
+
     def __init__(self,
                  data_buffer,
                  color_format=None,

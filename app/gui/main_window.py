@@ -8,6 +8,7 @@ from ..src.events import Events
 
 class MainWindow():
     """Class representing Main Window frame"""
+
     def __init__(self, vp_conf):
         """Constructs MainWindow instance.
 

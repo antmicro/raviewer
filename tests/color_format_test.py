@@ -3,6 +3,7 @@ import app.image.color_format as cf
 
 
 class TestColorFormat(unittest.TestCase):
+
     def setUp(self):
         self.color_format = cf.ColorFormat(cf.PixelFormat.RGBA,
                                            cf.Endianness.BIG_ENDIAN,

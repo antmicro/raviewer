@@ -25,6 +25,7 @@ def interleave_channels(u, v):
 
 class ParserYUV420(AbstractParser):
     """A semi-planar YUV420 implementation of a parser"""
+
     def parse(self, raw_data, color_format, width):
         """Parses provided raw data to an image, calculating height from provided width.
 
@@ -63,7 +64,13 @@ class ParserYUV420(AbstractParser):
         new_height = normal_round(math.ceil(processed_data.size / width) / 1.5)
         return Image(raw_data, color_format, processed_data, width, new_height)
 
-    def get_displayable(self, image, channels):
+    def get_displayable(self,
+                        image,
+                        channels={
+                            "r_y": True,
+                            "g_u": True,
+                            "b_v": True
+                        }):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
@@ -153,7 +160,14 @@ class ParserYUV420(AbstractParser):
 
 class ParserYUV420Planar(ParserYUV420):
     """A planar YUV420 implementation of a parser"""
-    def get_displayable(self, image, channels):
+
+    def get_displayable(self,
+                        image,
+                        channels={
+                            "r_y": True,
+                            "g_u": True,
+                            "b_v": True
+                        }):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
@@ -274,6 +288,7 @@ class ParserYUV422(AbstractParser):
         },
     }
     """A packed YUV422 implementation of a parser"""
+
     def parse(self, raw_data, color_format, width):
         """Parses provided raw data to an image, calculating height from provided width.
         Keyword arguments:
@@ -311,7 +326,13 @@ class ParserYUV422(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // (width * 2))
 
-    def get_displayable(self, image, channels):
+    def get_displayable(self,
+                        image,
+                        channels={
+                            "r_y": True,
+                            "g_u": True,
+                            "b_v": True
+                        }):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
@@ -375,7 +396,14 @@ class ParserYUV422(AbstractParser):
 
 
 class ParserYUV422Planar(ParserYUV422):
-    def get_displayable(self, image, channels):
+
+    def get_displayable(self,
+                        image,
+                        channels={
+                            "r_y": True,
+                            "g_u": True,
+                            "b_v": True
+                        }):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.

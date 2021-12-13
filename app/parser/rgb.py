@@ -9,7 +9,14 @@ import numpy
 
 class ParserRGBA(AbstractParser):
     """An RGB/BGR implementation of a parser - ALPHA LAST"""
-    def get_displayable(self, image, channels):
+
+    def get_displayable(self,
+                        image,
+                        channels={
+                            "r_y": True,
+                            "g_u": True,
+                            "b_v": True
+                        }):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
@@ -54,6 +61,7 @@ class ParserRGBA(AbstractParser):
 
 class ParserARGB(AbstractParser):
     """An RGB/BGR implementation of a parser - ALPHA FIRST"""
+
     def parse(self, raw_data, color_format, width):
         """Parses provided raw data to an image, calculating height from provided width.
 
@@ -109,7 +117,13 @@ class ParserARGB(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // (width * 4))
 
-    def get_displayable(self, image, channels):
+    def get_displayable(self,
+                        image,
+                        channels={
+                            "r_y": True,
+                            "g_u": True,
+                            "b_v": True
+                        }):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.

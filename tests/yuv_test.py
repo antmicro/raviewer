@@ -25,6 +25,7 @@ class DummyPixelPlane(Enum):
 
 
 class TestYUVParserClass(unittest.TestCase):
+
     def setUp(self):
 
         #YUV420 Parser
@@ -94,18 +95,33 @@ class TestYUVParserClass(unittest.TestCase):
                                                       [0, 54, 255]]])).all())
 
     @patch("app.parser.yuv.PixelFormat", DummyPixelFormat)
+    @patch(
+        "app.parser.yuv.ParserYUV422.yuv_442_offsets", {
+            DummyPixelFormat.UYVY: {
+                "Y": 1,
+                "U": 0,
+                "V": 2,
+            },
+            DummyPixelFormat.YUYV: {
+                "Y": 0,
+                "U": 1,
+                "V": 3,
+            },
+        })
     def test_get_displayable_Y422(self):
 
         displayable = self.parserY422.get_displayable(self.Y422_IMAGE)
         self.assertEqual(displayable.shape,
                          (self.Y422_IMAGE.height, self.Y422_IMAGE.width, 3))
-        self.assertTrue((displayable == numpy.array([[[74, 255, 255],
-                                                      [74, 255, 255]],
-                                                     [[203, 0, 0],
-                                                      [203, 0, 0]]])).all())
+        print(displayable)
+        self.assertTrue((displayable == numpy.array([[[109, 255, 255],
+                                                      [109, 255, 255]],
+                                                     [[145, 0, 0],
+                                                      [145, 0, 0]]])).all())
 
 
 class TestYUVPlanarParserClass(unittest.TestCase):
+
     def setUp(self):
 
         #YUV420 Parser
@@ -181,10 +197,10 @@ class TestYUVPlanarParserClass(unittest.TestCase):
         self.assertEqual(displayable.shape,
                          (self.Y422_IMAGE.height, self.Y422_IMAGE.width, 3))
         print(displayable)
-        self.assertTrue((displayable == numpy.array([[[74, 255, 255],
-                                                      [74, 255, 255]],
-                                                     [[203, 0, 0],
-                                                      [203, 0, 0]]])).all())
+        self.assertTrue((displayable == numpy.array([[[109, 255, 255],
+                                                      [109, 255, 255]],
+                                                     [[145, 0, 0],
+                                                      [145, 0, 0]]])).all())
 
 
 if __name__ == "__main__":

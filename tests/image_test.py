@@ -6,12 +6,13 @@ import app.image.color_format as cf
 
 
 class TestImageClass(unittest.TestCase):
+
     def setUp(self):
         self.TEST_FILE_BGR = os.path.join(os.path.dirname(__file__),
-                                          "resources/BGR24_1000_750")
+                                          "../resources/RGB24_1000_750")
         self.empty_img = image.Image(None)
         with open(self.TEST_FILE_BGR, "rb") as file:
-            self.img = image.Image(file.read(), cf.AVAILABLE_FORMATS['BGR24'],
+            self.img = image.Image(file.read(), cf.AVAILABLE_FORMATS['RGB24'],
                                    numpy.zeros(720 * 1280 * 4), 1280, 720)
 
     def test_from_file(self):

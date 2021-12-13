@@ -62,6 +62,7 @@ class Base_img():
 
 class Plot_events(Base_img):
     """Events assiociated with plot"""
+
     def __init__(self):
         pass
 
@@ -430,6 +431,7 @@ class Hexviewer_events(Base_img):
 
 class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     """Events general purpose and inherited from Hexviewer_events, Plot_events"""
+
     def __init__(self, args):
         Base_img.path_to_File = args["FILE_PATH"]
         option_list = list(AVAILABLE_FORMATS.keys())

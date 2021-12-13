@@ -19,6 +19,7 @@ class DummyPixelPlane(Enum):
 
 
 class TestGrayscaleParserClass(unittest.TestCase):
+
     def setUp(self):
 
         self.GRAY_FORMAT = Mock(pixel_format=DummyPixelFormat.MONO,

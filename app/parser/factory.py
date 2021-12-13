@@ -10,6 +10,7 @@ from .grayscale import ParserGrayscale
 
 class ParserFactory:
     """Parser factory"""
+
     @staticmethod
     def create_object(color_format):
         """Get parser for provided color format.

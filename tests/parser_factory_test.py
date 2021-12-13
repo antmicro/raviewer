@@ -9,6 +9,7 @@ from enum import Enum
 
 
 class TestParserFactoryClass(unittest.TestCase):
+
     def setUp(self):
         self.color_format_packed = Mock()
         self.color_format_packed.pixel_format = PixelFormat.RGBA

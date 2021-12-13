@@ -9,6 +9,7 @@ import cv2 as cv
 
 class ParserGrayscale(AbstractParser):
     """A grayscale implementation of a parser"""
+
     def parse(self, raw_data, color_format, width):
         """Parses provided raw data to an image, calculating height from provided width.
 
@@ -42,7 +43,7 @@ class ParserGrayscale(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // width)
 
-    def get_displayable(self, image, channels):
+    def get_displayable(self, image):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.

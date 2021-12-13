@@ -7,6 +7,7 @@ from ..items_ids import *
 
 
 class Hexviewer:
+
     def __init__(self, filename, columns_width):
         """Constructs Hexviewer instance.
         Keyword arguments:

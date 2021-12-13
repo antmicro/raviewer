@@ -8,6 +8,7 @@ from ..src.events import Events
 
 class SettingsWindow():
     """Class representing Settingsframe"""
+
     def __init__(self, vp_size, args):
         """Constructs SettingsWindow instance.
         Keyword arguments:

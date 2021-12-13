@@ -9,6 +9,7 @@ import math
 
 class AbstractParser(metaclass=ABCMeta):
     """An abstract data parser"""
+
     @abstractmethod
     def get_displayable(self, image):
         """Provides displayable image data (RGB formatted)

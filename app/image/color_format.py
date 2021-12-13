@@ -38,6 +38,7 @@ class PixelPlane(Enum):
 
 class ColorFormat():
     """Representation of color format."""
+
     def __init__(self,
                  pixel_format,
                  endianness,
@@ -79,6 +80,7 @@ class SubsampledColorFormat(ColorFormat):
     """
     Representation of color format with additional information about subsampling
     """
+
     def __init__(self,
                  pixel_format,
                  endianness,

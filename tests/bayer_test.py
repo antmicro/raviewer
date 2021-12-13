@@ -19,6 +19,7 @@ class DummyPixelPlane(Enum):
 
 
 class TestBayerParserClass(unittest.TestCase):
+
     def setUp(self):
 
         self.RGGB_FORMAT = Mock(pixel_format=DummyPixelFormat.Bayer_RG,
