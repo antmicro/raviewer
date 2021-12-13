@@ -220,11 +220,10 @@ class Plot_events(Base_img):
         plot_mouse_x, plot_mouse_y = dpg.get_plot_mouse_pos()
         dpg.set_axis_limits_auto(items["plot"]["xaxis"])
         dpg.set_axis_limits_auto(items["plot"]["yaxis"])
-        self.yaxis_size=dpg.get_axis_limits(items["plot"]["yaxis"])
-        self.xaxis_size=dpg.get_axis_limits(items["plot"]["xaxis"])
+        self.yaxis_size = dpg.get_axis_limits(items["plot"]["yaxis"])
+        self.xaxis_size = dpg.get_axis_limits(items["plot"]["xaxis"])
         dpg.set_value(items["static_text"]["image_resolution"],
-                        "Size: " + str(0) +
-                        " x " + str(0))
+                      "Size: " + str(0) + " x " + str(0))
 
         Base_img.mouse_down_pos = [int(plot_mouse_x), int(plot_mouse_y)]
         if dpg.does_item_exist(items["plot"]["annotation"]):
@@ -328,9 +327,8 @@ class Plot_events(Base_img):
                 Base_img.selected_part = [x_resolution, y_resolution]
                 if x_resolution > 0 and y_resolution > 0:
                     dpg.set_value(
-                        items["static_text"]["image_resolution"],
-                        "Size: " + str(x_resolution) +
-                        " x " + str(y_resolution))
+                        items["static_text"]["image_resolution"], "Size: " +
+                        str(x_resolution) + " x " + str(y_resolution))
 
     def change_channel_labels(self):
         if Base_img.img.color_format.pixel_format in [
@@ -443,10 +441,12 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.color_format = args["color_format"]
 
     def on_mouse_wheel_callback(self):
-        if Base_img.img != None and dpg.is_plot_queried(items["plot"]["main_plot"]):
-            dpg.set_axis_limits(items["plot"]["yaxis"], self.yaxis_size[0] , self.yaxis_size[1])
-            dpg.set_axis_limits(items["plot"]["xaxis"], self.xaxis_size[0], self.xaxis_size[1])
-
+        if Base_img.img != None and dpg.is_plot_queried(
+                items["plot"]["main_plot"]):
+            dpg.set_axis_limits(items["plot"]["yaxis"], self.yaxis_size[0],
+                                self.yaxis_size[1])
+            dpg.set_axis_limits(items["plot"]["xaxis"], self.xaxis_size[0],
+                                self.xaxis_size[1])
 
     def open_file(self, callback_id, data):
         path = list(data["selections"].values())[0]

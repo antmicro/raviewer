@@ -33,16 +33,16 @@ class MainWindow():
                         autosize=True):
 
             with dpg.child_window(label="Main Window",
-                           tag=items["windows"]["previewer"],
-                           pos=[0, 0],
-                           indent=0,
-                           menubar=True,
-                           width=self.vp_size["width"] - 300 + 2,
-                           autosize_x=False,
-                           autosize_y=True,
-                           border=False,
-                           height=self.vp_size["height"],
-                           horizontal_scrollbar=True):
+                                  tag=items["windows"]["previewer"],
+                                  pos=[0, 0],
+                                  indent=0,
+                                  menubar=True,
+                                  width=self.vp_size["width"] - 300 + 2,
+                                  autosize_x=False,
+                                  autosize_y=True,
+                                  border=False,
+                                  height=self.vp_size["height"],
+                                  horizontal_scrollbar=True):
 
                 with dpg.tab_bar(tag=items["plot"]["tab"]):
                     with dpg.tab(label=" Preview", closable=False):
@@ -79,19 +79,19 @@ class MainWindow():
                 with dpg.menu(label="Export",
                               parent=items["menu_bar"]["file"]):
                     dpg.add_menu_item(label="Image",
-                                    callback=lambda: dpg.show_item(items[
-                                        "file_selector"]["export"]))
+                                      callback=lambda: dpg.show_item(items[
+                                          "file_selector"]["export"]))
                     with dpg.menu(label="Selection"):
-                        dpg.add_menu_item(label="PNG",
-                                tag=items["menu_bar"]["export_tab"],
-                        callback=lambda: dpg.show_item(items[
-                            "file_selector"]["export_image"]))
+                        dpg.add_menu_item(
+                            label="PNG",
+                            tag=items["menu_bar"]["export_tab"],
+                            callback=lambda: dpg.show_item(items[
+                                "file_selector"]["export_image"]))
                         dpg.add_menu_item(label="Raw",
-                                callback=lambda: dpg.show_item(items[
-                                    "file_selector"]["export_raw"]))
+                                          callback=lambda: dpg.show_item(items[
+                                              "file_selector"]["export_raw"]))
                 dpg.add_menu_item(label="Hexdump        ",
                                   parent=items["menu_bar"]["mode"],
                                   check=True,
                                   tag=items["menu_bar"]["hex"],
                                   callback=self.events.show_hex_format)
-

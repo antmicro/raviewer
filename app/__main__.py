@@ -3,6 +3,7 @@
 
 #since dearpygui>0.8.64
 import dearpygui.dearpygui as dpg
+
 dpg.create_context()
 
 import argparse

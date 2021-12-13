@@ -20,15 +20,15 @@ class SettingsWindow():
 
     def create_widgets(self):
         with dpg.child_window(label="Setings",
-                       tag=items["windows"]["settings"],
-                       height=self.vp_size["height"],
-                       width=300,
-                       autosize_x=True,
-                       autosize_y=True,
-                       border=False,
-                       parent=items["windows"]["viewport"],
-                       horizontal_scrollbar=True,
-                       pos=[self.vp_size["width"] - 300, 0]):
+                              tag=items["windows"]["settings"],
+                              height=self.vp_size["height"],
+                              width=300,
+                              autosize_x=True,
+                              autosize_y=True,
+                              border=False,
+                              parent=items["windows"]["viewport"],
+                              horizontal_scrollbar=True,
+                              pos=[self.vp_size["width"] - 300, 0]):
             with dpg.group(label="Up-group", horizontal=False, pos=[0, 25]):
                 dpg.add_text(default_value="Color format",
                              indent=5,
@@ -136,13 +136,9 @@ class SettingsWindow():
                                       enabled=False,
                                       tag=items["buttons"]["nvalues"])
                 dpg.add_separator()
-                dpg.add_text(
-                        default_value="Selection",
-                        indent=5,
-                        show=True)
-                dpg.add_text(
-                        default_value="Size: 0 x 0",
-                        indent=5,
-                        show=True,
-                        tag=items["static_text"]["image_resolution"])
+                dpg.add_text(default_value="Selection", indent=5, show=True)
+                dpg.add_text(default_value="Size: 0 x 0",
+                             indent=5,
+                             show=True,
+                             tag=items["static_text"]["image_resolution"])
                 dpg.add_separator()
