@@ -72,6 +72,7 @@ class AppInit():
                                        callback=self.events.on_image_drag)
             dpg.add_mouse_click_handler(button=dpg.mvMouseButton_Middle,
                                         callback=self.events.on_image_down)
+            dpg.add_mouse_wheel_handler(callback=self.events.on_mouse_wheel_callback)
 
     def init_styles(self):
         dpg.bind_theme(items["theme"]["global"])
