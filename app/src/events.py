@@ -460,7 +460,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     def file_save(self, callback_id, data):
         path = data["file_path_name"]
         if Base_img.img != None:
-            save_image_as_file(Base_img.img_postchanneled, path)
+            Image.fromarray(Base_img.img_postchanneled).save(path)
 
     def update_width(self, callback_id, data):
         if Base_img.img != None:
