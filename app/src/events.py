@@ -223,10 +223,12 @@ class Plot_events(Base_img):
         dpg.set_axis_limits_auto(items["plot"]["yaxis"])
         self.yaxis_size = dpg.get_axis_limits(items["plot"]["yaxis"])
         self.xaxis_size = dpg.get_axis_limits(items["plot"]["xaxis"])
-        dpg.set_value(items["static_text"]["image_resolution"],
-                      "Size: " + str(0) + " x " + str(0))
-
+        if dpg.is_item_hovered(items["plot"]["main_plot"]):
+            dpg.set_value(items["static_text"]["image_resolution"],
+                          "Size: 0 x 0")
         Base_img.mouse_down_pos = [int(plot_mouse_x), int(plot_mouse_y)]
+
+    def remove_annotation(self):
         if dpg.does_item_exist(items["plot"]["annotation"]):
             dpg.delete_item(items["plot"]["annotation"])
 
