@@ -442,7 +442,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.width = args["width"]
             Base_img.color_format = args["color_format"]
 
-    def on_mouse_wheel_callback(self):
+    def lock_queried_image_callback(self):
         if Base_img.img != None and dpg.is_plot_queried(
                 items["plot"]["main_plot"]):
             dpg.set_axis_limits(items["plot"]["yaxis"], self.yaxis_size[0],
