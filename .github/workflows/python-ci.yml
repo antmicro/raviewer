@@ -3,7 +3,8 @@ name: Running Python CI jobs
 on:
   push:
     branches:
-      - master
+      - main
+      - test
 
   pull_request:
     paths:
