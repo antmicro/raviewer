@@ -71,6 +71,21 @@ class AppInit():
                              tag=items["file_selector"]["export_raw"]):
             pass
 
+    def init_loading_indicator(self):
+        with dpg.window(label="Loading...",
+                        width=50,
+                        height=50,
+                        show=False,
+                        no_focus_on_appearing=True,
+                        no_collapse=True,
+                        no_resize=True,
+                        no_close=True,
+                        no_move=True,
+                        tag=items["file_selector"]["loading_indicator"]):
+            dpg.add_loading_indicator(style=1,
+                                      radius=6,
+                                      pos=(20,25))
+
     def init_mouse_handlers(self):
         with dpg.handler_registry():
             dpg.add_mouse_click_handler(
@@ -113,6 +128,7 @@ class AppInit():
         self.init_styles()
         self.init_file_dialogs()
         self.init_mouse_handlers()
+        self.init_loading_indicator()
 
         if args["FILE_PATH"] != None:
             self.events.update_image(fit_image=True)

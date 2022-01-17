@@ -31,6 +31,7 @@ class MainWindow():
                         no_close=True,
                         no_title_bar=True,
                         no_focus_on_appearing=True,
+                        no_bring_to_front_on_focus=True,
                         autosize=True):
 
             with dpg.child_window(label="Main Window",

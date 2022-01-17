@@ -60,6 +60,7 @@ items = {
         "export": dpg.generate_uuid(),
         "export_image": dpg.generate_uuid(),
         "export_raw": dpg.generate_uuid(),
+        "loading_indicator": dpg.generate_uuid(),
     },
     "fonts": {
         "opensans_bold": dpg.generate_uuid(),

@@ -455,9 +455,13 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     def open_file(self, callback_id, data):
         path = list(data["selections"].values())[0]
         if path:
+            dpg.show_item(items["file_selector"]["loading_indicator"])
+            dpg.set_item_pos(item=items["file_selector"]["loading_indicator"],
+                             pos=[i//2-25 for i in dpg.get_item_rect_size(items["windows"]["viewport"])])
             Base_img.path_to_File = path
             Plot_events.update_image(self, fit_image=True)
             dpg.enable_item(items["menu_bar"]["export_tab"])
+            dpg.hide_item(items["file_selector"]["loading_indicator"])
 
     def file_save(self, callback_id, data):
         path = data["file_path_name"]
