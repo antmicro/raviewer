@@ -7,6 +7,7 @@ from .settings_window import SettingsWindow
 from ..src.events import Events
 from ..styles_config.font_config import *
 from ..styles_config.theme_config import *
+from ..src.controls import Controls
 
 
 class AppInit():
@@ -93,24 +94,25 @@ class AppInit():
             dpg.add_mouse_click_handler(
                 callback=self.events.on_mouse_release,
                 tag=items["registries"]["add_mouse_click_handler"],
-                button=dpg.mvMouseButton_Middle)
-            dpg.add_mouse_drag_handler(button=dpg.mvMouseButton_Left,
+                button=Controls.add_annotation_button)
+            dpg.add_mouse_drag_handler(button=Controls.query_button,
                                        callback=self.events.on_image_drag)
-            dpg.add_mouse_click_handler(button=dpg.mvMouseButton_Left,
+            dpg.add_mouse_click_handler(button=Controls.query_button,
                                         callback=self.events.on_image_down)
             dpg.add_mouse_wheel_handler(
                 callback=self.events.lock_queried_image_callback)
             dpg.add_mouse_drag_handler(
-                button=dpg.mvMouseButton_Middle,
+                button=Controls.pan_button,
                 callback=self.events.lock_queried_image_callback)
             dpg.add_mouse_drag_handler(
-                button=dpg.mvMouseButton_Right,
+                button=Controls.box_select_button,
                 callback=self.events.lock_queried_image_callback)
             dpg.add_mouse_double_click_handler(
-                button=dpg.mvMouseButton_Right,
+                button=Controls.autosize_button,
                 callback=self.events.lock_queried_image_callback)
-            dpg.add_mouse_click_handler(button=dpg.mvMouseButton_Right,
-                                        callback=self.events.remove_annotation)
+            dpg.add_mouse_click_handler(
+                button=Controls.remove_annotation_button,
+                callback=self.events.remove_annotation)
 
     def init_styles(self):
         dpg.bind_theme(items["theme"]["global"])

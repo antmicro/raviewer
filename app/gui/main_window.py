@@ -4,6 +4,7 @@ import dearpygui.dearpygui as dpg
 
 from ..items_ids import *
 from ..src.events import Events
+from ..src.controls import Controls
 
 
 class MainWindow():
@@ -48,17 +49,19 @@ class MainWindow():
 
                 with dpg.tab_bar(tag=items["plot"]["tab"]):
                     with dpg.tab(label=" Preview", closable=False):
-                        dpg.add_plot(label="Raw data",
-                                     tag=items["plot"]["main_plot"],
-                                     no_menus=True,
-                                     height=-1,
-                                     pan_button=dpg.mvMouseButton_Middle,
-                                     query_button=dpg.mvMouseButton_Left,
-                                     fit_button=dpg.mvMouseButton_Right,
-                                     crosshairs=True,
-                                     query=True,
-                                     equal_aspects=True,
-                                     width=-1)
+                        dpg.add_plot(
+                            label="Raw data",
+                            tag=items["plot"]["main_plot"],
+                            no_menus=True,
+                            height=-1,
+                            pan_button=Controls.pan_button,
+                            query_button=Controls.query_button,
+                            fit_button=Controls.autosize_button,
+                            box_select_button=Controls.box_select_button,
+                            crosshairs=True,
+                            query=True,
+                            equal_aspects=True,
+                            width=-1)
                         dpg.add_plot_axis(label="Width",
                                           axis=1000,
                                           tag=items["plot"]["xaxis"],
