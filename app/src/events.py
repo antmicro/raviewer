@@ -456,6 +456,11 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         path = list(data["selections"].values())[0]
         if path:
             dpg.show_item(items["file_selector"]["loading_indicator"])
+            """
+            Position is set as the middle of the viewport subtracted by 25
+            (loading indicator has a size of 50x50, so subtracting 25 from both dimensions
+            makes it appear roughly in the middle of the window)
+            """
             dpg.set_item_pos(item=items["file_selector"]["loading_indicator"],
                              pos=[
                                  i // 2 - 25 for i in dpg.get_item_rect_size(
