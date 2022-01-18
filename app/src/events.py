@@ -243,6 +243,9 @@ class Plot_events(Base_img):
                             clamped=True)
 
     def on_image_down(self):
+        if dpg.is_item_hovered(items["plot"]["main_plot"]):
+            dpg.configure_item(items["plot"]["main_plot"],
+                               pan_button=Controls.pan_button)
         plot_mouse_x, plot_mouse_y = dpg.get_plot_mouse_pos()
         dpg.set_axis_limits_auto(items["plot"]["xaxis"])
         dpg.set_axis_limits_auto(items["plot"]["yaxis"])
@@ -258,6 +261,8 @@ class Plot_events(Base_img):
             dpg.delete_item(items["plot"]["annotation"])
 
     def on_image_drag(self, idc, data):
+        dpg.configure_item(items["plot"]["main_plot"],
+                           pan_button=Controls.dummy)
         x_resolution, y_resolution = 0, 0
         if dpg.is_item_hovered(items["plot"]["main_plot"]):
             if Base_img.img != None:
