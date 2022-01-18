@@ -14,6 +14,7 @@ from PIL import Image
 from .utils import (RGBtoYUV, determine_color_format, save_image_as_file)
 from .hexviewer import Hexviewer
 from .controls import Controls
+import threading
 
 
 class meta_events(type):
@@ -414,7 +415,8 @@ class Hexviewer_events(Base_img):
         #Create table with columns
         self.create_table()
         #Start processing data
-        self.hex_format.processed_content()
+        thr = threading.Thread(target = self.hex_format.processed_content, args=())
+        thr.start()
 
     def resolve_status(self):
         if Base_img.img != None:
