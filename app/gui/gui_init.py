@@ -82,9 +82,7 @@ class AppInit():
                         no_close=True,
                         no_move=True,
                         tag=items["file_selector"]["loading_indicator"]):
-            dpg.add_loading_indicator(style=1,
-                                      radius=6,
-                                      pos=(20,25))
+            dpg.add_loading_indicator(style=1, radius=6, pos=(20, 25))
 
     def init_mouse_handlers(self):
         with dpg.handler_registry():
