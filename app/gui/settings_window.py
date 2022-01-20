@@ -126,9 +126,9 @@ class SettingsWindow():
                     dpg.add_input_int(width=130,
                                       min_value=-1000000,
                                       max_value=1000000,
-                                      callback=self.events.align,
                                       enabled=False,
                                       tag=items["buttons"]["nnumber"])
+                    dpg.add_button(label="apply", callback=self.events.align)
                 with dpg.group(horizontal=True):
                     dpg.add_text(indent=5, default_value="Value:")
                     dpg.add_input_int(width=130,
