@@ -2,11 +2,16 @@
 
 import dearpygui.dearpygui as dpg
 import binascii
+import threading
 
 from ..items_ids import *
 
 
 class Hexviewer:
+    #mutex - prevents generating hexdump and updating image at the same time
+    mutex = threading.Lock()
+    #altered - tells whether the image was altered whilst generating hexdump
+    altered = False
 
     def __init__(self, filename, columns_width):
         """Constructs Hexviewer instance.
@@ -57,11 +62,17 @@ class Hexviewer:
         return row_output
 
     def processed_content(self):
+        Hexviewer.altered = False
         file_chunk = self.file_content.read(64)
         while len(file_chunk) != 0:
             #Return while processing if we hided window or unchecked tab
             if not (dpg.is_item_shown(items["windows"]["hex_tab"])
                     and dpg.get_value(items["menu_bar"]["hex"])):
+                return
+            self.mutex.acquire()
+            #Stop processing if the image was altered
+            if (Hexviewer.altered):
+                self.mutex.release()
                 return
             with dpg.table_row(parent=items["windows"]["hex_mode"]):
                 dpg.add_text(self.form_offset(self.offset),
@@ -73,4 +84,5 @@ class Hexviewer:
                 dpg.add_text(self.encode_row(hex_array))
             file_chunk = self.file_content.read(64)
             self.offset += 64
+            self.mutex.release()
         self.status = True

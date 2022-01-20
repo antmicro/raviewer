@@ -114,8 +114,11 @@ class Plot_events(Base_img):
         Base_img.img.data_buffer = raw_data.tobytes()
 
     def update_image(self, fit_image, channels=None, align=None):
+        Hexviewer.mutex.acquire()
+        Hexviewer.altered = True
         Base_img.img = load_image(Base_img.path_to_File, Base_img.color_format,
                                   Base_img.width)
+        Hexviewer.mutex.release()
         if align:
             self.align_image()
             parser = ParserFactory.create_object(
@@ -415,7 +418,8 @@ class Hexviewer_events(Base_img):
         #Create table with columns
         self.create_table()
         #Start processing data
-        thr = threading.Thread(target = self.hex_format.processed_content, args=())
+        thr = threading.Thread(target=self.hex_format.processed_content,
+                               args=())
         thr.start()
 
     def resolve_status(self):
