@@ -66,7 +66,28 @@ class Plot_events(Base_img):
     def __init__(self):
         pass
 
-    def align(self):
+    def indicate_loading(callback):
+        """ This function is a decorator that shows loading indicator while executing a function """
+
+        def _wrapper(self, app_data, user_data):
+            dpg.show_item(items["file_selector"]["loading_indicator"])
+            """
+            Position is set as the middle of the viewport subtracted by 25
+            (loading indicator has a size of 50x50, so subtracting 25 from both dimensions
+            makes it appear roughly in the middle of the window)
+            """
+            dpg.set_item_pos(item=items["file_selector"]["loading_indicator"],
+                             pos=[
+                                 i // 2 - 25 for i in dpg.get_item_rect_size(
+                                     items["windows"]["viewport"])
+                             ])
+            callback(self, app_data, user_data)
+            dpg.hide_item(items["file_selector"]["loading_indicator"])
+
+        return _wrapper
+
+    @indicate_loading
+    def align(self, app_data, user_data):
         if Base_img.img != None:
             Plot_events.update_image(self, fit_image=True, align=True)
 
@@ -452,24 +473,13 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             dpg.set_axis_limits(items["plot"]["xaxis"], self.xaxis_size[0],
                                 self.xaxis_size[1])
 
+    @Plot_events.indicate_loading
     def open_file(self, callback_id, data):
         path = list(data["selections"].values())[0]
         if path:
-            dpg.show_item(items["file_selector"]["loading_indicator"])
-            """
-            Position is set as the middle of the viewport subtracted by 25
-            (loading indicator has a size of 50x50, so subtracting 25 from both dimensions
-            makes it appear roughly in the middle of the window)
-            """
-            dpg.set_item_pos(item=items["file_selector"]["loading_indicator"],
-                             pos=[
-                                 i // 2 - 25 for i in dpg.get_item_rect_size(
-                                     items["windows"]["viewport"])
-                             ])
             Base_img.path_to_File = path
             Plot_events.update_image(self, fit_image=True)
             dpg.enable_item(items["menu_bar"]["export_tab"])
-            dpg.hide_item(items["file_selector"]["loading_indicator"])
 
     def file_save(self, callback_id, data):
         path = data["file_path_name"]
@@ -481,6 +491,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.width = data
             Plot_events.update_image(self, fit_image=True)
 
+    @Plot_events.indicate_loading
     def format_color(self, callback_id, data):
         Base_img.color_format = data
         Plot_events.update_color_info(self)
