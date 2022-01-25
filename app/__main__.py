@@ -31,6 +31,23 @@ def run(file_path, width, color_format, export, args):
         app = AppInit(args)
         app.run_gui()
     else:
+        '''
+        if a given path represents an existing directory - save image in that directory with the same name as input file (but ending with .png")
+        if os.path.dirname(export) (everything exept for last component of the path) represents an existing directory - append ".png" (if needed) and save the image
+        otherwise - raise an exception
+        '''
+        if not export.endswith(".png"):
+            if os.path.isdir(export):
+                export = os.path.join(export,
+                                      os.path.basename(file_path)) + ".png"
+            elif os.path.isdir(os.path.dirname(export)):
+                export += ".png"
+            else:
+                raise FileNotFoundError(
+                    "{} - no such file or directory".format(export))
+        elif not os.path.isdir(os.path.dirname(export)):
+            raise FileNotFoundError(
+                "{} - no such file or directory".format(export))
         img = load_image(file_path, color_format, width)
         save_image_as_file(get_displayable(img), export)
 
