@@ -38,7 +38,7 @@ def save_image_as_file(image, file_path):
         os.makedirs(directory)
 
     try:
-        cv2.imwrite(file_path, image)
+        cv2.imwrite(file_path, cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     except Exception as e:
         print(type(e).__name__, e)
 
