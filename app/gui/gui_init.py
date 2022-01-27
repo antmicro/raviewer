@@ -47,6 +47,7 @@ class AppInit():
                              modal=True,
                              label="Open file",
                              callback=self.events.open_file,
+                             file_count=1,
                              tag=items["file_selector"]["read"]):
             dpg.add_file_extension(".*", color=(255, 255, 255, 255))
         with dpg.file_dialog(directory_selector=False,
@@ -54,6 +55,7 @@ class AppInit():
                              modal=True,
                              label="Export image",
                              callback=self.events.file_save,
+                             file_count=1,
                              tag=items["file_selector"]["export"]):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
         with dpg.file_dialog(directory_selector=False,
@@ -61,6 +63,7 @@ class AppInit():
                              modal=True,
                              label="Export selection as png",
                              callback=self.events.export_as_image,
+                             file_count=1,
                              tag=items["file_selector"]["export_image"]):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
         with dpg.file_dialog(directory_selector=False,
@@ -68,6 +71,7 @@ class AppInit():
                              modal=True,
                              label="Export selection as raw",
                              callback=self.events.export_as_raw,
+                             file_count=1,
                              tag=items["file_selector"]["export_raw"]):
             pass
 
