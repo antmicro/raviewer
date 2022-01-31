@@ -32,6 +32,12 @@ class AppInit():
 
     def run_gui(self):
         dpg.start_dearpygui()
+        '''
+        hiding hex tab stops hexdump generation and prevents segfault when closing app while hexdump is being generated
+        if hex tab has not been opened, hiding it would throw an error
+        '''
+        if dpg.does_item_exist(items["windows"]["hex_tab"]):
+            dpg.hide_item(items["windows"]["hex_tab"])
         dpg.destroy_context()
 
     def on_resize(self, id_callback, data):
