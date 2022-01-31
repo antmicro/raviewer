@@ -3,6 +3,7 @@
 from ..image.image import (Image, RawDataContainer)
 from ..parser.factory import ParserFactory
 from .utils import determine_color_format
+from ..image.color_format import PixelFormat
 
 
 def load_image(file_path, color_format, width):
@@ -26,7 +27,10 @@ def get_displayable(image, channels={"r_y": True, "g_u": True, "b_v": True}):
         raise Exception("Image should be already parsed!")
     parser = ParserFactory.create_object(image.color_format)
 
-    return parser.get_displayable(image, channels)
+    if image.color_format.pixel_format == PixelFormat.MONO:
+        return parser.get_displayable(image)
+    else:
+        return parser.get_displayable(image, channels)
 
 
 """Resolve picked pixel's raw integrants."""

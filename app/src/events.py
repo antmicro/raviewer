@@ -122,12 +122,15 @@ class Plot_events(Base_img):
                 Base_img.img.data_buffer,
                 determine_color_format(Base_img.color_format), Base_img.width)
         self.change_channel_labels()
-        Base_img.img_postchanneled = get_displayable(
-            Base_img.img, {
-                "r_y": dpg.get_value(items["buttons"]["r_ychannel"]),
-                "g_u": dpg.get_value(items["buttons"]["g_uchannel"]),
-                "b_v": dpg.get_value(items["buttons"]["b_vchannel"])
-            })
+        if Base_img.img.color_format.pixel_format == PixelFormat.MONO:
+            Base_img.img_postchanneled = get_displayable(Base_img.img)
+        else:
+            Base_img.img_postchanneled = get_displayable(
+                Base_img.img, {
+                    "r_y": dpg.get_value(items["buttons"]["r_ychannel"]),
+                    "g_u": dpg.get_value(items["buttons"]["g_uchannel"]),
+                    "b_v": dpg.get_value(items["buttons"]["b_vchannel"])
+                })
         dpg_image = np.frombuffer(Base_img.img_postchanneled.tobytes(),
                                   dtype=np.uint8) / 255.0
         Base_img.raw_data = array.array('f', dpg_image)
@@ -359,17 +362,29 @@ class Plot_events(Base_img):
                 PixelFormat.YUYV, PixelFormat.UYVY, PixelFormat.YVYU,
                 PixelFormat.VYUY, PixelFormat.YUV, PixelFormat.YVU
         ]:
-            dpg.set_item_label(items["buttons"]["r_ychannel"], "Y")
-            dpg.set_item_label(items["buttons"]["g_uchannel"], "U")
-            dpg.set_item_label(items["buttons"]["b_vchannel"], "V")
+            dpg.configure_item(items["buttons"]["r_ychannel"],
+                               label="Y",
+                               show=True)
+            dpg.configure_item(items["buttons"]["g_uchannel"],
+                               label="U",
+                               show=True)
+            dpg.configure_item(items["buttons"]["b_vchannel"],
+                               label="V",
+                               show=True)
         elif Base_img.img.color_format.pixel_format == PixelFormat.MONO:
-            dpg.set_item_label(items["buttons"]["r_ychannel"], "None")
-            dpg.set_item_label(items["buttons"]["g_uchannel"], "None")
-            dpg.set_item_label(items["buttons"]["b_vchannel"], "None")
+            dpg.hide_item(items["buttons"]["r_ychannel"])
+            dpg.hide_item(items["buttons"]["g_uchannel"])
+            dpg.hide_item(items["buttons"]["b_vchannel"])
         else:
-            dpg.set_item_label(items["buttons"]["r_ychannel"], "R")
-            dpg.set_item_label(items["buttons"]["g_uchannel"], "G")
-            dpg.set_item_label(items["buttons"]["b_vchannel"], "B")
+            dpg.configure_item(items["buttons"]["r_ychannel"],
+                               label="R",
+                               show=True)
+            dpg.configure_item(items["buttons"]["g_uchannel"],
+                               label="G",
+                               show=True)
+            dpg.configure_item(items["buttons"]["b_vchannel"],
+                               label="B",
+                               show=True)
 
 
 class Hexviewer_events(Base_img):
