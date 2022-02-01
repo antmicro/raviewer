@@ -37,6 +37,8 @@ items = {
         "append_remove": dpg.generate_uuid(),
         "nnumber": dpg.generate_uuid(),
         "nvalues": dpg.generate_uuid(),
+        "n_frames_setter": dpg.generate_uuid(),
+        "frame_setter": dpg.generate_uuid(),
         "reverse": dpg.generate_uuid(),
     },
     "menu_bar": {

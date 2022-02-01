@@ -87,6 +87,24 @@ class SettingsWindow():
                                       width=170,
                                       default_value=0,
                                       readonly=True)
+                    dpg.add_input_int(label="Number of frames",
+                                      tag=items["buttons"]["n_frames_setter"],
+                                      min_value=1,
+                                      min_clamped=True,
+                                      default_value=1,
+                                      width=100,
+                                      callback=self.events.update_n_frames,
+                                      indent=5)
+                    dpg.add_input_int(label="Frame number",
+                                      tag=items["buttons"]["frame_setter"],
+                                      min_value=1,
+                                      max_value=1,
+                                      min_clamped=True,
+                                      max_clamped=True,
+                                      default_value=1,
+                                      width=100,
+                                      callback=self.events.update_frame,
+                                      indent=5)
 
                 dpg.add_separator()
                 dpg.add_color_picker(label="Color picker",

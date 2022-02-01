@@ -49,6 +49,8 @@ class Base_img():
     path_to_File = None
     color_format = None
     width = 800
+    n_frames = 1
+    frame = 1
     selected_part = list()
     left_column, right_column = 0, 0
     up_row, down_row = 0, 0
@@ -127,7 +129,8 @@ class Plot_events(Base_img):
         Hexviewer.mutex.acquire()
         Hexviewer.altered = True
         Base_img.img = load_image(Base_img.path_to_File, Base_img.color_format,
-                                  Base_img.width, Base_img.reverse_bytes)
+                                  Base_img.width, Base_img.frame,
+                                  Base_img.n_frames, Base_img.reverse_bytes)
         Hexviewer.mutex.release()
         if align:
             self.align_image()
@@ -528,6 +531,21 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     def update_width(self, callback_id, data):
         if Base_img.img != None:
             Base_img.width = data
+            Plot_events.update_image(self, fit_image=True)
+
+    def update_n_frames(self, callback_id, data):
+        if Base_img.img != None:
+            if dpg.get_value(items["buttons"]["frame_setter"]) > data:
+                dpg.set_value(items["buttons"]["frame_setter"], data)
+                Base_img.frame = data
+            dpg.configure_item(items["buttons"]["frame_setter"],
+                               max_value=data)
+            Base_img.n_frames = data
+            Plot_events.update_image(self, fit_image=True)
+
+    def update_frame(self, callback_id, data):
+        if Base_img.img != None:
+            Base_img.frame = data
             Plot_events.update_image(self, fit_image=True)
 
     @Plot_events.indicate_loading
