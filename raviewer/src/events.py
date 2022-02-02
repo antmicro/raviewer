@@ -156,11 +156,17 @@ class Plot_events(Base_img):
         dpg.set_value(items["buttons"]["height_setter"], Base_img.img.height)
         dpg.set_value(items["buttons"]["width_setter"], Base_img.img.width)
         dpg.set_value(items["buttons"]["combo"], Base_img.color_format)
+        dpg.set_value(items["buttons"]["frame_setter"], Base_img.frame)
+        dpg.set_value(items["buttons"]["n_frames_setter"], Base_img.n_frames)
 
         dpg.configure_item(items["buttons"]["width_setter"], enabled=True)
         dpg.configure_item(items["buttons"]["nnumber"], enabled=True)
         dpg.configure_item(items["buttons"]["nvalues"], enabled=True)
         dpg.configure_item(items["buttons"]["reverse"], enabled=True)
+        dpg.configure_item(items["buttons"]["n_frames_setter"], enabled=True)
+        dpg.configure_item(items["buttons"]["frame_setter"],
+                           enabled=True,
+                           max_value=Base_img.n_frames)
 
         self.update_color_info()
 
@@ -506,6 +512,8 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         if Base_img.path_to_File != None:
             Base_img.width = args["width"]
             Base_img.color_format = args["color_format"]
+            Base_img.n_frames = args["n_frames"]
+            Base_img.frame = args["frame"]
 
     def lock_queried_image_callback(self):
         if Base_img.img != None and dpg.is_plot_queried(
