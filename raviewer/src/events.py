@@ -434,7 +434,8 @@ class Hexviewer_events(Base_img):
             self.create_hexview()
 
     def create_hexview(self):
-        self.hex_format = Hexviewer(Base_img.path_to_File, 16)
+        self.hex_format = Hexviewer(Base_img.path_to_File, 16, Base_img.frame,
+                                    Base_img.n_frames)
         self.hex_format.open_file()
         #Create table with columns
         self.create_table()
