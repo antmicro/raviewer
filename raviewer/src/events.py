@@ -65,6 +65,7 @@ class Base_img():
     img_postchanneled = None
     image_series = None
     reverse_bytes = 0
+    align = None
 
     def __init__(self):
         pass
@@ -112,8 +113,10 @@ class Plot_events(Base_img):
 
     @indicate_loading
     def align(self, app_data, user_data):
+        Base_img.align = True if dpg.get_value(
+            items["buttons"]["nnumber"]) != 0 else False
         if Base_img.img != None:
-            Plot_events.update_image(self, fit_image=True, align=True)
+            Plot_events.update_image(self, fit_image=True)
 
     def reverse_bytes(self, app_data, user_data):
         Base_img.reverse_bytes = user_data
@@ -144,11 +147,11 @@ class Plot_events(Base_img):
             raw_data = raw_data[abs(nbytes):]
         Base_img.img.data_buffer = raw_data.tobytes()
 
-    def update_image(self, fit_image, channels=None, align=None):
+    def update_image(self, fit_image, channels=None):
         Base_img.img = parse_image(Base_img.img.data_buffer,
                                    Base_img.color_format, Base_img.width,
                                    Base_img.reverse_bytes)
-        if align:
+        if Base_img.align:
             self.align_image()
             parser = ParserFactory.create_object(
                 determine_color_format(Base_img.color_format))
