@@ -79,9 +79,9 @@ class ParserARGB(AbstractParser):
         data_array = []
         temp_set = set(color_format.bits_per_components)
 
+        raw_data = bytearray(raw_data)
         if (len(temp_set) == 1 or len(temp_set) == 2
                 and not temp_set.add(0)) and max_value % 8 == 0:
-            raw_data = bytearray(raw_data)
             if len(raw_data) % numpy.dtype(curr_dtype).alignment != 0:
                 raw_data += (0).to_bytes(len(raw_data) %
                                          numpy.dtype(curr_dtype).alignment,

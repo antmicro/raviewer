@@ -48,16 +48,15 @@ class AbstractParser(metaclass=ABCMeta):
 
         Returns: instance of Image processed to chosen format
         """
-
         max_value = max(color_format.bits_per_components)
         curr_dtype = self.get_dtype(max_value, color_format.endianness)
 
         data_array = []
         temp_set = set(color_format.bits_per_components)
 
+        raw_data = bytearray(raw_data)
         if (len(temp_set) == 1 or len(temp_set) == 2
                 and not temp_set.add(0)) and max_value % 8 == 0:
-            raw_data = bytearray(raw_data)
             if len(raw_data) % numpy.dtype(curr_dtype).alignment != 0:
                 raw_data += (0).to_bytes(len(raw_data) %
                                          numpy.dtype(curr_dtype).alignment,
@@ -102,9 +101,8 @@ class AbstractParser(metaclass=ABCMeta):
 
         Returns: properly parsed buffer data (list)
         """
-
         comp_bits = color_format.bits_per_components
-        draft_data = bytearray(raw_data)
+        draft_data = raw_data
         step = int(math.lcm(sum(comp_bits), 8) / 8)
         if len(draft_data) % step != 0:
             draft_data += (0).to_bytes(len(raw_data) % step,
