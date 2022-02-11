@@ -65,7 +65,7 @@ class Base_img():
     img_postchanneled = None
     image_series = None
     reverse_bytes = 0
-    align = None
+    nnumber, nvalues = 0, 0
 
     def __init__(self):
         pass
@@ -113,10 +113,10 @@ class Plot_events(Base_img):
 
     @indicate_loading
     def align(self, app_data, user_data):
-        Base_img.align = True if dpg.get_value(
-            items["buttons"]["nnumber"]) != 0 else False
+        Base_img.nnumber = dpg.get_value(items["buttons"]["nnumber"])
+        Base_img.nvalues = dpg.get_value(items["buttons"]["nvalues"])
         if Base_img.img != None:
-            Plot_events.update_image(self, fit_image=True)
+            Plot_events.update_image(self, fit_image=False)
 
     def reverse_bytes(self, app_data, user_data):
         Base_img.reverse_bytes = user_data
@@ -135,23 +135,22 @@ class Plot_events(Base_img):
         dpg.set_value(items["static_text"]["color_description"], custom_text)
 
     def align_image(self):
-        nbytes = dpg.get_value(items["buttons"]["nnumber"])
-        nvalues = dpg.get_value(items["buttons"]["nvalues"])
 
         raw_data = np.array(Base_img.img.data_buffer)
-        if nbytes > 0:
-            raw_data = np.insert(raw_data, 0, [nvalues] * nbytes)
+        if Base_img.nnumber > 0:
+            raw_data = np.insert(raw_data, 0,
+                                 [Base_img.nvalues] * Base_img.nnumber)
         else:
-            if abs(nbytes) > len(raw_data):
+            if abs(Base_img.nnumber) > len(raw_data):
                 return
-            raw_data = raw_data[abs(nbytes):]
+            raw_data = raw_data[abs(Base_img.nnumber):]
         Base_img.img.data_buffer = raw_data.tobytes()
 
     def update_image(self, fit_image, channels=None):
         Base_img.img = parse_image(Base_img.img.data_buffer,
                                    Base_img.color_format, Base_img.width,
                                    Base_img.reverse_bytes)
-        if Base_img.align:
+        if Base_img.nnumber or Base_img.nvalues:
             self.align_image()
             parser = ParserFactory.create_object(
                 determine_color_format(Base_img.color_format))
