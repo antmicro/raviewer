@@ -1,6 +1,6 @@
 # Raviewer
 
-Copyright (c) 2021 [Antmicro](https://www.antmicro.com)
+Copyright (c) 2021-2022 [Antmicro](https://www.antmicro.com)
 
 Raviewer is an open-source utility dedicated to parsing and displaying binary data acquired straight from a camera.
 
