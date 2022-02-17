@@ -26,7 +26,8 @@ setup(
         'opencv-python',
         'Pillow',
         'dearpygui==1.1.1',
-        'terminaltables'
+        'terminaltables',
+        'pytest'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
