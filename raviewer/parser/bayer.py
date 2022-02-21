@@ -1,6 +1,7 @@
 """Parser implementation for Bayer pixel format"""
 
 from ..image.image import Image
+from ..image.color_format import Endianness
 from .common import AbstractParser
 
 import numpy
@@ -21,14 +22,12 @@ class ParserBayerRG(AbstractParser):
 
         Returns: instance of Image processed to chosen format
         """
-
         max_value = max(color_format.bits_per_components)
         curr_dtype = None
         if max_value <= 8:
-            curr_dtype = '>u1'
+            curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
         else:
-            curr_dtype = '>u2'
-
+            curr_dtype = '>u2' if color_format.endianness == Endianness.BIG_ENDIAN else '<u2'
         processed_data = []
         if len(set(color_format.bits_per_components)) == 2 or len(
                 set(color_format.bits_per_components)

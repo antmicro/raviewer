@@ -356,5 +356,13 @@ AVAILABLE_FORMATS = {
                 16,
                 16,
                 16,
-                name="RG16")
+                name="RG16"),
+    'RG16l':
+    ColorFormat(PixelFormat.BAYER_RG,
+                Endianness.LITTLE_ENDIAN,
+                PixelPlane.PACKED,
+                16,
+                16,
+                16,
+                name="RG16l")
 }
