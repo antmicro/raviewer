@@ -9,7 +9,7 @@ dpg.create_context()
 import argparse
 import os
 import sys
-from .src.core import (get_displayable, load_image)
+from .src.core import (get_displayable, load_image, parse_image)
 from .src.utils import save_image_as_file
 from .image.color_format import AVAILABLE_FORMATS
 from .gui.gui_init import AppInit
@@ -48,7 +48,8 @@ def run(file_path, width, color_format, export, frame, num_frames, args):
         elif not os.path.isdir(os.path.dirname(export)):
             raise FileNotFoundError(
                 "{} - no such file or directory".format(export))
-        img = load_image(file_path, color_format, width, frame, num_frames)
+        img = load_image(file_path, frame, num_frames)
+        img = parse_image(img.data_buffer, color_format, width)
         save_image_as_file(get_displayable(img), export)
 
 

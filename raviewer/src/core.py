@@ -6,14 +6,9 @@ from .utils import determine_color_format
 from ..image.color_format import PixelFormat
 
 
-def load_image(file_path,
-               color_format,
-               width,
-               frame=1,
-               n_frames=1,
-               reverse_bytes=0):
+def parse_image(data_buffer, color_format, width, reverse_bytes=0):
     try:
-        image = Image.from_file(file_path, frame, n_frames)
+        image = Image(data_buffer)
         parser = ParserFactory.create_object(
             determine_color_format(color_format))
     except Exception as e:
@@ -24,6 +19,11 @@ def load_image(file_path,
                          determine_color_format(color_format), width,
                          reverse_bytes)
 
+    return image
+
+
+def load_image(path_to_file, frame=1, n_frames=1):
+    image = Image.from_file(path_to_file, frame, n_frames)
     return image
 
 

@@ -5,8 +5,8 @@ import array
 import dearpygui.dearpygui as dpg
 
 from ..items_ids import *
-from .core import (load_image, get_displayable, get_pixel_raw_components,
-                   crop_image2rawformat)
+from .core import (parse_image, load_image, get_displayable,
+                   get_pixel_raw_components, crop_image2rawformat)
 from ..parser.factory import ParserFactory
 from ..image.color_format import PixelFormat, Endianness
 from ..image.color_format import AVAILABLE_FORMATS
@@ -128,9 +128,9 @@ class Plot_events(Base_img):
     def update_image(self, fit_image, channels=None, align=None):
         Hexviewer.mutex.acquire()
         Hexviewer.altered = True
-        Base_img.img = load_image(Base_img.path_to_File, Base_img.color_format,
-                                  Base_img.width, Base_img.frame,
-                                  Base_img.n_frames, Base_img.reverse_bytes)
+        Base_img.img = parse_image(Base_img.img.data_buffer,
+                                   Base_img.color_format, Base_img.width,
+                                   Base_img.reverse_bytes)
         Hexviewer.mutex.release()
         if align:
             self.align_image()
@@ -515,6 +515,8 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.color_format = args["color_format"]
             Base_img.n_frames = args["num_frames"]
             Base_img.frame = args["frame"]
+            Base_img.img = load_image(Base_img.path_to_File, Base_img.frame,
+                                      Base_img.n_frames)
 
     def lock_queried_image_callback(self):
         if Base_img.img != None and dpg.is_plot_queried(
@@ -529,6 +531,8 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         path = list(data["selections"].values())[0]
         if path:
             Base_img.path_to_File = path
+            Base_img.img = load_image(Base_img.path_to_File, Base_img.frame,
+                                      Base_img.n_frames)
             Plot_events.update_image(self, fit_image=True)
             dpg.enable_item(items["menu_bar"]["export_tab"])
 

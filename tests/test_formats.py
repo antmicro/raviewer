@@ -1,6 +1,6 @@
 """Module for testing formats on resources entities"""
 
-from raviewer.src.core import (get_displayable, load_image)
+from raviewer.src.core import (get_displayable, load_image, parse_image)
 from terminaltables import AsciiTable
 from raviewer.image.color_format import AVAILABLE_FORMATS
 import os
@@ -30,7 +30,8 @@ def test_all(formats):
             try:
                 if not os.path.exists(file_path):
                     break
-                img = load_image(file_path, color_format, width)
+                img = load_image(file_path)
+                img = parse_image(img.data_buffer, color_format, width)
                 get_displayable(img)
                 passed_results += 1
             except:
