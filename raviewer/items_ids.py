@@ -11,6 +11,7 @@ items = {
     },
     "static_text": {
         "color_format": dpg.generate_uuid(),
+        "endianness": dpg.generate_uuid(),
         "color_description": dpg.generate_uuid(),
         "image_resolution": dpg.generate_uuid(),
     },
@@ -21,6 +22,7 @@ items = {
     "buttons": {
         "read_file": dpg.generate_uuid(),
         "combo": dpg.generate_uuid(),
+        "endianness": dpg.generate_uuid(),
         "export_image": dpg.generate_uuid(),
         "width_setter": dpg.generate_uuid(),
         "height_setter": dpg.generate_uuid(),

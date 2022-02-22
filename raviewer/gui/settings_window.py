@@ -45,6 +45,19 @@ class SettingsWindow():
                               height_mode=dpg.mvComboHeight_Regular,
                               width=-1)
 
+                dpg.add_text(default_value="Endianness",
+                             indent=5,
+                             tag=items["static_text"]["endianness"])
+
+                option_endianness = ["LITTLE_ENDIAN", "BIG_ENDIAN"]
+
+                dpg.add_combo(tag=items["buttons"]["endianness"],
+                              items=list(option_endianness),
+                              indent=5,
+                              callback=self.events.change_endianness,
+                              height_mode=dpg.mvComboHeight_Regular,
+                              width=-1)
+
                 dpg.add_text(label="Color format description",
                              indent=5,
                              tag=items["static_text"]["color_description"])

@@ -8,7 +8,7 @@ from ..items_ids import *
 from .core import (load_image, get_displayable, get_pixel_raw_components,
                    crop_image2rawformat)
 from ..parser.factory import ParserFactory
-from ..image.color_format import PixelFormat
+from ..image.color_format import PixelFormat, Endianness
 from ..image.color_format import AVAILABLE_FORMATS
 from PIL import Image
 from .utils import (RGBtoYUV, determine_color_format, save_image_as_file)
@@ -95,9 +95,13 @@ class Plot_events(Base_img):
 
     def update_color_info(self):
         color_format = determine_color_format(Base_img.color_format)
-        custom_text= "Pixel format name:  " +   color_format.name + "\nEndianness:  " \
-                        + str(color_format.endianness)[11:] + "\nPixel format:  " + str(color_format.pixel_format)[12:]+\
+        custom_text= "Pixel format name:  " +  color_format.name +\
+                        "\nPixel format:  " + str(color_format.pixel_format)[12:]+\
                         "\nPixel plane:  " + str(color_format.pixel_plane)[11:] + "\nBits per component:  " + str(color_format.bits_per_components)
+        dpg.set_value(
+            items["buttons"]["endianness"],
+            "LITTLE_ENDIAN" if color_format.endianness
+            == Endianness.LITTLE_ENDIAN else "BIG_ENDIAN")
         dpg.set_value(items["static_text"]["color_description"], custom_text)
 
     def align_image(self):
@@ -522,6 +526,13 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     def format_color(self, callback_id, data):
         Base_img.color_format = data
         Plot_events.update_color_info(self)
+        if Base_img.img != None:
+            Plot_events.update_image(self, fit_image=True)
+
+    def change_endianness(self, callback_id, data):
+        AVAILABLE_FORMATS[
+            Base_img.
+            color_format].endianness = Endianness.BIG_ENDIAN if data == "BIG_ENDIAN" else Endianness.LITTLE_ENDIAN
         if Base_img.img != None:
             Plot_events.update_image(self, fit_image=True)
 
