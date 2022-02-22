@@ -1,6 +1,6 @@
 """Parser implementation for YUV pixel format"""
 
-from ..image.color_format import PixelFormat
+from ..image.color_format import PixelFormat, Endianness
 from ..image.image import Image
 from .common import AbstractParser
 
@@ -39,7 +39,7 @@ class ParserYUV420(AbstractParser):
         """
 
         max_value = max(color_format.bits_per_components)
-        curr_dtype = numpy.uint8
+        curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
 
         data_array = []
         if len(set(
@@ -300,7 +300,7 @@ class ParserYUV422(AbstractParser):
         Returns: instance of Image processed to chosen format
         """
         max_value = max(color_format.bits_per_components)
-        curr_dtype = numpy.uint8
+        curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
 
         data_array = []
         bpcs_set = set(color_format.bits_per_components)

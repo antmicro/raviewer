@@ -1,6 +1,7 @@
 """Parser implementation for grayscale pixel format"""
 
 from ..image.image import Image
+from ..image.color_format import Endianness
 from .common import AbstractParser
 
 import numpy
@@ -25,9 +26,9 @@ class ParserGrayscale(AbstractParser):
         bits_per_gray = color_format.bits_per_components[0]
         curr_dtype = None
         if bits_per_gray <= 8:
-            curr_dtype = '>u1'
+            curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
         else:
-            curr_dtype = '>u2'
+            curr_dtype = '>u2' if color_format.endianness == Endianness.BIG_ENDIAN else '<u2'
         raw_data = bytearray(raw_data)
         if len(raw_data) % numpy.dtype(curr_dtype).alignment != 0:
             raw_data += (0).to_bytes(len(raw_data) %

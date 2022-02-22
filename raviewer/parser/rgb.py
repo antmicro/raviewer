@@ -1,6 +1,6 @@
 """Parser implementation for RGBA pixel format"""
 
-from ..image.color_format import PixelFormat
+from ..image.color_format import PixelFormat, Endianness
 from ..image.image import Image
 from .common import AbstractParser
 
@@ -76,9 +76,9 @@ class ParserARGB(AbstractParser):
         max_value = max(color_format.bits_per_components)
         curr_dtype = None
         if max_value <= 8:
-            curr_dtype = numpy.uint8
+            curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
         else:
-            curr_dtype = numpy.uint16
+            curr_dtype = '>u2' if color_format.endianness == Endianness.BIG_ENDIAN else '<u2'
 
         data_array = []
         temp_set = set(color_format.bits_per_components)
