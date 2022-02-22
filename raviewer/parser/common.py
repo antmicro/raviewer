@@ -22,7 +22,7 @@ class AbstractParser(metaclass=ABCMeta):
         """
         pass
 
-    def parse(self, raw_data, color_format, width):
+    def parse(self, raw_data, color_format, width, reverse_bytes):
         """Parses provided raw data to an image, calculating height from provided width.
 
         Keyword arguments:

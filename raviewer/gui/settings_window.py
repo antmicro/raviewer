@@ -150,6 +150,17 @@ class SettingsWindow():
                                       enabled=False,
                                       tag=items["buttons"]["nvalues"])
                 dpg.add_separator()
+                dpg.add_text(default_value="Reverse bytes", indent=5)
+                with dpg.group(horizontal=False):
+                    dpg.add_input_int(width=130,
+                                      default_value=1,
+                                      min_value=1,
+                                      min_clamped=True,
+                                      indent=5,
+                                      enabled=False,
+                                      callback=self.events.reverse_bytes,
+                                      tag=items["buttons"]["reverse"])
+                dpg.add_separator()
                 dpg.add_text(default_value="Selection", indent=5, show=True)
                 dpg.add_text(default_value="Size: 0 x 0",
                              indent=5,

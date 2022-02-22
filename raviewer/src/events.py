@@ -57,6 +57,7 @@ class Base_img():
     raw_data = None
     img_postchanneled = None
     image_series = None
+    reverse_bytes = 0
 
     def __init__(self):
         pass
@@ -93,6 +94,11 @@ class Plot_events(Base_img):
         if Base_img.img != None:
             Plot_events.update_image(self, fit_image=True, align=True)
 
+    def reverse_bytes(self, app_data, user_data):
+        Base_img.reverse_bytes = user_data
+        if Base_img.img != None:
+            self.update_image(fit_image=True)
+
     def update_color_info(self):
         color_format = determine_color_format(Base_img.color_format)
         custom_text= "Pixel format name:  " +  color_format.name +\
@@ -121,7 +127,7 @@ class Plot_events(Base_img):
         Hexviewer.mutex.acquire()
         Hexviewer.altered = True
         Base_img.img = load_image(Base_img.path_to_File, Base_img.color_format,
-                                  Base_img.width)
+                                  Base_img.width, Base_img.reverse_bytes)
         Hexviewer.mutex.release()
         if align:
             self.align_image()
@@ -129,7 +135,8 @@ class Plot_events(Base_img):
                 determine_color_format(Base_img.color_format))
             Base_img.img = parser.parse(
                 Base_img.img.data_buffer,
-                determine_color_format(Base_img.color_format), Base_img.width)
+                determine_color_format(Base_img.color_format), Base_img.width,
+                Base_img.reverse_bytes)
         self.change_channel_labels()
         if Base_img.img.color_format.pixel_format == PixelFormat.MONO:
             Base_img.img_postchanneled = get_displayable(Base_img.img)
@@ -150,6 +157,7 @@ class Plot_events(Base_img):
         dpg.configure_item(items["buttons"]["width_setter"], enabled=True)
         dpg.configure_item(items["buttons"]["nnumber"], enabled=True)
         dpg.configure_item(items["buttons"]["nvalues"], enabled=True)
+        dpg.configure_item(items["buttons"]["reverse"], enabled=True)
 
         self.update_color_info()
 

@@ -37,6 +37,7 @@ items = {
         "append_remove": dpg.generate_uuid(),
         "nnumber": dpg.generate_uuid(),
         "nvalues": dpg.generate_uuid(),
+        "reverse": dpg.generate_uuid(),
     },
     "menu_bar": {
         "export_tab": dpg.generate_uuid(),

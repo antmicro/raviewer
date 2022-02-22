@@ -11,7 +11,7 @@ import cv2 as cv
 class ParserBayerRG(AbstractParser):
     """A Bayer RGGB implementation of a parser"""
 
-    def parse(self, raw_data, color_format, width):
+    def parse(self, raw_data, color_format, width, reverse_bytes):
         """Parses provided raw data to an image, calculating height from provided width.
 
         Keyword arguments:
@@ -38,8 +38,16 @@ class ParserBayerRG(AbstractParser):
                 raw_data += (0).to_bytes(len(raw_data) %
                                          numpy.dtype(curr_dtype).alignment,
                                          byteorder="little")
-
-            processed_data = numpy.frombuffer(raw_data, dtype=curr_dtype)
+            processed_data = numpy.ndarray((len(raw_data) // 2, ),
+                                           dtype=curr_dtype)
+            temp_raw_data = bytearray()
+            if reverse_bytes > 1:
+                for i in range(0, len(raw_data) + 1, reverse_bytes):
+                    temp_raw_data += raw_data[i:i + reverse_bytes][::-1]
+                processed_data = numpy.frombuffer(temp_raw_data,
+                                                  dtype=curr_dtype)
+            else:
+                processed_data = numpy.frombuffer(raw_data, dtype=curr_dtype)
         else:
             raise NotImplementedError(
                 "All color components needs to have same bits per pixel. Current: 1: {} bpp, 2: {} bpp, 3: {} bpp"
@@ -51,7 +59,6 @@ class ParserBayerRG(AbstractParser):
             processed_data = numpy.concatenate(
                 (processed_data,
                  numpy.zeros(width - (processed_data.size % width))))
-
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // width)
 
@@ -88,9 +95,10 @@ class ParserBayerRG(AbstractParser):
         max_value = max(img.color_format.bits_per_components)
         curr_dtype = None
         if max_value <= 8:
-            curr_dtype = '>u1'
+            curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
         else:
-            curr_dtype = '>u2'
+            curr_dtype = '>u2' if color_format.endianness == Endianness.BIG_ENDIAN else '<u2'
+
         reshaped_image = numpy.reshape(
             img.processed_data.astype(numpy.dtype(curr_dtype)),
             (img.height, img.width))

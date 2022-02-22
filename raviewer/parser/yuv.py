@@ -26,7 +26,7 @@ def interleave_channels(u, v):
 class ParserYUV420(AbstractParser):
     """A semi-planar YUV420 implementation of a parser"""
 
-    def parse(self, raw_data, color_format, width):
+    def parse(self, raw_data, color_format, width, reverse_bytes):
         """Parses provided raw data to an image, calculating height from provided width.
 
         Keyword arguments:
@@ -289,7 +289,7 @@ class ParserYUV422(AbstractParser):
     }
     """A packed YUV422 implementation of a parser"""
 
-    def parse(self, raw_data, color_format, width):
+    def parse(self, raw_data, color_format, width, reverse_bytes):
         """Parses provided raw data to an image, calculating height from provided width.
         Keyword arguments:
 

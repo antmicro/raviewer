@@ -10,7 +10,7 @@ import cv2 as cv
 class ParserGrayscale(AbstractParser):
     """A grayscale implementation of a parser"""
 
-    def parse(self, raw_data, color_format, width):
+    def parse(self, raw_data, color_format, width, reverse_bytes):
         """Parses provided raw data to an image, calculating height from provided width.
 
         Keyword arguments:
@@ -28,7 +28,6 @@ class ParserGrayscale(AbstractParser):
             curr_dtype = '>u1'
         else:
             curr_dtype = '>u2'
-
         raw_data = bytearray(raw_data)
         if len(raw_data) % numpy.dtype(curr_dtype).alignment != 0:
             raw_data += (0).to_bytes(len(raw_data) %

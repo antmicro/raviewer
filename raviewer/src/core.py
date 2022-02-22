@@ -6,7 +6,7 @@ from .utils import determine_color_format
 from ..image.color_format import PixelFormat
 
 
-def load_image(file_path, color_format, width):
+def load_image(file_path, color_format, width, reverse_bytes):
     try:
         image = Image.from_file(file_path)
         parser = ParserFactory.create_object(
@@ -16,7 +16,8 @@ def load_image(file_path, color_format, width):
 
     #Stride image
     image = parser.parse(image.data_buffer,
-                         determine_color_format(color_format), width)
+                         determine_color_format(color_format), width,
+                         reverse_bytes)
 
     return image
 
