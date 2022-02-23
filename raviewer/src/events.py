@@ -33,9 +33,11 @@ class Base_img():
     """Class containing image series entity required for core operations and plot state properties.
     Keyword variables:
         img: Image instance
+        data_buffer: binary data read from the input file
         path_to_File: location of embraced file
         color_format: actual used color format
         width: actual image series width
+        n_frames: number of frames in the file,
         selected_part: selected area resolution in pixels
         left_column, right_column, up_row, down_row: corner coordinates of selected area 
         texture_format: actual used texture format(mvFormat_Float_rgba or mvFormat_Float_rgb)
@@ -46,6 +48,7 @@ class Base_img():
     """
 
     img = None
+    data_buffer = None
     path_to_File = None
     color_format = None
     width = 800
@@ -128,6 +131,10 @@ class Plot_events(Base_img):
     def update_image(self, fit_image, channels=None, align=None):
         Hexviewer.mutex.acquire()
         Hexviewer.altered = True
+        Base_img.img.data_buffer = Base_img.data_buffer[
+            (self.frame - 1) * len(Base_img.data_buffer) //
+            self.n_frames:self.frame * len(Base_img.data_buffer) //
+            self.n_frames]
         Base_img.img = parse_image(Base_img.img.data_buffer,
                                    Base_img.color_format, Base_img.width,
                                    Base_img.reverse_bytes)
@@ -515,8 +522,8 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.color_format = args["color_format"]
             Base_img.n_frames = args["num_frames"]
             Base_img.frame = args["frame"]
-            Base_img.img = load_image(Base_img.path_to_File, Base_img.frame,
-                                      Base_img.n_frames)
+            Base_img.img = load_image(Base_img.path_to_File)
+            Base_img.data_buffer = Base_img.img.data_buffer
 
     def lock_queried_image_callback(self):
         if Base_img.img != None and dpg.is_plot_queried(
@@ -531,8 +538,8 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         path = list(data["selections"].values())[0]
         if path:
             Base_img.path_to_File = path
-            Base_img.img = load_image(Base_img.path_to_File, Base_img.frame,
-                                      Base_img.n_frames)
+            Base_img.img = load_image(Base_img.path_to_File)
+            Base_img.data_buffer = Base_img.img.data_buffer
             Plot_events.update_image(self, fit_image=True)
             dpg.enable_item(items["menu_bar"]["export_tab"])
 

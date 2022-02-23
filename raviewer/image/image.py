@@ -10,15 +10,12 @@ class RawDataContainer:
         self.data_buffer = data_buffer
 
     @classmethod
-    def from_file(cls, file_path, frame=1, n_frames=1):
+    def from_file(cls, file_path):
         data_buffer = None
 
         try:
             with open(file_path, "rb") as file:
-                file.seek(0, 2)
-                size = file.tell()
-                file.seek(((frame - 1) * size) // n_frames, 0)
-                data_buffer = file.read(size // n_frames)
+                data_buffer = file.read()
                 return cls(data_buffer)
 
         except EnvironmentError as err:

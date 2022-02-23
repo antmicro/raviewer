@@ -13,7 +13,6 @@ def parse_image(data_buffer, color_format, width, reverse_bytes=0):
             determine_color_format(color_format))
     except Exception as e:
         print(type(e).__name__, e)
-
     #Stride image
     image = parser.parse(image.data_buffer,
                          determine_color_format(color_format), width,
@@ -22,8 +21,8 @@ def parse_image(data_buffer, color_format, width, reverse_bytes=0):
     return image
 
 
-def load_image(path_to_file, frame=1, n_frames=1):
-    image = Image.from_file(path_to_file, frame, n_frames)
+def load_image(path_to_file):
+    image = Image.from_file(path_to_file)
     return image
 
 

@@ -48,8 +48,11 @@ def run(file_path, width, color_format, export, frame, num_frames, args):
         elif not os.path.isdir(os.path.dirname(export)):
             raise FileNotFoundError(
                 "{} - no such file or directory".format(export))
-        img = load_image(file_path, frame, num_frames)
-        img = parse_image(img.data_buffer, color_format, width)
+        img = load_image(file_path)
+        img = parse_image(
+            img.data_buffer[(frame - 1) * len(img.data_buffer) //
+                            num_frames:frame * len(img.data_buffer) //
+                            num_frames], color_format, width)
         save_image_as_file(get_displayable(img), export)
 
 
