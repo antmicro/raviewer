@@ -99,32 +99,24 @@ class AbstractParser(metaclass=ABCMeta):
             raw_data: bytes object
             color_format: target instance of ColorFormat
 
-        Returns: properly parsed buffer data (list)
+        Returns: properly parsed buffer data (numpy ndarray)
         """
-        comp_bits = color_format.bits_per_components
-        draft_data = raw_data
-        step = int(math.lcm(sum(comp_bits), 8) / 8)
-        if len(draft_data) % step != 0:
-            draft_data += (0).to_bytes(len(raw_data) % step,
-                                       byteorder="little")
-        position = 0
-        data_array = []
-        while position + step <= len(draft_data):
-
-            current_bytes = draft_data[position:position + step]
-            temp_number = int.from_bytes(
-                current_bytes, "little" if color_format.endianness
-                == Endianness.LITTLE_ENDIAN else "big")
-
-            read_bits = 0
-            while read_bits < step * 8:
-                pixel_arr = []
-                for i in range(3, -1, -1):
-                    data = temp_number & (2**comp_bits[i] - 1)
-                    pixel_arr.append(data)
-                    temp_number >>= comp_bits[i]
-                    read_bits += comp_bits[i]
-                data_array += pixel_arr[::-1]
-            position += step
-
+        pixel_size = sum(color_format.bits_per_components)
+        if pixel_size & 7 != 0:
+            raise Exception("Invalid pixel format")
+        curr_dtype = self.get_dtype(16, color_format.endianness)
+        if len(raw_data) % (pixel_size // 8) != 0:
+            raw_data += b'\x00' * (pixel_size // 8 - (len(raw_data) %
+                                                      (pixel_size // 8)))
+        data_array = numpy.frombuffer(raw_data, dtype=curr_dtype)
+        temp = pixel_size
+        channels = []
+        for i in color_format.bits_per_components:
+            mask = (1 << i) - 1
+            mask <<= temp - i
+            temp -= i
+            channel = numpy.bitwise_and(data_array, mask)
+            channel_shifted = numpy.right_shift(channel, temp)
+            channels.append(channel_shifted)
+        data_array = numpy.ravel(channels, order='F').astype('uint8')
         return data_array
