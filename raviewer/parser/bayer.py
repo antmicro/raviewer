@@ -38,16 +38,9 @@ class ParserBayerRG(AbstractParser):
                 raw_data += (0).to_bytes(len(raw_data) %
                                          numpy.dtype(curr_dtype).alignment,
                                          byteorder="little")
-            processed_data = numpy.ndarray((len(raw_data) // 2, ),
-                                           dtype=curr_dtype)
-            temp_raw_data = bytearray()
-            if reverse_bytes > 1:
-                for i in range(0, len(raw_data) + 1, reverse_bytes):
-                    temp_raw_data += raw_data[i:i + reverse_bytes][::-1]
-                processed_data = numpy.frombuffer(temp_raw_data,
-                                                  dtype=curr_dtype)
-            else:
-                processed_data = numpy.frombuffer(raw_data, dtype=curr_dtype)
+            processed_data = numpy.frombuffer(self.reverse(
+                raw_data, reverse_bytes),
+                                              dtype=curr_dtype)
         else:
             raise NotImplementedError(
                 "All color components needs to have same bits per pixel. Current: 1: {} bpp, 2: {} bpp, 3: {} bpp"

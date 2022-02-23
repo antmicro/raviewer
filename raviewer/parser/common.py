@@ -22,6 +22,15 @@ class AbstractParser(metaclass=ABCMeta):
         """
         pass
 
+    def reverse(self, raw_data, reverse_bytes):
+        temp_raw_data = bytearray()
+        if reverse_bytes > 1:
+            for i in range(0, len(raw_data) + 1, reverse_bytes):
+                temp_raw_data += raw_data[i:i + reverse_bytes][::-1]
+            return temp_raw_data
+        else:
+            return raw_data
+
     def parse(self, raw_data, color_format, width, reverse_bytes):
         """Parses provided raw data to an image, calculating height from provided width.
 
@@ -51,7 +60,8 @@ class AbstractParser(metaclass=ABCMeta):
                 raw_data += (0).to_bytes(len(raw_data) %
                                          numpy.dtype(curr_dtype).alignment,
                                          byteorder="little")
-            temp = numpy.frombuffer(raw_data, dtype=curr_dtype)
+            temp_raw_data = self.reverse(raw_data, reverse_bytes)
+            temp = numpy.frombuffer(temp_raw_data, curr_dtype)
             data_array = temp
             if len(temp_set) == 2:
                 if (temp.size % (width * 3) != 0):
@@ -67,7 +77,9 @@ class AbstractParser(metaclass=ABCMeta):
                     axis=2)
                 data_array = numpy.reshape(temp, temp.size)
         else:
-            data_array = self._parse_not_bytefilled(raw_data, color_format)
+            temp_raw_data = self.reverse(raw_data, reverse_bytes)
+            data_array = self._parse_not_bytefilled(temp_raw_data,
+                                                    color_format)
 
         processed_data = numpy.array(data_array, dtype=curr_dtype)
         if (processed_data.size % (width * 4) != 0):

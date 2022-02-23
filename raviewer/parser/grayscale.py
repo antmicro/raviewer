@@ -34,7 +34,9 @@ class ParserGrayscale(AbstractParser):
             raw_data += (0).to_bytes(len(raw_data) %
                                      numpy.dtype(curr_dtype).alignment,
                                      byteorder="little")
-        processed_data = numpy.frombuffer(raw_data, dtype=curr_dtype)
+        processed_data = numpy.frombuffer(self.reverse(raw_data,
+                                                       reverse_bytes),
+                                          dtype=curr_dtype)
         if (processed_data.size % width != 0):
             processed_data = numpy.concatenate(
                 (processed_data,

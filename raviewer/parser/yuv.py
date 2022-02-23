@@ -41,7 +41,6 @@ class ParserYUV420(AbstractParser):
         max_value = max(color_format.bits_per_components)
         curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
 
-        data_array = []
         if len(set(
                 color_format.bits_per_components)) == 2 and max_value % 8 == 0:
             raw_data = bytearray(raw_data)
@@ -49,13 +48,12 @@ class ParserYUV420(AbstractParser):
                 raw_data += (0).to_bytes(len(raw_data) %
                                          numpy.dtype(curr_dtype).alignment,
                                          byteorder="little")
-            data_array = numpy.frombuffer(raw_data, dtype=curr_dtype)
         else:
             raise NotImplementedError(
                 "Other than 8-bit YUVs are not currently supported")
-
+        data_array = numpy.frombuffer(self.reverse(raw_data, reverse_bytes),
+                                      dtype=curr_dtype)
         processed_data = numpy.array(data_array, dtype=curr_dtype)
-
         if (processed_data.size % width != 0):
             processed_data = numpy.concatenate(
                 (processed_data,
@@ -302,7 +300,6 @@ class ParserYUV422(AbstractParser):
         max_value = max(color_format.bits_per_components)
         curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
 
-        data_array = []
         bpcs_set = set(color_format.bits_per_components)
         if len(bpcs_set) == 2 or len(bpcs_set) == 1 and max_value % 8 == 0:
             raw_data = bytearray(raw_data)
@@ -310,11 +307,12 @@ class ParserYUV422(AbstractParser):
                 raw_data += (0).to_bytes(len(raw_data) %
                                          numpy.dtype(curr_dtype).alignment,
                                          byteorder="little")
-            data_array = numpy.frombuffer(raw_data, dtype=curr_dtype)
         else:
             raise NotImplementedError(
                 "Other than 8-bit YUVs are not currently supported")
 
+        data_array = numpy.frombuffer(self.reverse(raw_data, reverse_bytes),
+                                      dtype=curr_dtype)
         processed_data = numpy.array(data_array, dtype=curr_dtype)
 
         if (processed_data.size % (width * 2) != 0):
