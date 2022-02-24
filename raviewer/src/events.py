@@ -74,6 +74,20 @@ class Plot_events(Base_img):
     def __init__(self):
         pass
 
+    def update_hexdump(callback):
+
+        def _wrapper(self, app_data, user_data):
+            Hexviewer.mutex.acquire()
+            Hexviewer.altered = True
+            Hexviewer.mutex.release()
+            callback(self, app_data, user_data)
+            if dpg.does_item_exist(
+                    items["windows"]["hex_tab"]) or dpg.get_value(
+                        items["menu_bar"]["hex"]):
+                self.show_hex_format()
+
+        return _wrapper
+
     def indicate_loading(callback):
         """ This function is a decorator that shows loading indicator while executing a function """
 
@@ -129,8 +143,6 @@ class Plot_events(Base_img):
         Base_img.img.data_buffer = raw_data.tobytes()
 
     def update_image(self, fit_image, channels=None, align=None):
-        Hexviewer.mutex.acquire()
-        Hexviewer.altered = True
         Base_img.img.data_buffer = Base_img.data_buffer[
             (self.frame - 1) * len(Base_img.data_buffer) //
             self.n_frames:self.frame * len(Base_img.data_buffer) //
@@ -138,7 +150,6 @@ class Plot_events(Base_img):
         Base_img.img = parse_image(Base_img.img.data_buffer,
                                    Base_img.color_format, Base_img.width,
                                    Base_img.reverse_bytes)
-        Hexviewer.mutex.release()
         if align:
             self.align_image()
             parser = ParserFactory.create_object(
@@ -195,10 +206,6 @@ class Plot_events(Base_img):
             bounds_max=[Base_img.img.width, Base_img.img.height])
 
         dpg.set_item_label(items["plot"]["main_plot"], Base_img.path_to_File)
-
-        if dpg.does_item_exist(items["windows"]["hex_tab"]) or dpg.get_value(
-                items["menu_bar"]["hex"]):
-            self.show_hex_format()
 
         if dpg.does_item_exist(items["plot"]["annotation"]):
             dpg.delete_item(items["plot"]["annotation"])
@@ -522,6 +529,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             dpg.set_axis_limits(items["plot"]["xaxis"], self.xaxis_size[0],
                                 self.xaxis_size[1])
 
+    @Plot_events.update_hexdump
     @Plot_events.indicate_loading
     def open_file(self, callback_id, data):
         path = list(data["selections"].values())[0]
@@ -542,6 +550,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.width = data
             Plot_events.update_image(self, fit_image=True)
 
+    @Plot_events.update_hexdump
     def update_n_frames(self, callback_id, data):
         if Base_img.img != None:
             if dpg.get_value(items["buttons"]["frame_setter"]) > data:
@@ -552,6 +561,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.n_frames = data
             Plot_events.update_image(self, fit_image=True)
 
+    @Plot_events.update_hexdump
     def update_frame(self, callback_id, data):
         if Base_img.img != None:
             Base_img.frame = data
