@@ -441,9 +441,8 @@ class Hexviewer_events(Base_img):
             self.create_hexview()
 
     def create_hexview(self):
-        self.hex_format = Hexviewer(Base_img.path_to_File, 16, Base_img.frame,
-                                    Base_img.n_frames)
-        self.hex_format.open_file()
+        self.hex_format = Hexviewer(Base_img.img.data_buffer, 16)
+
         #Create table with columns
         self.create_table()
         #Start processing data
@@ -459,17 +458,7 @@ class Hexviewer_events(Base_img):
                 return True
             if not dpg.does_item_exist(items["windows"]["hex_tab"]):
                 self.create_tab()
-            if dpg.is_item_shown(
-                    items["windows"]["hex_tab"]
-            ) and not self.hex_format.filename != Base_img.path_to_File:
-                if (dpg.get_value(items["windows"]["hex_tab"])):
-                    return True
-            if not dpg.is_item_shown(
-                    items["windows"]["hex_tab"]
-            ) and self.hex_format.filename == Base_img.path_to_File:
-                dpg.show_item(items["windows"]["hex_tab"])
-                if self.hex_format.status:
-                    return True
+
             if dpg.does_item_exist(items["windows"]["hex_mode"]):
                 dpg.delete_item(items["windows"]["hex_mode"])
             dpg.show_item(items["windows"]["hex_tab"])
