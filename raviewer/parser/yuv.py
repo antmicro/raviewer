@@ -39,7 +39,7 @@ class ParserYUV420(AbstractParser):
         """
 
         max_value = max(color_format.bits_per_components)
-        curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
+        curr_dtype = self.get_dtype(max_value, color_format.endianness)
 
         if len(set(
                 color_format.bits_per_components)) == 2 and max_value % 8 == 0:
@@ -298,7 +298,7 @@ class ParserYUV422(AbstractParser):
         Returns: instance of Image processed to chosen format
         """
         max_value = max(color_format.bits_per_components)
-        curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
+        curr_dtype = self.get_dtype(max_value, color_format.endianness)
 
         bpcs_set = set(color_format.bits_per_components)
         if len(bpcs_set) == 2 or len(bpcs_set) == 1 and max_value % 8 == 0:

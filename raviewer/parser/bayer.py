@@ -23,11 +23,8 @@ class ParserBayerRG(AbstractParser):
         Returns: instance of Image processed to chosen format
         """
         max_value = max(color_format.bits_per_components)
-        curr_dtype = None
-        if max_value <= 8:
-            curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
-        else:
-            curr_dtype = '>u2' if color_format.endianness == Endianness.BIG_ENDIAN else '<u2'
+        curr_dtype = self.get_dtype(max_value, color_format.endianness)
+
         processed_data = []
         if len(set(color_format.bits_per_components)) == 2 or len(
                 set(color_format.bits_per_components)
@@ -86,11 +83,7 @@ class ParserBayerRG(AbstractParser):
     def crop_image2rawformat(self, img, up_row, down_row, left_column,
                              right_column):
         max_value = max(img.color_format.bits_per_components)
-        curr_dtype = None
-        if max_value <= 8:
-            curr_dtype = '>u1' if color_format.endianness == Endianness.BIG_ENDIAN else '<u1'
-        else:
-            curr_dtype = '>u2' if color_format.endianness == Endianness.BIG_ENDIAN else '<u2'
+        curr_dtype = self.get_dtype(max_value, img.color_format.endianness)
 
         reshaped_image = numpy.reshape(
             img.processed_data.astype(numpy.dtype(curr_dtype)),

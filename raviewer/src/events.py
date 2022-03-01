@@ -104,10 +104,10 @@ class Plot_events(Base_img):
         custom_text= "Pixel format name:  " +  color_format.name +\
                         "\nPixel format:  " + str(color_format.pixel_format)[12:]+\
                         "\nPixel plane:  " + str(color_format.pixel_plane)[11:] + "\nBits per component:  " + str(color_format.bits_per_components)
-        dpg.set_value(
-            items["buttons"]["endianness"],
-            "LITTLE_ENDIAN" if color_format.endianness
-            == Endianness.LITTLE_ENDIAN else "BIG_ENDIAN")
+        # Converting enum object to string gives the full attribute name (eg. Endianness.LITTLE_ENDIAN)
+        # To properly display endiannes, we must split result string by '.' and take it's second half
+        dpg.set_value(items["buttons"]["endianness"],
+                      str(color_format.endianness).split('.')[1])
         dpg.set_value(items["static_text"]["color_description"], custom_text)
 
     def align_image(self):
@@ -538,9 +538,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Plot_events.update_image(self, fit_image=True)
 
     def change_endianness(self, callback_id, data):
-        AVAILABLE_FORMATS[
-            Base_img.
-            color_format].endianness = Endianness.BIG_ENDIAN if data == "BIG_ENDIAN" else Endianness.LITTLE_ENDIAN
+        AVAILABLE_FORMATS[Base_img.color_format].endianness = Endianness[data]
         if Base_img.img != None:
             Plot_events.update_image(self, fit_image=True)
 
