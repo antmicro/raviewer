@@ -86,18 +86,30 @@ class MainWindow():
                                       "file_selector"]["read"]))
                 with dpg.menu(label="Export",
                               parent=items["menu_bar"]["file"]):
-                    dpg.add_menu_item(label="Image",
-                                      callback=lambda: dpg.show_item(items[
-                                          "file_selector"]["export"]))
-                    with dpg.menu(label="Selection"):
+                    with dpg.menu(label="PNG"):
+                        dpg.add_menu_item(label="Image",
+                                          callback=lambda: dpg.show_item(items[
+                                              "file_selector"]["export"]))
                         dpg.add_menu_item(
-                            label="PNG",
+                            label="Selection",
                             tag=items["menu_bar"]["export_tab"],
                             callback=lambda: dpg.show_item(items[
                                 "file_selector"]["export_image"]))
-                        dpg.add_menu_item(label="Raw",
-                                          callback=lambda: dpg.show_item(items[
-                                              "file_selector"]["export_raw"]))
+
+                    with dpg.menu(label="RAW"):
+                        dpg.add_menu_item(
+                            label="Frame",
+                            callback=lambda: dpg.show_item(items[
+                                "file_selector"]["export_raw_frame"]))
+                        dpg.add_menu_item(
+                            label="Selection",
+                            callback=lambda: dpg.show_item(items[
+                                "file_selector"]["export_raw_selection"]))
+                        dpg.add_menu_item(
+                            label="All frames",
+                            callback=lambda: dpg.show_item(items[
+                                "file_selector"]["export_raw_buffer"]))
+
                 dpg.add_menu_item(label="Hexdump        ",
                                   parent=items["menu_bar"]["mode"],
                                   check=True,

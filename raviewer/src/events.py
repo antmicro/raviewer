@@ -545,6 +545,18 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         if Base_img.img != None:
             save_image_as_file(Base_img.img_postchanneled, path)
 
+    def export_raw_frame(self, callback_id, data, user_data):
+        path = data["file_path_name"]
+        if Base_img.img != None:
+            with open(path, 'wb') as f:
+                f.write(Base_img.img.data_buffer)
+
+    def export_raw_buffer(self, callback_id, data, user_data):
+        path = data["file_path_name"]
+        if Base_img.img != None:
+            with open(path, 'wb') as f:
+                f.write(Base_img.data_buffer)
+
     def update_width(self, callback_id, data):
         if Base_img.img != None:
             Base_img.width = data
@@ -587,17 +599,19 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
                 Base_img.left_column:Base_img.right_column])
             im.save(path)
 
-    def export_as_raw(self, callback_id, data):
+    def export_raw_selection(self, callback_id, data):
         path = data["file_path_name"]
         return_data = None
         if Base_img.img != None:
-            f = open(path, "wb")
-            return_data = np.array(
-                crop_image2rawformat(Base_img.img, Base_img.up_row,
-                                     Base_img.down_row, Base_img.left_column,
-                                     Base_img.right_column))
-            return_data = np.frombuffer(return_data.tobytes(), dtype=np.byte)
-            f.write(return_data)
+            with open(path, "wb") as f:
+                return_data = np.array(
+                    crop_image2rawformat(Base_img.img, Base_img.up_row,
+                                         Base_img.down_row,
+                                         Base_img.left_column,
+                                         Base_img.right_column))
+                return_data = np.frombuffer(return_data.tobytes(),
+                                            dtype=np.byte)
+                f.write(return_data)
 
     def set_channels(self):
         if Base_img.img != None:

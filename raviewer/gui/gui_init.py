@@ -68,18 +68,35 @@ class AppInit():
         with dpg.file_dialog(directory_selector=False,
                              show=False,
                              modal=True,
+                             label="Export raw frame",
+                             callback=self.events.export_raw_frame,
+                             file_count=1,
+                             tag=items["file_selector"]["export_raw_frame"]):
+            pass
+        with dpg.file_dialog(directory_selector=False,
+                             show=False,
+                             modal=True,
                              label="Export selection as png",
                              callback=self.events.export_as_image,
                              file_count=1,
                              tag=items["file_selector"]["export_image"]):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
+        with dpg.file_dialog(
+                directory_selector=False,
+                show=False,
+                modal=True,
+                label="Export raw selection",
+                callback=self.events.export_raw_selection,
+                file_count=1,
+                tag=items["file_selector"]["export_raw_selection"]):
+            pass
         with dpg.file_dialog(directory_selector=False,
                              show=False,
                              modal=True,
-                             label="Export selection as raw",
-                             callback=self.events.export_as_raw,
+                             label="Export all raw frames",
+                             callback=self.events.export_raw_buffer,
                              file_count=1,
-                             tag=items["file_selector"]["export_raw"]):
+                             tag=items["file_selector"]["export_raw_buffer"]):
             pass
 
     def init_loading_indicator(self):
