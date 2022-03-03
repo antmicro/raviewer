@@ -48,7 +48,7 @@ def run(file_path, width, color_format, export, args):
         elif not os.path.isdir(os.path.dirname(export)):
             raise FileNotFoundError(
                 "{} - no such file or directory".format(export))
-        img = load_image(file_path, color_format, width)
+        img = load_image(file_path, color_format, width, reverse_bytes=False)
         save_image_as_file(get_displayable(img), export)
 
 
