@@ -1,6 +1,6 @@
 """Main format functionalities dispatcher based on factory pattern."""
 
-from ..image.image import (Image, RawDataContainer)
+from ..image.image import Image
 from ..parser.factory import ParserFactory
 from .utils import determine_color_format
 from ..image.color_format import PixelFormat
@@ -21,8 +21,10 @@ def parse_image(data_buffer, color_format, width, reverse_bytes=0):
     return image
 
 
-def load_image(path_to_file):
-    image = Image.from_file(path_to_file)
+def load_image(file_path):
+    with open(file_path, 'rb') as f:
+        data_buffer = bytearray(f.read())
+    image = Image(data_buffer)
     return image
 
 

@@ -3,6 +3,7 @@ import numpy
 import os
 import raviewer.image.image as image
 import raviewer.image.color_format as cf
+from raviewer.src.core import load_image
 
 
 class TestImageClass(unittest.TestCase):
@@ -17,10 +18,9 @@ class TestImageClass(unittest.TestCase):
 
     def test_from_file(self):
         self.assertEqual(
-            image.Image.from_file(self.TEST_FILE_BGR).data_buffer,
-            self.img.data_buffer)
+            load_image(self.TEST_FILE_BGR).data_buffer, self.img.data_buffer)
         with self.assertRaises(Exception):
-            image.Image.from_file("not_real_path")
+            load_image("not_real_path")
 
     def test_height_width(self):
         self.assertEqual(self.img.width, 1280)
