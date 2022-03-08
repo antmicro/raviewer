@@ -26,7 +26,7 @@ def check_formats():
     test_formats.test_all(AVAILABLE_FORMATS)
 
 
-def run(file_path, width, color_format, export, frame, n_frames, args):
+def run(file_path, width, color_format, export, frame, num_frames, args):
     if export is None:
         app = AppInit(args)
         app.run_gui()
@@ -48,7 +48,7 @@ def run(file_path, width, color_format, export, frame, n_frames, args):
         elif not os.path.isdir(os.path.dirname(export)):
             raise FileNotFoundError(
                 "{} - no such file or directory".format(export))
-        img = load_image(file_path, color_format, width, frame, n_frames)
+        img = load_image(file_path, color_format, width, frame, num_frames)
         save_image_as_file(get_displayable(img), export)
 
 
@@ -86,17 +86,21 @@ def main():
     parser.add_argument('--check-formats',
                         action='store_true',
                         help='Test all formats')
-    # n and N for lack of a better idea
-    parser.add_argument("-n",
-                        "--n_frames",
-                        type=int,
-                        default=1,
-                        help="Number of frames in a file")
-    parser.add_argument("-N",
-                        "--frame",
-                        type=int,
-                        default=1,
-                        help="Number of selected frame")
+    parser.add_argument(
+        "-n",
+        "--num-frames",
+        type=int,
+        default=1,
+        help=
+        "Number of captured frames in the file (splits the file into n parts)")
+    parser.add_argument(
+        "-N",
+        "--frame",
+        type=int,
+        default=1,
+        help=
+        "Index of frame to display/export (selects N-th part of the file after splitting it with --num-frames)"
+    )
 
     args = vars(parser.parse_args())
 
@@ -114,7 +118,7 @@ def main():
             color_format=args["color_format"],
             export=args["export"],
             frame=args["frame"],
-            n_frames=args["n_frames"],
+            num_frames=args["num_frames"],
             args=args)
 
 

@@ -513,7 +513,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         if Base_img.path_to_File != None:
             Base_img.width = args["width"]
             Base_img.color_format = args["color_format"]
-            Base_img.n_frames = args["n_frames"]
+            Base_img.n_frames = args["num_frames"]
             Base_img.frame = args["frame"]
 
     def lock_queried_image_callback(self):
