@@ -2,7 +2,7 @@ import unittest
 import numpy
 import os
 from unittest.mock import (Mock, patch)
-from app.parser.rgb import ParserARGB, ParserRGBA
+from raviewer.parser.rgb import ParserARGB, ParserRGBA
 from enum import Enum
 
 
@@ -55,7 +55,7 @@ class TestRGBParserClass(unittest.TestCase):
 
         self.parser = ParserRGBA()
 
-    @patch("app.parser.rgb.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_parse(self):
 
         parsed_img = self.parser.parse(self.raw_data, self.RGB565_FORMAT, 2)
@@ -81,7 +81,7 @@ class TestRGBParserClass(unittest.TestCase):
             (parsed_img.processed_data == self.BGR24_IMAGE.processed_data
              ).all())
 
-    @patch("app.parser.rgb.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_get_displayable(self):
 
         displayable = self.parser.get_displayable(self.RGB565_IMAGE)
@@ -135,7 +135,7 @@ class TestARGBParserClass(unittest.TestCase):
 
         self.parser = ParserARGB()
 
-    @patch("app.parser.rgb.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_parse(self):
 
         parsed_img = self.parser.parse(self.raw_data, self.ARGB444_FORMAT, 2)
@@ -162,7 +162,7 @@ class TestARGBParserClass(unittest.TestCase):
             (parsed_img.processed_data == self.ABGR32_IMAGE.processed_data
              ).all())
 
-    @patch("app.parser.rgb.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_get_displayable(self):
 
         displayable = self.parser.get_displayable(self.ARGB444_IMAGE)

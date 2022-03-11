@@ -1,4 +1,4 @@
-from app.parser.grayscale import ParserGrayscale
+from raviewer.parser.grayscale import ParserGrayscale
 import unittest
 import numpy
 from unittest.mock import (Mock, patch)

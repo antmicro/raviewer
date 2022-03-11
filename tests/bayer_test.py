@@ -1,4 +1,4 @@
-from app.parser.bayer import ParserBayerRG
+from raviewer.parser.bayer import ParserBayerRG
 import unittest
 import numpy
 from unittest.mock import (Mock, patch)

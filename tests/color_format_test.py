@@ -1,5 +1,5 @@
 import unittest
-import app.image.color_format as cf
+import raviewer.image.color_format as cf
 
 
 class TestColorFormat(unittest.TestCase):

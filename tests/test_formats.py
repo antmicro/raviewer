@@ -1,8 +1,8 @@
 """Module for testing formats on resources entities"""
 
-from app.src.core import (get_displayable, load_image)
+from raviewer.src.core import (get_displayable, load_image)
 from terminaltables import AsciiTable
-from app.image.color_format import AVAILABLE_FORMATS
+from raviewer.image.color_format import AVAILABLE_FORMATS
 import os
 import pkg_resources
 import time

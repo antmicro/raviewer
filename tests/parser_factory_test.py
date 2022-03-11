@@ -2,9 +2,9 @@ import unittest
 import numpy
 import os
 from unittest.mock import (Mock, patch)
-from app.parser.factory import ParserFactory
-from app.parser.common import AbstractParser
-from app.image.color_format import (PixelFormat, PixelPlane)
+from raviewer.parser.factory import ParserFactory
+from raviewer.parser.common import AbstractParser
+from raviewer.image.color_format import (PixelFormat, PixelPlane)
 from enum import Enum
 
 

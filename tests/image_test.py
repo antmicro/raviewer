@@ -1,8 +1,8 @@
 import unittest
 import numpy
 import os
-import app.image.image as image
-import app.image.color_format as cf
+import raviewer.image.image as image
+import raviewer.image.color_format as cf
 
 
 class TestImageClass(unittest.TestCase):

@@ -2,7 +2,7 @@ import unittest
 import numpy
 import os
 from unittest.mock import (Mock, patch)
-from app.parser.yuv import ParserYUV420, ParserYUV422, ParserYUV420Planar, ParserYUV422Planar
+from raviewer.parser.yuv import ParserYUV420, ParserYUV422, ParserYUV420Planar, ParserYUV422Planar
 from enum import Enum
 
 
@@ -58,7 +58,7 @@ class TestYUVParserClass(unittest.TestCase):
 
         self.parserY422 = ParserYUV422()
 
-    @patch("app.parser.yuv.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_parse_Y420(self):
 
         parsed_img = self.parserY420.parse(self.raw_data_Y420,
@@ -71,7 +71,7 @@ class TestYUVParserClass(unittest.TestCase):
         self.assertTrue((
             parsed_img.processed_data == self.Y420_IMAGE.processed_data).all())
 
-    @patch("app.parser.yuv.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_parse_Y422(self):
         parsed_img = self.parserY422.parse(self.raw_data_Y422,
                                            self.Y422_FORMAT, 2)
@@ -83,7 +83,7 @@ class TestYUVParserClass(unittest.TestCase):
         self.assertTrue((
             parsed_img.processed_data == self.Y422_IMAGE.processed_data).all())
 
-    @patch("app.parser.yuv.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_get_displayable_Y420(self):
 
         displayable = self.parserY420.get_displayable(self.Y420_IMAGE)
@@ -94,9 +94,9 @@ class TestYUVParserClass(unittest.TestCase):
                                                      [[0, 54, 255],
                                                       [0, 54, 255]]])).all())
 
-    @patch("app.parser.yuv.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     @patch(
-        "app.parser.yuv.ParserYUV422.yuv_442_offsets", {
+        "raviewer.parser.yuv.ParserYUV422.yuv_442_offsets", {
             DummyPixelFormat.UYVY: {
                 "Y": 1,
                 "U": 0,
@@ -153,7 +153,7 @@ class TestYUVPlanarParserClass(unittest.TestCase):
         self.Y422_IMAGE.data_buffer = self.raw_data_Y422
         self.parserY422 = ParserYUV422Planar()
 
-    @patch("app.parser.yuv.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_parse_Y420(self):
 
         parsed_img = self.parserY420.parse(self.raw_data_Y420,
@@ -166,7 +166,7 @@ class TestYUVPlanarParserClass(unittest.TestCase):
         self.assertTrue((
             parsed_img.processed_data == self.Y420_IMAGE.processed_data).all())
 
-    @patch("app.parser.yuv.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_parse_Y422(self):
         parsed_img = self.parserY422.parse(self.raw_data_Y422,
                                            self.Y422_FORMAT, 2)
@@ -178,7 +178,7 @@ class TestYUVPlanarParserClass(unittest.TestCase):
         self.assertTrue((
             parsed_img.processed_data == self.Y422_IMAGE.processed_data).all())
 
-    @patch("app.parser.yuv.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_get_displayable_Y420(self):
 
         displayable = self.parserY420.get_displayable(self.Y420_IMAGE)
@@ -190,7 +190,7 @@ class TestYUVPlanarParserClass(unittest.TestCase):
                                                      [[0, 54, 255],
                                                       [0, 54, 255]]])).all())
 
-    @patch("app.parser.yuv.PixelFormat", DummyPixelFormat)
+    @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_get_displayable_Y422(self):
 
         displayable = self.parserY422.get_displayable(self.Y422_IMAGE)
