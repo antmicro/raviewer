@@ -49,6 +49,7 @@ class TestGrayscaleParserClass(unittest.TestCase):
 
         self.parser = ParserGrayscale()
 
+    @patch("raviewer.parser.common.Endianness", DummyEndianness)
     def test_parse(self):
 
         parsed_img = self.parser.parse(self.raw_data, self.GRAY_FORMAT, 2)

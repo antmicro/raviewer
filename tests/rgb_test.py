@@ -55,6 +55,7 @@ class TestRGBParserClass(unittest.TestCase):
 
         self.parser = ParserRGBA()
 
+    @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_parse(self):
 
@@ -135,6 +136,7 @@ class TestARGBParserClass(unittest.TestCase):
 
         self.parser = ParserARGB()
 
+    @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_parse(self):
 

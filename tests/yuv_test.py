@@ -58,6 +58,7 @@ class TestYUVParserClass(unittest.TestCase):
 
         self.parserY422 = ParserYUV422()
 
+    @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_parse_Y420(self):
 
@@ -71,6 +72,7 @@ class TestYUVParserClass(unittest.TestCase):
         self.assertTrue((
             parsed_img.processed_data == self.Y420_IMAGE.processed_data).all())
 
+    @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_parse_Y422(self):
         parsed_img = self.parserY422.parse(self.raw_data_Y422,
@@ -153,6 +155,7 @@ class TestYUVPlanarParserClass(unittest.TestCase):
         self.Y422_IMAGE.data_buffer = self.raw_data_Y422
         self.parserY422 = ParserYUV422Planar()
 
+    @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_parse_Y420(self):
 
@@ -166,6 +169,7 @@ class TestYUVPlanarParserClass(unittest.TestCase):
         self.assertTrue((
             parsed_img.processed_data == self.Y420_IMAGE.processed_data).all())
 
+    @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_parse_Y422(self):
         parsed_img = self.parserY422.parse(self.raw_data_Y422,
