@@ -26,7 +26,7 @@ def check_formats():
     test_formats.test_all(AVAILABLE_FORMATS)
 
 
-def run(file_path, width, color_format, export, frame, num_frames, args):
+def run(file_path, width, color_format, export, args):
     if export is None:
         app = AppInit(args)
         app.run_gui()
@@ -49,10 +49,7 @@ def run(file_path, width, color_format, export, frame, num_frames, args):
             raise FileNotFoundError(
                 "{} - no such file or directory".format(export))
         img = load_image(file_path)
-        img = parse_image(
-            img.data_buffer[(frame - 1) * len(img.data_buffer) //
-                            num_frames:frame * len(img.data_buffer) //
-                            num_frames], color_format, width)
+        img = parse_image(img.data_buffer, color_format, width)
         save_image_as_file(get_displayable(img), export)
 
 
@@ -90,21 +87,6 @@ def main():
     parser.add_argument('--check-formats',
                         action='store_true',
                         help='Test all formats')
-    parser.add_argument(
-        "-n",
-        "--num-frames",
-        type=int,
-        default=1,
-        help=
-        "Number of captured frames in the file (splits the file into n parts)")
-    parser.add_argument(
-        "-N",
-        "--frame",
-        type=int,
-        default=1,
-        help=
-        "Index of frame to display/export (selects N-th part of the file after splitting it with --num-frames)"
-    )
 
     args = vars(parser.parse_args())
 
@@ -121,10 +103,7 @@ def main():
             width=args["width"],
             color_format=args["color_format"],
             export=args["export"],
-            frame=args["frame"],
-            num_frames=args["num_frames"],
             args=args)
-
 
 if __name__ == "__main__":
     sys.exit(main())

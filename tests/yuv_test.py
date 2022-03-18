@@ -185,7 +185,8 @@ class TestYUVPlanarParserClass(unittest.TestCase):
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_get_displayable_Y420(self):
 
-        displayable = self.parserY420.get_displayable(self.Y420_IMAGE)
+        displayable = self.parserY420.get_displayable(self.Y420_IMAGE,
+                                                      self.Y420_IMAGE.height)
         self.assertEqual(displayable.shape,
                          (self.Y420_IMAGE.height, self.Y420_IMAGE.width, 3))
         print(displayable)
@@ -197,7 +198,8 @@ class TestYUVPlanarParserClass(unittest.TestCase):
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
     def test_get_displayable_Y422(self):
 
-        displayable = self.parserY422.get_displayable(self.Y422_IMAGE)
+        displayable = self.parserY422.get_displayable(self.Y422_IMAGE,
+                                                      self.Y422_IMAGE.height)
         self.assertEqual(displayable.shape,
                          (self.Y422_IMAGE.height, self.Y422_IMAGE.width, 3))
         print(displayable)

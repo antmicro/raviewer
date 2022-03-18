@@ -63,7 +63,6 @@ items = {
     "file_selector": {
         "read": dpg.generate_uuid(),
         "export": dpg.generate_uuid(),
-        "export_raw_frame": dpg.generate_uuid(),
         "export_raw_buffer": dpg.generate_uuid(),
         "export_image": dpg.generate_uuid(),
         "export_raw_selection": dpg.generate_uuid(),

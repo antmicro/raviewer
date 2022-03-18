@@ -98,18 +98,13 @@ class MainWindow():
 
                     with dpg.menu(label="RAW"):
                         dpg.add_menu_item(
-                            label="Frame",
+                            label="Buffer",
                             callback=lambda: dpg.show_item(items[
-                                "file_selector"]["export_raw_frame"]))
+                                "file_selector"]["export_raw_buffer"]))
                         dpg.add_menu_item(
                             label="Selection",
                             callback=lambda: dpg.show_item(items[
                                 "file_selector"]["export_raw_selection"]))
-                        dpg.add_menu_item(
-                            label="All frames",
-                            callback=lambda: dpg.show_item(items[
-                                "file_selector"]["export_raw_buffer"]))
-
                 dpg.add_menu_item(label="Hexdump        ",
                                   parent=items["menu_bar"]["mode"],
                                   check=True,

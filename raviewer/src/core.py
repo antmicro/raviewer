@@ -3,7 +3,7 @@
 from ..image.image import Image
 from ..parser.factory import ParserFactory
 from .utils import determine_color_format
-from ..image.color_format import PixelFormat
+from ..image.color_format import PixelFormat, PixelPlane
 
 
 def parse_image(data_buffer, color_format, width, reverse_bytes=0):
@@ -28,7 +28,13 @@ def load_image(file_path):
     return image
 
 
-def get_displayable(image, channels={"r_y": True, "g_u": True, "b_v": True}):
+def get_displayable(image,
+                    height=0,
+                    channels={
+                        "r_y": True,
+                        "g_u": True,
+                        "b_v": True
+                    }):
 
     if image.color_format is None:
         raise Exception("Image should be already parsed!")
@@ -36,8 +42,12 @@ def get_displayable(image, channels={"r_y": True, "g_u": True, "b_v": True}):
 
     if image.color_format.pixel_format == PixelFormat.MONO:
         return parser.get_displayable(image)
+    elif image.color_format.pixel_plane in [
+            PixelPlane.SEMIPLANAR, PixelPlane.PLANAR
+    ]:
+        return parser.get_displayable(image, height, channels=channels)
     else:
-        return parser.get_displayable(image, channels)
+        return parser.get_displayable(image, channels=channels)
 
 
 """Resolve picked pixel's raw integrants."""

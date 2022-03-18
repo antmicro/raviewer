@@ -59,11 +59,12 @@ class ParserYUV420(AbstractParser):
                 (processed_data,
                  numpy.zeros(width - (processed_data.size % width))))
 
-        new_height = normal_round(math.ceil(processed_data.size / width) / 1.5)
+        new_height = math.ceil(math.ceil(processed_data.size / width) / 1.5)
         return Image(raw_data, color_format, processed_data, width, new_height)
 
     def get_displayable(self,
                         image,
+                        height=0,
                         channels={
                             "r_y": True,
                             "g_u": True,
@@ -73,47 +74,56 @@ class ParserYUV420(AbstractParser):
 
         Returns: Numpy array containing displayable data.
         """
+        tmp = []
         return_data = image.processed_data
         conversion_const = None
-        if image.color_format.pixel_format == PixelFormat.YUV:
-            conversion_const = cv.COLOR_YUV2RGB_NV12
-            if not channels["r_y"]:
-                return_data[0:image.width * image.height] = 0
-            if not channels["g_u"]:
-                return_data[image.width * image.height::2] = 0
-            if not channels["b_v"]:
-                return_data[image.width * image.height + 1::2] = 0
-            if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
-                conversion_const = cv.COLOR_GRAY2RGB
-        elif image.color_format.pixel_format == PixelFormat.YVU:
-            conversion_const = cv.COLOR_YUV2RGB_NV21
-            if not channels["r_y"]:
-                return_data[0:image.width * image.height] = 0
-            if not channels["g_u"]:
-                return_data[image.width * image.height + 1::2] = 0
-            if not channels["b_v"]:
-                return_data[image.width * image.height::2] = 0
-            if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
-                conversion_const = cv.COLOR_GRAY2RGB
+        if height < 1: height = image.height
+        n_frames = math.ceil(image.height / height)
+        for i in range(n_frames):
+            return_data = image.processed_data[i * image.width *
+                                               int(height * 1.5):(1 + i) *
+                                               image.width * int(height * 1.5)]
+            if image.color_format.pixel_format == PixelFormat.YUV:
+                conversion_const = cv.COLOR_YUV2RGB_NV12
+                if not channels["r_y"]:
+                    return_data[0:image.width * height] = 0
+                if not channels["g_u"]:
+                    return_data[image.width * height::2] = 0
+                if not channels["b_v"]:
+                    return_data[image.width * height + 1::2] = 0
+                if not channels["b_v"] and not channels["g_u"] and channels[
+                        "r_y"]:
+                    conversion_const = cv.COLOR_GRAY2RGB
+            elif image.color_format.pixel_format == PixelFormat.YVU:
+                conversion_const = cv.COLOR_YUV2RGB_NV21
+                if not channels["r_y"]:
+                    return_data[0:image.width * height] = 0
+                if not channels["g_u"]:
+                    return_data[image.width * height + 1::2] = 0
+                if not channels["b_v"]:
+                    return_data[image.width * height::2] = 0
+                if not channels["b_v"] and not channels["g_u"] and channels[
+                        "r_y"]:
+                    conversion_const = cv.COLOR_GRAY2RGB
 
-        data_array = numpy.reshape(
-            return_data,
-            (int(return_data.size / image.width), image.width)).astype('uint8')
+            data_array = numpy.reshape(return_data, (int(
+                return_data.size / image.width), image.width)).astype('uint8')
 
-        if (data_array.shape[0] % 3 != 0):
-            data_array = numpy.concatenate(
-                (data_array,
-                 numpy.zeros(
-                     (3 - (data_array.shape[0] % 3), data_array.shape[1]),
-                     dtype=numpy.uint8)))
-        if (data_array.shape[1] % 2 != 0):
-            data_array = numpy.concatenate(
-                (data_array,
-                 numpy.zeros((data_array.shape[0], 1), dtype=numpy.uint8)),
-                axis=1)
+            if (data_array.shape[0] % 3 != 0):
+                data_array = numpy.concatenate(
+                    (data_array,
+                     numpy.zeros(
+                         (3 - (data_array.shape[0] % 3), data_array.shape[1]),
+                         dtype=numpy.uint8)))
+            if (data_array.shape[1] % 2 != 0):
+                data_array = numpy.concatenate(
+                    (data_array,
+                     numpy.zeros((data_array.shape[0], 1), dtype=numpy.uint8)),
+                    axis=1)
 
-        return_data = cv.cvtColor(data_array, conversion_const)
-        return return_data
+            return_data = cv.cvtColor(data_array, conversion_const)
+            tmp.append(return_data)
+        return numpy.concatenate(tmp, axis=0)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
@@ -161,6 +171,7 @@ class ParserYUV420Planar(ParserYUV420):
 
     def get_displayable(self,
                         image,
+                        height,
                         channels={
                             "r_y": True,
                             "g_u": True,
@@ -170,54 +181,61 @@ class ParserYUV420Planar(ParserYUV420):
 
         Returns: Numpy array containing displayable data.
         """
-        return_data = image.processed_data
+        tmp = []
+        if height < 1: height = image.height
+        n_frames = math.ceil(
+            len(image.processed_data) / image.width / height / 1.5)
+        for i in range(n_frames):
+            return_data = image.processed_data[int(height * 1.5) *
+                                               image.width * i:(1 + i) *
+                                               image.width * int(height * 1.5)]
 
-        conversion_const = None
-        if image.color_format.pixel_format == PixelFormat.YUV:
-            conversion_const = cv.COLOR_YUV2RGB_I420
-            if not channels["r_y"]:
-                return_data[0:image.width * image.height] = 0
-            if not channels["g_u"]:
-                return_data[image.width * image.height +
-                            1:image.width * image.height +
-                            image.width * image.height // 4] = 0
-            if not channels["b_v"]:
-                return_data[image.width * image.height +
-                            image.width * image.height // 4:] = 0
-            if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
-                conversion_const = cv.COLOR_GRAY2RGB
+            conversion_const = None
+            if image.color_format.pixel_format == PixelFormat.YUV:
+                conversion_const = cv.COLOR_YUV2RGB_I420
+                if not channels["r_y"]:
+                    return_data[0:image.width * height] = 0
+                if not channels["g_u"]:
+                    return_data[image.width * height + 1:image.width * height +
+                                image.width * height // 4] = 0
+                if not channels["b_v"]:
+                    return_data[image.width * height +
+                                image.width * height // 4:] = 0
+                if not channels["b_v"] and not channels["g_u"] and channels[
+                        "r_y"]:
+                    conversion_const = cv.COLOR_GRAY2RGB
 
-        elif image.color_format.pixel_format == PixelFormat.YVU:
-            conversion_const = cv.COLOR_YUV2RGB_YV12
-            if not channels["r_y"]:
-                return_data[0:image.width * image.height] = 0
-            if not channels["g_u"]:
-                return_data[image.width * image.height +
-                            image.width * image.height // 4:] = 0
-            if not channels["b_v"]:
-                return_data[image.width * image.height +
-                            1:image.width * image.height +
-                            image.width * image.height // 4] = 0
-            if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
-                conversion_const = cv.COLOR_GRAY2RGB
+            elif image.color_format.pixel_format == PixelFormat.YVU:
+                conversion_const = cv.COLOR_YUV2RGB_YV12
+                if not channels["r_y"]:
+                    return_data[0:image.width * height] = 0
+                if not channels["g_u"]:
+                    return_data[image.width * height +
+                                image.width * height // 4:] = 0
+                if not channels["b_v"]:
+                    return_data[image.width * height + 1:image.width * height +
+                                image.width * height // 4] = 0
+                if not channels["b_v"] and not channels["g_u"] and channels[
+                        "r_y"]:
+                    conversion_const = cv.COLOR_GRAY2RGB
 
-        data_array = numpy.reshape(
-            return_data,
-            (int(return_data.size / image.width), image.width)).astype('uint8')
+            data_array = numpy.reshape(return_data, (int(
+                return_data.size / image.width), image.width)).astype('uint8')
 
-        if (data_array.shape[0] % 3 != 0):
-            data_array = numpy.concatenate(
-                (data_array,
-                 numpy.zeros(
-                     (3 - (data_array.shape[0] % 3), data_array.shape[1]),
-                     dtype=numpy.uint8)))
-        if (data_array.shape[1] % 2 != 0):
-            data_array = numpy.concatenate(
-                (data_array,
-                 numpy.zeros((data_array.shape[0], 1), dtype=numpy.uint8)),
-                axis=1)
-
-        return_data = cv.cvtColor(data_array, conversion_const)
+            if (data_array.shape[0] % 3 != 0):
+                data_array = numpy.concatenate(
+                    (data_array,
+                     numpy.zeros(
+                         (3 - (data_array.shape[0] % 3), data_array.shape[1]),
+                         dtype=numpy.uint8)))
+            if (data_array.shape[1] % 2 != 0):
+                data_array = numpy.concatenate(
+                    (data_array,
+                     numpy.zeros((data_array.shape[0], 1), dtype=numpy.uint8)),
+                    axis=1)
+            temp = cv.cvtColor(data_array, conversion_const)
+            tmp.append(temp)
+        return_data = numpy.concatenate(tmp, axis=0)
         return return_data
 
     def get_pixel_raw_components(self, image, row, column, index):
@@ -326,6 +344,7 @@ class ParserYUV422(AbstractParser):
 
     def get_displayable(self,
                         image,
+                        height=0,
                         channels={
                             "r_y": True,
                             "g_u": True,
@@ -335,48 +354,58 @@ class ParserYUV422(AbstractParser):
 
         Returns: Numpy array containing displayable data.
         """
-        if not channels["r_y"]:
-            image.processed_data[self.yuv_442_offsets[
-                image.color_format.pixel_format]["Y"]::2] = 0
-        if not channels["g_u"]:
-            image.processed_data[self.yuv_442_offsets[
-                image.color_format.pixel_format]["U"]::4] = 0
-        if not channels["b_v"]:
-            image.processed_data[self.yuv_442_offsets[
-                image.color_format.pixel_format]["V"]::4] = 0
+        tmp = []
+        if height < 1: height = image.height
+        n_frames = math.ceil(image.height / height)
+        for i in range(n_frames):
+            temp_processed_data = image.processed_data[i * (
+                image.width * height * 2):(1 + i) * (image.width * height * 2)]
+            height = math.ceil(len(temp_processed_data) / image.width / 2)
+            if not channels["r_y"]:
+                temp_processed_data[self.yuv_442_offsets[
+                    image.color_format.pixel_format]["Y"]::2] = 0
+            if not channels["g_u"]:
+                temp_processed_data[self.yuv_442_offsets[
+                    image.color_format.pixel_format]["U"]::4] = 0
+            if not channels["b_v"]:
+                temp_processed_data[self.yuv_442_offsets[
+                    image.color_format.pixel_format]["V"]::4] = 0
 
-        return_data = numpy.reshape(
-            image.processed_data.copy(),
-            (image.height, image.width, 2)).astype('uint8')
-        conversion_const = None
-        if image.color_format.pixel_format == PixelFormat.YUYV:
-            conversion_const = cv.COLOR_YUV2RGB_YUYV
-        elif image.color_format.pixel_format == PixelFormat.UYVY:
-            conversion_const = cv.COLOR_YUV2RGB_UYVY
-        elif image.color_format.pixel_format == PixelFormat.YVYU:
-            conversion_const = cv.COLOR_YUV2RGB_YVYU
-        elif image.color_format.pixel_format == PixelFormat.VYUY:
-            conversion_const = cv.COLOR_YUV2RGB_UYVY
+            return_data = numpy.reshape(
+                temp_processed_data.copy(),
+                (height, image.width, 2)).astype('uint8')
+            conversion_const = None
+            if image.color_format.pixel_format == PixelFormat.YUYV:
+                conversion_const = cv.COLOR_YUV2RGB_YUYV
+            elif image.color_format.pixel_format == PixelFormat.UYVY:
+                conversion_const = cv.COLOR_YUV2RGB_UYVY
+            elif image.color_format.pixel_format == PixelFormat.YVYU:
+                conversion_const = cv.COLOR_YUV2RGB_YVYU
+            elif image.color_format.pixel_format == PixelFormat.VYUY:
+                conversion_const = cv.COLOR_YUV2RGB_UYVY
 
-        if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
-            return_data = cv.cvtColor(return_data[:, :, 0], cv.COLOR_GRAY2RGB)
-        else:
-            return_data = self.convert2RGB(return_data, conversion_const,
-                                           image)
-        return return_data
+            if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
+                return_data = cv.cvtColor(return_data[:, :, 0],
+                                          cv.COLOR_GRAY2RGB)
+            else:
+                return_data = self.convert2RGB(temp_processed_data,
+                                               image.width, height,
+                                               conversion_const, image)
+            tmp.append(return_data)
+        return numpy.concatenate(tmp, axis=0)
 
-    def convert2RGB(self, data, conversion, image):
-        y = image.processed_data[self.yuv_442_offsets[image.color_format.
-                                                      pixel_format]["Y"]::2]
-        u = image.processed_data[self.yuv_442_offsets[image.color_format.
-                                                      pixel_format]["U"]::4]
-        v = image.processed_data[self.yuv_442_offsets[image.color_format.
-                                                      pixel_format]["V"]::4]
+    def convert2RGB(self, processed_data, width, height, conversion, image):
+        y = processed_data[self.yuv_442_offsets[image.color_format.
+                                                pixel_format]["Y"]::2]
+        u = processed_data[self.yuv_442_offsets[image.color_format.
+                                                pixel_format]["U"]::4]
+        v = processed_data[self.yuv_442_offsets[image.color_format.
+                                                pixel_format]["V"]::4]
         u = numpy.resize(numpy.array([x for x in u for _ in (0, 1)]), len(y))
         v = numpy.resize(numpy.array([x for x in v for _ in (0, 1)]), len(y))
-        plane_y = y.reshape((image.height, image.width, 1))
-        plane_u = u.reshape((image.height, image.width, 1))
-        plane_v = v.reshape((image.height, image.width, 1))
+        plane_y = y.reshape((height, width, 1))
+        plane_u = u.reshape((height, width, 1))
+        plane_v = v.reshape((height, width, 1))
         yuv = numpy.concatenate((plane_y, plane_u, plane_v),
                                 axis=2).astype('uint8')
         rgb = cv.cvtColor(yuv, cv.COLOR_YUV2RGB)
@@ -397,6 +426,7 @@ class ParserYUV422Planar(ParserYUV422):
 
     def get_displayable(self,
                         image,
+                        height,
                         channels={
                             "r_y": True,
                             "g_u": True,
@@ -406,56 +436,64 @@ class ParserYUV422Planar(ParserYUV422):
 
         Returns: Numpy array containing displayable data.
         """
-
-        return_data = numpy.zeros(
-            (image.height, image.width, 2)).astype('uint8')
         conversion_const = None
         if image.color_format.pixel_format == PixelFormat.YUV:
             conversion_const = cv.COLOR_YUV2RGB_YUYV
-            if not channels["r_y"]:
-                image.processed_data[0:image.height * image.width:] = 0
-            if not channels["g_u"]:
-                image.processed_data[image.height * image.width:image.height *
-                                     (3 * image.width // 2 +
-                                      image.width % 2)] = 0
-            if not channels["b_v"]:
-                image.processed_data[image.height * (3 * image.width // 2 +
-                                                     image.width % 2):] = 0
+        if height < 1: height = image.height
+        tmp = []
+        n_frames = math.ceil(
+            len(image.processed_data) / image.width / height / 2)
+        for i in range(n_frames):
+            temp_processed_data = image.processed_data[int(i * (
+                image.width * height) * 2):int((1 + i) *
+                                               (image.width * height) * 2)]
+            height = math.ceil(len(temp_processed_data) / image.width / 2)
+            return_data = numpy.zeros((height, image.width, 2)).astype('uint8')
+            if image.color_format.pixel_format == PixelFormat.YUV:
+                if not channels["r_y"]:
+                    temp_processed_data[0:height * image.width:] = 0
+                if not channels["g_u"]:
+                    temp_processed_data[height * image.width:height *
+                                        (3 * image.width // 2 +
+                                         image.width % 2)] = 0
+                if not channels["b_v"]:
+                    temp_processed_data[height * (3 * image.width // 2 +
+                                                  image.width % 2):] = 0
+            data_array = numpy.reshape(
+                temp_processed_data[:(height * image.width)],
+                (height, image.width)).astype('uint8')
+            return_data[:, :, 0] = data_array
+            chromas_data = numpy.reshape(
+                temp_processed_data[(height * image.width):height *
+                                    (3 * image.width // 2 + image.width % 2)],
+                (height, image.width // 2 + image.width % 2)).astype('uint8')
+            return_data[:, ::2, 1] = chromas_data
+            chromas_data = numpy.reshape(
+                temp_processed_data[height *
+                                    (3 * image.width // 2 + image.width % 2):],
+                (height, image.width // 2)).astype('uint8')
+            return_data[:, 1::2, 1] = chromas_data
+            if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
+                return_data = cv.cvtColor(return_data[:, :, 0],
+                                          cv.COLOR_GRAY2RGB)
+            else:
+                return_data = self.convert2RGB(temp_processed_data,
+                                               image.width, height,
+                                               conversion_const)
+            tmp.append(return_data)
+        return numpy.concatenate(tmp, axis=0)
 
-        data_array = numpy.reshape(
-            image.processed_data[:(image.height * image.width)],
-            (image.height, image.width)).astype('uint8')
-        return_data[:, :, 0] = data_array
-        chromas_data = numpy.reshape(
-            image.processed_data[(image.height * image.width):image.height *
-                                 (3 * image.width // 2 + image.width % 2)],
-            (image.height, image.width // 2 + image.width % 2)).astype('uint8')
-        return_data[:, ::2, 1] = chromas_data
-        chromas_data = numpy.reshape(
-            image.processed_data[image.height *
-                                 (3 * image.width // 2 + image.width % 2):],
-            (image.height, image.width // 2)).astype('uint8')
-        return_data[:, 1::2, 1] = chromas_data
-
-        if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
-            return_data = cv.cvtColor(return_data[:, :, 0], cv.COLOR_GRAY2RGB)
-        else:
-            return_data = self.convert2RGB(return_data, conversion_const,
-                                           image)
-        return return_data
-
-    def convert2RGB(self, data, conversion, image):
-        y = image.processed_data[0:image.height * image.width:]
-        u = image.processed_data[image.height * image.width:image.height *
-                                 (3 * image.width // 2 + image.width % 2)]
-        v = image.processed_data[image.height *
-                                 (3 * image.width // 2 + image.width % 2):]
+    def convert2RGB(self, processed_data, width, height, conversion):
+        y = processed_data[0:height * width:]
+        u = processed_data[height * width:height *
+                           (3 * width // 2 + width % 2)]
+        v = processed_data[height * (3 * width // 2 + width % 2):]
 
         u = numpy.resize(numpy.array([x for x in u for _ in (0, 1)]), len(y))
         v = numpy.resize(numpy.array([x for x in v for _ in (0, 1)]), len(y))
-        plane_y = y.reshape((image.height, image.width, 1))
-        plane_u = u.reshape((image.height, image.width, 1))
-        plane_v = v.reshape((image.height, image.width, 1))
+        plane_y = y.reshape((height, width, 1))
+        plane_u = u.reshape((height, width, 1))
+        plane_v = v.reshape((height, width, 1))
         yuv = numpy.concatenate((plane_y, plane_u, plane_v),
                                 axis=2).astype('uint8')
         rgb = cv.cvtColor(yuv, cv.COLOR_YUV2RGB)

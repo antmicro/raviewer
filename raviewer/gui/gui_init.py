@@ -69,9 +69,9 @@ class AppInit():
                              show=False,
                              modal=True,
                              label="Export raw frame",
-                             callback=self.events.export_raw_frame,
+                             callback=self.events.export_raw_buffer,
                              file_count=1,
-                             tag=items["file_selector"]["export_raw_frame"]):
+                             tag=items["file_selector"]["export_raw_buffer"]):
             pass
         with dpg.file_dialog(directory_selector=False,
                              show=False,
@@ -89,14 +89,6 @@ class AppInit():
                 callback=self.events.export_raw_selection,
                 file_count=1,
                 tag=items["file_selector"]["export_raw_selection"]):
-            pass
-        with dpg.file_dialog(directory_selector=False,
-                             show=False,
-                             modal=True,
-                             label="Export all raw frames",
-                             callback=self.events.export_raw_buffer,
-                             file_count=1,
-                             tag=items["file_selector"]["export_raw_buffer"]):
             pass
 
     def init_loading_indicator(self):
