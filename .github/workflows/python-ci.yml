@@ -30,13 +30,9 @@ jobs:
           python -m pip install --upgrade pip
           python setup.py install
           pip install yapf pytest pytest-cov
-
       - name: Lint with yapf
         run: |
-          if [ -d raviewer ]; then python -m yapf -ipr raviewer/; fi
-          if [ -d tests ]; then python -m yapf -ipr tests/; fi
-          test $(git status --porcelain | wc -l) -eq 0 || { git diff; false; }
-
+          ./.github/check_code_formatting.sh
       - name: Test with pytest
         run: |
-          pytest tests/ --cov=raviewer
+          ./.github/run_tests.sh
