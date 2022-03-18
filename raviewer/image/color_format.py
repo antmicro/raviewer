@@ -28,6 +28,12 @@ class Endianness(Enum):
     BIG_ENDIAN = 2
 
 
+class Platform(Enum):
+    """Explicitly supported Tegra platforms"""
+    XAVIER = 1
+    TX2 = 2
+
+
 class PixelPlane(Enum):
     """Representation of color format pixel plane."""
 
@@ -47,8 +53,10 @@ class ColorFormat():
                  bpc2,
                  bpc3,
                  bpc4=0,
-                 name="unnamed"):
+                 name="unnamed",
+                 platform=None):
         self.name = name
+        self.platform = platform
         self.pixel_format = pixel_format
         self.endianness = endianness
         self.pixel_plane = pixel_plane
@@ -356,5 +364,41 @@ AVAILABLE_FORMATS = {
                 16,
                 16,
                 16,
-                name="RG16")
+                name="RG16"),
+    'RG10 (Jetson TX2)':
+    ColorFormat(PixelFormat.BAYER_RG,
+                Endianness.LITTLE_ENDIAN,
+                PixelPlane.PACKED,
+                10,
+                10,
+                10,
+                name="RG10",
+                platform=Platform.TX2),
+    'RG12 (Jetson TX2)':
+    ColorFormat(PixelFormat.BAYER_RG,
+                Endianness.LITTLE_ENDIAN,
+                PixelPlane.PACKED,
+                12,
+                12,
+                12,
+                name="RG12",
+                platform=Platform.TX2),
+    'RG10 (Jetson Xavier)':
+    ColorFormat(PixelFormat.BAYER_RG,
+                Endianness.LITTLE_ENDIAN,
+                PixelPlane.PACKED,
+                10,
+                10,
+                10,
+                name="RG10",
+                platform=Platform.XAVIER),
+    'RG12 (Jetson Xavier)':
+    ColorFormat(PixelFormat.BAYER_RG,
+                Endianness.LITTLE_ENDIAN,
+                PixelPlane.PACKED,
+                12,
+                12,
+                12,
+                name="RG12",
+                platform=Platform.XAVIER),
 }

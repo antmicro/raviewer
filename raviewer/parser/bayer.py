@@ -1,7 +1,7 @@
 """Parser implementation for Bayer pixel format"""
 
 from ..image.image import Image
-from ..image.color_format import Endianness
+from ..image.color_format import Endianness, Platform
 from .common import AbstractParser
 
 import numpy
@@ -35,15 +35,25 @@ class ParserBayerRG(AbstractParser):
                 raw_data += (0).to_bytes(len(raw_data) %
                                          numpy.dtype(curr_dtype).alignment,
                                          byteorder="little")
-            processed_data = numpy.frombuffer(self.reverse(
-                raw_data, reverse_bytes),
-                                              dtype=curr_dtype)
+            temp_raw_data = self.reverse(raw_data, reverse_bytes)
+            processed_data = numpy.frombuffer(temp_raw_data, dtype=curr_dtype)
         else:
             raise NotImplementedError(
                 "All color components needs to have same bits per pixel. Current: 1: {} bpp, 2: {} bpp, 3: {} bpp"
                 .format(color_format.bits_per_components[0],
                         color_format.bits_per_components[1],
                         color_format.bits_per_components[2]))
+        """
+        some Tegra platforms use non-standard data alignment, in order for
+        frames captured by these devices to be properly displayed,
+        the data needs to be bitwise shifted by a value dependent on the platform
+        """
+        if color_format.platform == Platform.TX2:
+            processed_data = numpy.right_shift(
+                processed_data, 16 - color_format.bits_per_components[0] - 2)
+        elif color_format.platform == Platform.XAVIER:
+            processed_data = numpy.right_shift(
+                processed_data, 16 - color_format.bits_per_components[0])
 
         if (processed_data.size % width != 0):
             processed_data = numpy.concatenate(
