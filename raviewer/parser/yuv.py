@@ -93,6 +93,7 @@ class ParserYUV420(AbstractParser):
                     return_data[image.width * height + 1::2] = 0
                 if not channels["b_v"] and not channels["g_u"] and channels[
                         "r_y"]:
+                    return_data = return_data[0:image.width * height]
                     conversion_const = cv.COLOR_GRAY2RGB
             elif image.color_format.pixel_format == PixelFormat.YVU:
                 conversion_const = cv.COLOR_YUV2RGB_NV21
@@ -104,22 +105,26 @@ class ParserYUV420(AbstractParser):
                     return_data[image.width * height::2] = 0
                 if not channels["b_v"] and not channels["g_u"] and channels[
                         "r_y"]:
+                    return_data = return_data[0:image.width * height]
                     conversion_const = cv.COLOR_GRAY2RGB
 
             data_array = numpy.reshape(return_data, (int(
                 return_data.size / image.width), image.width)).astype('uint8')
 
-            if (data_array.shape[0] % 3 != 0):
-                data_array = numpy.concatenate(
-                    (data_array,
-                     numpy.zeros(
-                         (3 - (data_array.shape[0] % 3), data_array.shape[1]),
-                         dtype=numpy.uint8)))
-            if (data_array.shape[1] % 2 != 0):
-                data_array = numpy.concatenate(
-                    (data_array,
-                     numpy.zeros((data_array.shape[0], 1), dtype=numpy.uint8)),
-                    axis=1)
+            if conversion_const != cv.COLOR_GRAY2RGB:
+                if (data_array.shape[0] % 3 != 0):
+                    data_array = numpy.concatenate(
+                        (data_array,
+                         numpy.zeros(
+                             (3 -
+                              (data_array.shape[0] % 3), data_array.shape[1]),
+                             dtype=numpy.uint8)))
+                if (data_array.shape[1] % 2 != 0):
+                    data_array = numpy.concatenate(
+                        (data_array,
+                         numpy.zeros(
+                             (data_array.shape[0], 1), dtype=numpy.uint8)),
+                        axis=1)
 
             return_data = cv.cvtColor(data_array, conversion_const)
             tmp.append(return_data)
@@ -203,6 +208,7 @@ class ParserYUV420Planar(ParserYUV420):
                                 image.width * height // 4:] = 0
                 if not channels["b_v"] and not channels["g_u"] and channels[
                         "r_y"]:
+                    return_data = return_data[0:height * image.width]
                     conversion_const = cv.COLOR_GRAY2RGB
 
             elif image.color_format.pixel_format == PixelFormat.YVU:
@@ -217,26 +223,27 @@ class ParserYUV420Planar(ParserYUV420):
                                 image.width * height // 4] = 0
                 if not channels["b_v"] and not channels["g_u"] and channels[
                         "r_y"]:
+                    return_data = return_data[0:height * image.width]
                     conversion_const = cv.COLOR_GRAY2RGB
 
             data_array = numpy.reshape(return_data, (int(
                 return_data.size / image.width), image.width)).astype('uint8')
-
-            if (data_array.shape[0] % 3 != 0):
-                data_array = numpy.concatenate(
-                    (data_array,
-                     numpy.zeros(
-                         (3 - (data_array.shape[0] % 3), data_array.shape[1]),
-                         dtype=numpy.uint8)))
-            if (data_array.shape[1] % 2 != 0):
-                data_array = numpy.concatenate(
-                    (data_array,
-                     numpy.zeros((data_array.shape[0], 1), dtype=numpy.uint8)),
-                    axis=1)
-            temp = cv.cvtColor(data_array, conversion_const)
-            tmp.append(temp)
-        return_data = numpy.concatenate(tmp, axis=0)
-        return return_data
+            if conversion_const != cv.COLOR_GRAY2RGB:
+                if (data_array.shape[0] % 3 != 0):
+                    data_array = numpy.concatenate(
+                        (data_array,
+                         numpy.zeros(
+                             (3 -
+                              (data_array.shape[0] % 3), data_array.shape[1]),
+                             dtype=numpy.uint8)))
+                if (data_array.shape[1] % 2 != 0):
+                    data_array = numpy.concatenate(
+                        (data_array,
+                         numpy.zeros(
+                             (data_array.shape[0], 1), dtype=numpy.uint8)),
+                        axis=1)
+            tmp.append(cv.cvtColor(data_array, conversion_const))
+        return numpy.concatenate(tmp, axis=0)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
