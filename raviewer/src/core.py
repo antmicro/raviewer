@@ -4,6 +4,7 @@ from ..image.image import Image
 from ..parser.factory import ParserFactory
 from .utils import determine_color_format
 from ..image.color_format import PixelFormat, PixelPlane
+import numpy as np
 
 
 def parse_image(data_buffer, color_format, width, reverse_bytes=0):
@@ -82,3 +83,22 @@ def crop_image2rawformat(image: Image, up_row: int, down_row: int,
     parser = ParserFactory.create_object(image.color_format)
     return parser.crop_image2rawformat(image, up_row, down_row, left_column,
                                        right_column)
+
+
+def align_image(data_buffer, nnumber, nvalues=0):
+    """ Add or skip data at the beginning of the data
+    Keyword arguments:
+        data_buffer (bytearray): byte array containing raw image data
+        nnumber (int): number of bytes to append (or skip)
+        nvalues (int): value of bytes to append
+    Returns:
+        bytearray: aligned buffer
+    """
+    raw_data = np.array(data_buffer)
+    if nnumber > 0:
+        raw_data = np.insert(raw_data, 0, [nvalues] * nnumber)
+    else:
+        if abs(nnumber) > len(raw_data):
+            return
+        raw_data = raw_data[abs(nnumber):]
+    return bytearray(raw_data.tobytes())
