@@ -26,7 +26,7 @@ def check_formats():
     test_formats.test_all(AVAILABLE_FORMATS)
 
 
-def run(file_path, width, color_format, export, args):
+def run(file_path, width, height, color_format, export, args):
     if export is None:
         app = AppInit(args)
         app.run_gui()
@@ -50,7 +50,8 @@ def run(file_path, width, color_format, export, args):
                 "{} - no such file or directory".format(export))
         img = load_image(file_path)
         img = parse_image(img.data_buffer, color_format, width)
-        save_image_as_file(get_displayable(img), export)
+        if height < 1: height = img.height
+        save_image_as_file(get_displayable(img, height), export)
 
 
 def main():
@@ -88,6 +89,12 @@ def main():
                         action='store_true',
                         help='Test all formats')
 
+    parser.add_argument('-H',
+                        '--height',
+                        type=int,
+                        default=0,
+                        help="Image height")
+
     args = vars(parser.parse_args())
 
     if isinstance(args["FILE_PATH"], str):
@@ -103,7 +110,9 @@ def main():
             width=args["width"],
             color_format=args["color_format"],
             export=args["export"],
+            height=args["height"],
             args=args)
+
 
 if __name__ == "__main__":
     sys.exit(main())
