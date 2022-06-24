@@ -1,2 +1,2 @@
-include app/fonts/*
+include raviewer/fonts/*
 include resources/*
