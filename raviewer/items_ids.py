@@ -31,6 +31,7 @@ items = {
         "r_ychannel": dpg.generate_uuid(),
         "g_uchannel": dpg.generate_uuid(),
         "b_vchannel": dpg.generate_uuid(),
+        "a_vchannel": dpg.generate_uuid(),
         "ychannel": dpg.generate_uuid(),
         "uchannel": dpg.generate_uuid(),
         "vchannel": dpg.generate_uuid(),

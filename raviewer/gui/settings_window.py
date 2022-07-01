@@ -135,6 +135,10 @@ class SettingsWindow():
                                      callback=self.events.set_channels,
                                      tag=items["buttons"]["b_vchannel"],
                                      default_value=True)
+                    dpg.add_checkbox(label="A",
+                                     callback=self.events.set_channels,
+                                     tag=items["buttons"]["a_vchannel"],
+                                     default_value=True)
 
                 dpg.set_item_height(items["windows"]["viewport"], 800)
                 dpg.set_item_width(items["windows"]["viewport"], 1200)

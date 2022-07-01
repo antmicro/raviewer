@@ -157,7 +157,8 @@ class Plot_events(Base_img):
                 Base_img.img, Base_img.height, {
                     "r_y": dpg.get_value(items["buttons"]["r_ychannel"]),
                     "g_u": dpg.get_value(items["buttons"]["g_uchannel"]),
-                    "b_v": dpg.get_value(items["buttons"]["b_vchannel"])
+                    "b_v": dpg.get_value(items["buttons"]["b_vchannel"]),
+                    "a_v": dpg.get_value(items["buttons"]["a_vchannel"])
                 })
         dpg_image = np.frombuffer(Base_img.img_postchanneled.tobytes(),
                                   dtype=np.uint8) / 255.0
@@ -410,10 +411,12 @@ class Plot_events(Base_img):
             dpg.configure_item(items["buttons"]["b_vchannel"],
                                label="V",
                                show=True)
+            dpg.hide_item(items["buttons"]["a_vchannel"])
         elif Base_img.img.color_format.pixel_format == PixelFormat.MONO:
             dpg.hide_item(items["buttons"]["r_ychannel"])
             dpg.hide_item(items["buttons"]["g_uchannel"])
             dpg.hide_item(items["buttons"]["b_vchannel"])
+            dpg.hide_item(items["buttons"]["a_vchannel"])
         else:
             dpg.configure_item(items["buttons"]["r_ychannel"],
                                label="R",
@@ -424,6 +427,13 @@ class Plot_events(Base_img):
             dpg.configure_item(items["buttons"]["b_vchannel"],
                                label="B",
                                show=True)
+            if Base_img.img.color_format.pixel_format in [
+                    PixelFormat.ABGR, PixelFormat.ARGB, PixelFormat.RGBA,
+                    PixelFormat.BGRA
+            ]:
+                dpg.show_item(items["buttons"]["a_vchannel"])
+            else:
+                dpg.hide_item(items["buttons"]["a_vchannel"])
 
 
 class Hexviewer_events(Base_img):

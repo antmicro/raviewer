@@ -15,7 +15,8 @@ class ParserRGBA(AbstractParser):
                         channels={
                             "r_y": True,
                             "g_u": True,
-                            "b_v": True
+                            "b_v": True,
+                            "a_v": True
                         }):
         """Provides displayable image data (RGB formatted)
 
@@ -45,6 +46,8 @@ class ParserRGBA(AbstractParser):
             return_data[:, :, 1] = 0
         if not channels["b_v"]:
             return_data[:, :, 2] = 0
+        if not channels["a_v"]:
+            return_data[:, :, 3] = 255
         return return_data.astype('uint8')
 
     def get_pixel_raw_components(self, image, row, column, index):
@@ -123,7 +126,8 @@ class ParserARGB(AbstractParser):
                         channels={
                             "r_y": True,
                             "g_u": True,
-                            "b_v": True
+                            "b_v": True,
+                            "a_v": True
                         }):
         """Provides displayable image data (RGB formatted)
 
@@ -149,6 +153,8 @@ class ParserARGB(AbstractParser):
             return_data[:, :, 1] = 0
         if not channels["b_v"]:
             return_data[:, :, 2] = 0
+        if not channels["a_v"]:
+            return_data[:, :, 3] = 255
 
         return return_data.astype('uint8')
 

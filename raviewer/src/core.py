@@ -34,7 +34,8 @@ def get_displayable(image,
                     channels={
                         "r_y": True,
                         "g_u": True,
-                        "b_v": True
+                        "b_v": True,
+                        "a_v": True
                     }):
 
     if image.color_format is None:
