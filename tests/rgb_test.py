@@ -11,6 +11,8 @@ class DummyPixelFormat(Enum):
     BGRA = 2
     ARGB = 3
     ABGR = 4
+    RGB = 5
+    BGR = 6
 
 
 class DummyEndianness(Enum):
@@ -26,12 +28,12 @@ class TestRGBParserClass(unittest.TestCase):
 
     def setUp(self):
 
-        self.RGB565_FORMAT = Mock(pixel_format=DummyPixelFormat.RGBA,
+        self.RGB565_FORMAT = Mock(pixel_format=DummyPixelFormat.RGB,
                                   endianness=DummyEndianness.LITTLE_ENDIAN,
                                   pixel_plane=DummyPixelPlane.PACKED)
         self.RGB565_FORMAT.bits_per_components = (5, 6, 5, 0)
 
-        self.BGR24_FORMAT = Mock(pixel_format=DummyPixelFormat.BGRA,
+        self.BGR24_FORMAT = Mock(pixel_format=DummyPixelFormat.BGR,
                                  endianness=DummyEndianness.BIG_ENDIAN,
                                  pixel_plane=DummyPixelPlane.PACKED)
         self.BGR24_FORMAT.bits_per_components = (8, 8, 8, 0)

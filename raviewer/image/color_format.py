@@ -6,18 +6,20 @@ from enum import Enum
 class PixelFormat(Enum):
     """Respresenation defining color hierachy in pixel."""
 
-    RGBA = 1
-    BGRA = 2
-    ARGB = 3
-    ABGR = 4
-    YUYV = 5
-    UYVY = 6
-    VYUY = 7
-    YVYU = 8
-    YUV = 9
-    YVU = 10
-    MONO = 11
-    BAYER_RG = 12
+    RGB = 1
+    BGR = 2
+    RGBA = 3
+    BGRA = 4
+    ARGB = 5
+    ABGR = 6
+    YUYV = 7
+    UYVY = 8
+    VYUY = 9
+    YVYU = 10
+    YUV = 11
+    YVU = 12
+    MONO = 13
+    BAYER_RG = 14
     CUSTOM = 0
 
 
@@ -108,7 +110,7 @@ class SubsampledColorFormat(ColorFormat):
 
 AVAILABLE_FORMATS = {
     'RGB24':
-    ColorFormat(PixelFormat.RGBA,
+    ColorFormat(PixelFormat.RGB,
                 Endianness.BIG_ENDIAN,
                 PixelPlane.PACKED,
                 8,
@@ -116,7 +118,7 @@ AVAILABLE_FORMATS = {
                 8,
                 name="RGB24"),
     'BGR24':
-    ColorFormat(PixelFormat.BGRA,
+    ColorFormat(PixelFormat.BGR,
                 Endianness.BIG_ENDIAN,
                 PixelPlane.PACKED,
                 8,
@@ -160,7 +162,7 @@ AVAILABLE_FORMATS = {
                 8,
                 name="ABGR32"),
     'RGB332':
-    ColorFormat(PixelFormat.RGBA,
+    ColorFormat(PixelFormat.RGB,
                 Endianness.LITTLE_ENDIAN,
                 PixelPlane.PACKED,
                 3,
@@ -168,7 +170,7 @@ AVAILABLE_FORMATS = {
                 2,
                 name="RGB332"),
     'RGB565':
-    ColorFormat(PixelFormat.RGBA,
+    ColorFormat(PixelFormat.RGB,
                 Endianness.LITTLE_ENDIAN,
                 PixelPlane.PACKED,
                 5,

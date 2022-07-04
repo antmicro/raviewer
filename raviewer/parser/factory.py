@@ -29,6 +29,8 @@ class ParserFactory:
                 PixelFormat.BGRA: ParserRGBA,
                 PixelFormat.ARGB: ParserARGB,
                 PixelFormat.ABGR: ParserARGB,
+                PixelFormat.RGB: ParserRGBA,
+                PixelFormat.BGR: ParserRGBA,
                 PixelFormat.YUYV: ParserYUV422,
                 PixelFormat.UYVY: ParserYUV422,
                 PixelFormat.VYUY: ParserYUV422,

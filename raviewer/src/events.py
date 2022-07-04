@@ -209,7 +209,7 @@ class Plot_events(Base_img):
             Base_img.texture_format = None
             if Base_img.img.color_format.pixel_format in [
                     PixelFormat.RGBA, PixelFormat.BGRA, PixelFormat.ARGB,
-                    PixelFormat.ABGR
+                    PixelFormat.ABGR, PixelFormat.RGB, PixelFormat.BGR
             ]:
                 Base_img.texture_format = dpg.mvFormat_Float_rgba
             else:

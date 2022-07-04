@@ -33,7 +33,9 @@ class ParserRGBA(AbstractParser):
             return_data[:, :, i] = (255 * return_data[:, :, i]) / (
                 2**image.color_format.bits_per_components[i] - 1)
 
-        if image.color_format.pixel_format == PixelFormat.BGRA:
+        if image.color_format.pixel_format in [
+                PixelFormat.BGRA, PixelFormat.BGR
+        ]:
             return_data = return_data[:, :, [2, 1, 0, 3]]
 
         #Set RGB channels
