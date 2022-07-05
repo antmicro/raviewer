@@ -79,7 +79,7 @@ class ParserYUV420(AbstractParser):
         return_data = image.processed_data
         conversion_const = None
         if height < 1: height = image.height
-        n_frames = math.ceil(image.height / height)
+        n_frames = 0 if image.height == 0 else math.ceil(image.height / height)
         for i in range(n_frames):
             return_data = image.processed_data[i * image.width *
                                                int(height * 1.5):(1 + i) *
@@ -129,7 +129,7 @@ class ParserYUV420(AbstractParser):
 
             return_data = cv.cvtColor(data_array, conversion_const)
             tmp.append(return_data)
-        return numpy.concatenate(tmp, axis=0)
+        return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
@@ -189,7 +189,7 @@ class ParserYUV420Planar(ParserYUV420):
         """
         tmp = []
         if height < 1: height = image.height
-        n_frames = math.ceil(
+        n_frames = 0 if image.height == 0 else math.ceil(
             len(image.processed_data) / image.width / height / 1.5)
         for i in range(n_frames):
             return_data = image.processed_data[int(height * 1.5) *
@@ -244,7 +244,7 @@ class ParserYUV420Planar(ParserYUV420):
                              (data_array.shape[0], 1), dtype=numpy.uint8)),
                         axis=1)
             tmp.append(cv.cvtColor(data_array, conversion_const))
-        return numpy.concatenate(tmp, axis=0)
+        return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
@@ -364,7 +364,8 @@ class ParserYUV422(AbstractParser):
         """
         tmp = []
         if height < 1: height = image.height
-        n_frames = math.ceil(image.height / height)
+        n_frames = 0 if image.height == 0 else math.ceil(image.height / height)
+
         for i in range(n_frames):
             temp_processed_data = image.processed_data[i * (
                 image.width * height * 2):(1 + i) * (image.width * height * 2)]
@@ -400,7 +401,7 @@ class ParserYUV422(AbstractParser):
                                                image.width, height,
                                                conversion_const, image)
             tmp.append(return_data)
-        return numpy.concatenate(tmp, axis=0)
+        return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
 
     def convert2RGB(self, processed_data, width, height, conversion, image):
         y = processed_data[self.yuv_442_offsets[image.color_format.
@@ -449,7 +450,7 @@ class ParserYUV422Planar(ParserYUV422):
             conversion_const = cv.COLOR_YUV2RGB_YUYV
         if height < 1: height = image.height
         tmp = []
-        n_frames = math.ceil(
+        n_frames = 0 if image.height == 0 else math.ceil(
             len(image.processed_data) / image.width / height / 2)
         for i in range(n_frames):
             temp_processed_data = image.processed_data[int(i * (
@@ -489,7 +490,7 @@ class ParserYUV422Planar(ParserYUV422):
                                                image.width, height,
                                                conversion_const)
             tmp.append(return_data)
-        return numpy.concatenate(tmp, axis=0)
+        return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
 
     def convert2RGB(self, processed_data, width, height, conversion):
         y = processed_data[0:height * width:]
