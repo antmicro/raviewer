@@ -206,6 +206,9 @@ class Plot_events(Base_img):
             dpg.delete_item(items["plot"]["annotation"])
 
     def add_texture(self, width, height, image_data):
+        if (items["texture"]["raw"]):
+            dpg.delete_item(items["texture"]["raw"])
+
         with dpg.texture_registry():
             Base_img.texture_format = None
             if Base_img.img.color_format.pixel_format in [
