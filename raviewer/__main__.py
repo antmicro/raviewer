@@ -3,11 +3,17 @@
 
 #since dearpygui>0.8.64
 import dearpygui.dearpygui as dpg
+import os
+
+# These variables are needed to force OpenGL software rendering
+# Deleting textures causes segfaults when rendering with NVIDIA GPU
+# See: https://github.com/hoffstadt/DearPyGui/issues/1371
+os.environ['__GLX_VENDOR_LIBRARY_NAME'] = 'mesa'
+os.environ['LIBGL_ALWAYS_SOFTWARE'] = 'true'
 
 dpg.create_context()
 
 import argparse
-import os
 import sys
 from .src.core import (get_displayable, load_image, parse_image)
 from .src.utils import save_image_as_file
