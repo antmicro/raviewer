@@ -41,6 +41,10 @@ items = {
         "n_frames_setter": dpg.generate_uuid(),
         "frame_setter": dpg.generate_uuid(),
         "reverse": dpg.generate_uuid(),
+        "nframes": dpg.generate_uuid(),
+        "camera": dpg.generate_uuid(),
+        "camera_format": dpg.generate_uuid(),
+        "camera_framesize": dpg.generate_uuid(),
     },
     "menu_bar": {
         "export_tab": dpg.generate_uuid(),

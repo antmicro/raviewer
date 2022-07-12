@@ -4,10 +4,14 @@ import numpy as np
 import array
 import dearpygui.dearpygui as dpg
 from math import ceil
+from pathlib import Path
+from fcntl import ioctl
+import v4l2
 
 from ..items_ids import *
 from .core import (parse_image, load_image, get_displayable,
-                   get_pixel_raw_components, crop_image2rawformat, align_image)
+                   get_pixel_raw_components, crop_image2rawformat, align_image,
+                   load_from_camera, set_camera_format)
 from ..parser.factory import ParserFactory
 from ..image.color_format import PixelFormat, Endianness
 from ..image.color_format import AVAILABLE_FORMATS
@@ -526,6 +530,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.height = args["height"]
             Base_img.img = load_image(Base_img.path_to_File)
             Base_img.data_buffer = Base_img.img.data_buffer
+        self.__refresh_available_cameras()
 
     def lock_queried_image_callback(self):
         if Base_img.img != None and dpg.is_plot_queried(
@@ -545,6 +550,34 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.data_buffer = Base_img.img.data_buffer
             Plot_events.update_image(self, fit_image=True)
             dpg.enable_item(items["menu_bar"]["export_tab"])
+
+    @Plot_events.update_hexdump
+    @Plot_events.indicate_loading
+    def load_img_from_camera(self, callback_id, data):
+        selected_camera = dpg.get_value(items["buttons"]["camera"])
+        selected_format = dpg.get_value(items["buttons"]["camera_format"])
+        selected_framesize = dpg.get_value(
+            items["buttons"]["camera_framesize"])
+
+        if selected_camera in self.available_cams.keys(
+        ) and selected_format in self.available_formats.keys(
+        ) and selected_framesize in self.available_framesizes.keys():
+            cam_path = self.available_cams[selected_camera]
+            color_format = self.available_formats[selected_format]
+            framesize = self.available_framesizes[selected_framesize]
+
+            if cam_path.is_char_device():
+                set_camera_format(cam_path, color_format, framesize)
+
+                Base_img.path_to_File = cam_path
+
+                num_of_frames = dpg.get_value(items["buttons"]["nframes"])
+                Base_img.img = load_from_camera(Base_img.path_to_File,
+                                                num_of_frames)
+                Base_img.data_buffer = Base_img.img.data_buffer
+
+                Plot_events.update_image(self, fit_image=True)
+                dpg.enable_item(items["menu_bar"]["export_tab"])
 
     def file_save(self, callback_id, data):
         path = data["file_path_name"]
@@ -607,3 +640,88 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
     def show_gui_metrics(self):
         dpg.show_tool(dpg.mvTool_Metrics)
+
+    def get_available_cameras(self, callback_id, data):
+        dpg.set_value(items["buttons"]["camera"], "")
+        dpg.hide_item(items["buttons"]["camera_format"])
+        dpg.hide_item(items["buttons"]["camera_framesize"])
+
+        self.__refresh_available_cameras()
+
+        dpg.configure_item(items["buttons"]["camera"],
+                           items=list(self.available_cams.keys()))
+
+    def get_available_formats(self, callback_id, data):
+        dpg.hide_item(items["buttons"]["camera_framesize"])
+        dpg.set_value(items["buttons"]["camera_format"], "")
+
+        if data in self.available_cams.keys():
+            cam_path = self.available_cams[data]
+            self.__refresh_available_formats(cam_path)
+
+            dpg.configure_item(items["buttons"]["camera_format"],
+                               items=list(self.available_formats.keys()))
+
+            dpg.show_item(items["buttons"]["camera_format"])
+
+    def get_available_framesizes(self, callback_id, data):
+        dpg.set_value(items["buttons"]["camera_framesize"], "")
+
+        if data in self.available_formats.keys():
+            cam_path = self.available_cams[dpg.get_value(
+                items["buttons"]["camera"])]
+            color_format = self.available_formats[data]
+
+            self.__refresh_available_framesizes(cam_path, color_format)
+
+            dpg.configure_item(items["buttons"]["camera_framesize"],
+                               items=list(self.available_framesizes.keys()))
+
+            dpg.show_item(items["buttons"]["camera_framesize"])
+
+    def __refresh_available_cameras(self):
+        self.available_cams = {}
+        for cam in sorted(Path("/dev").glob("video*")):
+            with open(cam) as f_cam:
+                caps = v4l2.v4l2_capability()
+                ioctl(f_cam, v4l2.VIDIOC_QUERYCAP, caps)
+                device_caps = caps.reserved[0]
+
+                if device_caps & v4l2.V4L2_CAP_VIDEO_CAPTURE:
+                    self.available_cams[
+                        f"{cam} ({caps.card.decode('UTF-8')})"] = cam
+
+    def __refresh_available_formats(self, camera):
+        self.available_formats = {}
+        with open(camera) as f_cam:
+            fmt = v4l2.v4l2_fmtdesc()
+            fmt.type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE
+
+            while True:
+                try:
+                    ioctl(f_cam, v4l2.VIDIOC_ENUM_FMT, fmt)
+                except OSError:
+                    break
+
+                if not fmt.flags & v4l2.V4L2_FMT_FLAG_COMPRESSED:
+                    self.available_formats[fmt.description.decode(
+                        "UTF-8")] = fmt.pixelformat
+                fmt.index += 1
+
+    def __refresh_available_framesizes(self, camera, color_format):
+        self.available_framesizes = {}
+        with open(camera) as f_cam:
+            frmsize = v4l2.v4l2_frmsizeenum()
+            frmsize.pixel_format = color_format
+
+            while True:
+                try:
+                    ioctl(f_cam, v4l2.VIDIOC_ENUM_FRAMESIZES, frmsize)
+                except OSError:
+                    break
+
+                if frmsize.type == v4l2.V4L2_FRMSIZE_TYPE_DISCRETE:
+                    self.available_framesizes[
+                        f"{frmsize.discrete.width} x {frmsize.discrete.height}"] = (
+                            frmsize.discrete.width, frmsize.discrete.height)
+                frmsize.index += 1

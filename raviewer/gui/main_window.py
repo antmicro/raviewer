@@ -76,6 +76,53 @@ class MainWindow():
                                           lock_min=False,
                                           parent=items["plot"]["main_plot"])
 
+                    with dpg.tab(label="Camera settings", closable=False):
+                        with dpg.group(horizontal=True):
+                            dpg.add_text(default_value="Camera:", indent=5)
+                            dpg.add_combo(
+                                tag=items["buttons"]["camera"],
+                                items=list(self.events.available_cams.keys()),
+                                height_mode=dpg.mvComboHeight_Regular,
+                                width=250,
+                                callback=self.events.get_available_formats)
+                            dpg.add_button(
+                                label="Refresh",
+                                callback=self.events.get_available_cameras)
+
+                        with dpg.group(horizontal=True):
+                            dpg.add_text(default_value="Format:", indent=5)
+                            dpg.add_combo(
+                                tag=items["buttons"]["camera_format"],
+                                height_mode=dpg.mvComboHeight_Regular,
+                                width=250,
+                                show=False,
+                                callback=self.events.get_available_framesizes)
+
+                        with dpg.group(horizontal=True):
+                            dpg.add_text(default_value="Framesize:", indent=5)
+                            dpg.add_combo(
+                                tag=items["buttons"]["camera_framesize"],
+                                height_mode=dpg.mvComboHeight_Regular,
+                                width=230,
+                                show=False)
+
+                        with dpg.group(horizontal=True):
+                            dpg.add_text(default_value="Number of frames:",
+                                         indent=5)
+                            dpg.add_input_int(width=130,
+                                              default_value=1,
+                                              min_value=1,
+                                              max_value=128,
+                                              min_clamped=True,
+                                              max_clamped=True,
+                                              tag=items["buttons"]["nframes"])
+
+                        dpg.add_separator()
+                        dpg.add_button(
+                            label="Load frame from camera",
+                            indent=5,
+                            callback=self.events.load_img_from_camera)
+
                 with dpg.menu_bar():
                     dpg.add_menu(label="File", tag=items["menu_bar"]["file"])
                     dpg.add_menu(label="View", tag=items["menu_bar"]["mode"])

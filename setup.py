@@ -27,7 +27,8 @@ setup(
         'Pillow',
         'dearpygui==1.1.1',
         'terminaltables',
-        'pytest'
+        'pytest',
+        'v4l2 @ git+https://github.com/antmicro/python3-v4l2.git'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
