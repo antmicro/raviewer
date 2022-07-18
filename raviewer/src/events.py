@@ -18,6 +18,7 @@ from PIL import Image
 from .utils import (RGBtoYUV, determine_color_format, save_image_as_file)
 from .hexviewer import Hexviewer
 from .controls import Controls
+from .camera_ctrls import CameraCtrls
 import threading
 
 
@@ -538,6 +539,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.height = args["height"]
             Base_img.img = load_image(Base_img.path_to_File)
             Base_img.data_buffer = Base_img.img.data_buffer
+        self.camera_ctrls = None
         self.__refresh_available_cameras()
 
     def lock_queried_image_callback(self):
@@ -654,6 +656,10 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         dpg.hide_item(items["buttons"]["camera_format"])
         dpg.hide_item(items["buttons"]["camera_framesize"])
 
+        if self.camera_ctrls is not None:
+            self.camera_ctrls.release()
+            self.camera_ctrls = None
+
         self.__refresh_available_cameras()
 
         dpg.configure_item(items["buttons"]["camera"],
@@ -665,6 +671,10 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
         if data in self.available_cams.keys():
             cam_path = self.available_cams[data]
+            if self.camera_ctrls is not None:
+                self.camera_ctrls.release()
+                self.camera_ctrls = None
+            self.camera_ctrls = CameraCtrls(cam_path)
             self.__refresh_available_formats(cam_path)
 
             dpg.configure_item(items["buttons"]["camera_format"],

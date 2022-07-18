@@ -117,7 +117,13 @@ class MainWindow():
                                               max_clamped=True,
                                               tag=items["buttons"]["nframes"])
 
+                        with dpg.group(tag=items["groups"]["camera_ctrls"],
+                                       indent=5,
+                                       show=False):
+                            pass
+
                         dpg.add_separator()
+
                         dpg.add_button(
                             label="Load frame from camera",
                             indent=5,

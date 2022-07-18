@@ -47,6 +47,9 @@ items = {
         "camera_format": dpg.generate_uuid(),
         "camera_framesize": dpg.generate_uuid(),
     },
+    "groups": {
+        "camera_ctrls": dpg.generate_uuid(),
+    },
     "menu_bar": {
         "export_tab": dpg.generate_uuid(),
         "file": dpg.generate_uuid(),

@@ -9,6 +9,7 @@ dpg.create_context()
 import argparse
 import os
 import sys
+import logging
 from .src.core import (get_displayable, load_image, parse_image)
 from .src.utils import save_image_as_file
 from .image.color_format import AVAILABLE_FORMATS
@@ -33,6 +34,10 @@ def run(file_path, width, height, color_format, export, args):
         # See: https://github.com/hoffstadt/DearPyGui/issues/1371
         os.environ['__GLX_VENDOR_LIBRARY_NAME'] = 'mesa'
         os.environ['LIBGL_ALWAYS_SOFTWARE'] = 'true'
+
+    log_level = logging.DEBUG if args["debug"] else logging.WARNING
+    logging.basicConfig(level=log_level,
+                        format="%(asctime)s - %(levelname)s - %(message)s")
 
     if export is None:
         app = AppInit(args)
@@ -105,7 +110,12 @@ def main():
     parser.add_argument("--software-rendering",
                         action=argparse.BooleanOptionalAction,
                         default=True,
-                        help="Use OpenGL software rendering")
+                        help="Use OpenGL software rendering"),
+
+    parser.add_argument('--debug',
+                        action=argparse.BooleanOptionalAction,
+                        default=False,
+                        help="Turn on/off debug mode")
 
     args = vars(parser.parse_args())
 

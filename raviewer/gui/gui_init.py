@@ -31,7 +31,11 @@ class AppInit():
         dpg.show_viewport()
 
     def run_gui(self):
-        dpg.start_dearpygui()
+        while dpg.is_dearpygui_running():
+            if self.events.camera_ctrls is not None:
+                self.events.camera_ctrls.update_volatile_ctrls()
+
+            dpg.render_dearpygui_frame()
         '''
         hiding hex tab stops hexdump generation and prevents segfault when closing app while hexdump is being generated
         if hex tab has not been opened, hiding it would throw an error
