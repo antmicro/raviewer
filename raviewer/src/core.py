@@ -6,10 +6,7 @@ from .utils import determine_color_format
 from ..image.color_format import PixelFormat, PixelPlane
 
 import numpy as np
-from fcntl import ioctl
-from select import select
-import mmap
-from pyrav4l2 import *
+from pyrav4l2 import Stream
 
 
 def parse_image(data_buffer, color_format, width, reverse_bytes=0):
@@ -35,57 +32,13 @@ def load_image(file_path):
 
 
 def load_from_camera(camera, num_of_frames):
-    with open(camera, "rb+", buffering=0) as cam:
-        req = v4l2_requestbuffers()
-        req.count = 1
-        req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
-        req.memory = V4L2_MEMORY_MMAP
-        ioctl(cam, VIDIOC_REQBUFS, req)
+    frames = bytearray()
+    for (i, frame) in enumerate(Stream(camera)):
+        if i == num_of_frames:
+            break
+        frames += frame
 
-        buf = v4l2_buffer()
-        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
-        buf.memory = V4L2_MEMORY_MMAP
-        buf.index = 0
-        ioctl(cam, VIDIOC_QUERYBUF, buf)
-
-        buffer = mmap.mmap(cam.fileno(),
-                           length=buf.length,
-                           flags=mmap.MAP_SHARED,
-                           prot=mmap.PROT_READ,
-                           offset=buf.m.offset)
-        ioctl(cam, VIDIOC_QBUF, buf)
-
-        ioctl(cam, VIDIOC_STREAMON, ctypes.c_int(V4L2_BUF_TYPE_VIDEO_CAPTURE))
-        select((cam, ), (), ())
-
-        frames = bytearray()
-        for _ in range(num_of_frames):
-            buf = v4l2_buffer()
-            buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
-            buf.memory = V4L2_MEMORY_MMAP
-            ioctl(cam, VIDIOC_DQBUF, buf)
-
-            frames += buffer.read()
-            buffer.seek(0)
-            ioctl(cam, VIDIOC_QBUF, buf)
-
-        ioctl(cam, VIDIOC_STREAMOFF, ctypes.c_int(V4L2_BUF_TYPE_VIDEO_CAPTURE))
-
-        return Image(frames)
-
-
-def set_camera_format(camera, color_format, framesize):
-    with open(camera) as f_cam:
-        fmt = v4l2_format()
-        fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
-        ioctl(f_cam, VIDIOC_G_FMT, fmt)
-
-        fmt.fmt.pix.width = framesize[0]
-        fmt.fmt.pix.height = framesize[1]
-        fmt.fmt.pix.pixelformat = color_format
-        fmt.fmt.pix.bytesperline = 0
-        fmt.fmt.pix.field = V4L2_FIELD_ANY
-        ioctl(f_cam, VIDIOC_S_FMT, fmt)
+    return Image(frames)
 
 
 def get_displayable(image,

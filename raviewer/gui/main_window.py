@@ -116,6 +116,10 @@ class MainWindow():
                                               min_clamped=True,
                                               max_clamped=True,
                                               tag=items["buttons"]["nframes"])
+                        dpg.add_button(
+                            label="Load frame from camera",
+                            indent=5,
+                            callback=self.events.load_img_from_camera)
 
                         with dpg.group(tag=items["groups"]["camera_ctrls"],
                                        indent=5,
@@ -123,11 +127,6 @@ class MainWindow():
                             pass
 
                         dpg.add_separator()
-
-                        dpg.add_button(
-                            label="Load frame from camera",
-                            indent=5,
-                            callback=self.events.load_img_from_camera)
 
                 with dpg.menu_bar():
                     dpg.add_menu(label="File", tag=items["menu_bar"]["file"])
