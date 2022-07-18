@@ -577,6 +577,14 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
             cam.set_format(color_format, framesize)
 
+            format_name = next(
+                iter(k for k, v in AVAILABLE_FORMATS.items()
+                     if v.fourcc == color_format.pixelformat), None)
+            if format_name is not None:
+                dpg.set_value(item=items["buttons"]["combo"],
+                              value=format_name)
+                self._format_color(format_name)
+
             Base_img.path_to_File = cam.path
 
             num_of_frames = dpg.get_value(items["buttons"]["nframes"])
@@ -585,6 +593,10 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
             Plot_events.update_image(self, fit_image=True)
             dpg.enable_item(items["menu_bar"]["export_tab"])
+
+            dpg.set_value(item=items["buttons"]["width_setter"],
+                          value=framesize.width)
+            self._update_width(framesize.width)
 
     def file_save(self, callback_id, data):
         path = data["file_path_name"]
@@ -598,8 +610,11 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
                 f.write(Base_img.img.data_buffer)
 
     def update_width(self, callback_id, data):
+        self._update_width(data)
+
+    def _update_width(self, width):
         if Base_img.img != None:
-            Base_img.width = data
+            Base_img.width = width
             Plot_events.update_image(self, fit_image=True)
 
     def update_height(self, callback_id, data):
@@ -609,7 +624,10 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
     @Plot_events.indicate_loading
     def format_color(self, callback_id, data):
-        Base_img.color_format = data
+        self._format_color(data)
+
+    def _format_color(self, color_format):
+        Base_img.color_format = color_format
         Plot_events.update_color_info(self)
         if Base_img.img != None:
             Plot_events.update_image(self, fit_image=True)
