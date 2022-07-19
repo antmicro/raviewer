@@ -28,7 +28,7 @@ setup(
         'dearpygui==1.1.1',
         'terminaltables',
         'pytest',
-        'v4l2 @ git+https://github.com/antmicro/python3-v4l2.git'
+        'pyrav4l2 @ git+https://github.com/antmicro/pyrav4l2.git'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -6,7 +6,7 @@ import dearpygui.dearpygui as dpg
 from math import ceil
 from pathlib import Path
 from fcntl import ioctl
-import v4l2
+from pyrav4l2 import *
 
 from ..items_ids import *
 from .core import (parse_image, load_image, get_displayable,
@@ -683,27 +683,26 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         self.available_cams = {}
         for cam in sorted(Path("/dev").glob("video*")):
             with open(cam) as f_cam:
-                caps = v4l2.v4l2_capability()
-                ioctl(f_cam, v4l2.VIDIOC_QUERYCAP, caps)
-                device_caps = caps.reserved[0]
+                caps = v4l2_capability()
+                ioctl(f_cam, VIDIOC_QUERYCAP, caps)
 
-                if device_caps & v4l2.V4L2_CAP_VIDEO_CAPTURE:
+                if caps.device_caps & V4L2_CAP_VIDEO_CAPTURE:
                     self.available_cams[
                         f"{cam} ({caps.card.decode('UTF-8')})"] = cam
 
     def __refresh_available_formats(self, camera):
         self.available_formats = {}
         with open(camera) as f_cam:
-            fmt = v4l2.v4l2_fmtdesc()
-            fmt.type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE
+            fmt = v4l2_fmtdesc()
+            fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE
 
             while True:
                 try:
-                    ioctl(f_cam, v4l2.VIDIOC_ENUM_FMT, fmt)
+                    ioctl(f_cam, VIDIOC_ENUM_FMT, fmt)
                 except OSError:
                     break
 
-                if not fmt.flags & v4l2.V4L2_FMT_FLAG_COMPRESSED:
+                if not fmt.flags & V4L2_FMT_FLAG_COMPRESSED:
                     self.available_formats[fmt.description.decode(
                         "UTF-8")] = fmt.pixelformat
                 fmt.index += 1
@@ -711,16 +710,16 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     def __refresh_available_framesizes(self, camera, color_format):
         self.available_framesizes = {}
         with open(camera) as f_cam:
-            frmsize = v4l2.v4l2_frmsizeenum()
+            frmsize = v4l2_frmsizeenum()
             frmsize.pixel_format = color_format
 
             while True:
                 try:
-                    ioctl(f_cam, v4l2.VIDIOC_ENUM_FRAMESIZES, frmsize)
+                    ioctl(f_cam, VIDIOC_ENUM_FRAMESIZES, frmsize)
                 except OSError:
                     break
 
-                if frmsize.type == v4l2.V4L2_FRMSIZE_TYPE_DISCRETE:
+                if frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE:
                     self.available_framesizes[
                         f"{frmsize.discrete.width} x {frmsize.discrete.height}"] = (
                             frmsize.discrete.width, frmsize.discrete.height)
