@@ -143,71 +143,74 @@ class Plot_events(Base_img):
         dpg.set_value(items["static_text"]["color_description"], custom_text)
 
     def update_image(self, fit_image, channels=None):
-        Base_img.img = parse_image(Base_img.img.data_buffer,
-                                   Base_img.color_format, Base_img.width,
-                                   Base_img.reverse_bytes)
-        if Base_img.nnumber or Base_img.nvalues:
-            parser = ParserFactory.create_object(
-                determine_color_format(Base_img.color_format))
-            Base_img.img = parser.parse(
-                Base_img.img.data_buffer,
-                determine_color_format(Base_img.color_format), Base_img.width,
-                Base_img.reverse_bytes)
-        self.change_channel_labels()
-        if Base_img.img.color_format.pixel_format == PixelFormat.MONO:
-            Base_img.img_postchanneled = get_displayable(Base_img.img)
-        else:
-            Base_img.img_postchanneled = get_displayable(
-                Base_img.img, Base_img.height, {
-                    "r_y": dpg.get_value(items["buttons"]["r_ychannel"]),
-                    "g_u": dpg.get_value(items["buttons"]["g_uchannel"]),
-                    "b_v": dpg.get_value(items["buttons"]["b_vchannel"]),
-                    "a_v": dpg.get_value(items["buttons"]["a_vchannel"])
-                })
-        dpg_image = np.frombuffer(Base_img.img_postchanneled.tobytes(),
-                                  dtype=np.uint8) / 255.0
-        Base_img.raw_data = array.array('f', dpg_image)
-        if Base_img.height < 1: Base_img.height = 0
-        if Base_img.height != 0:
-            Base_img.n_frames = ceil(Base_img.img.height / Base_img.height)
-        else:
-            Base_img.n_frames = 1
-        dpg.set_value(
-            items["buttons"]["height_setter"],
-            Base_img.img.height if Base_img.height == 0 else Base_img.height)
-        dpg.set_value(items["buttons"]["width_setter"], Base_img.img.width)
-        dpg.set_value(items["buttons"]["combo"], Base_img.color_format)
-        dpg.set_value(items["buttons"]["n_frames_setter"], Base_img.n_frames)
+        with dpg.mutex():
+            Base_img.img = parse_image(Base_img.img.data_buffer,
+                                       Base_img.color_format, Base_img.width,
+                                       Base_img.reverse_bytes)
+            if Base_img.nnumber or Base_img.nvalues:
+                parser = ParserFactory.create_object(
+                    determine_color_format(Base_img.color_format))
+                Base_img.img = parser.parse(
+                    Base_img.img.data_buffer,
+                    determine_color_format(Base_img.color_format),
+                    Base_img.width, Base_img.reverse_bytes)
+            self.change_channel_labels()
+            if Base_img.img.color_format.pixel_format == PixelFormat.MONO:
+                Base_img.img_postchanneled = get_displayable(Base_img.img)
+            else:
+                Base_img.img_postchanneled = get_displayable(
+                    Base_img.img, Base_img.height, {
+                        "r_y": dpg.get_value(items["buttons"]["r_ychannel"]),
+                        "g_u": dpg.get_value(items["buttons"]["g_uchannel"]),
+                        "b_v": dpg.get_value(items["buttons"]["b_vchannel"]),
+                        "a_v": dpg.get_value(items["buttons"]["a_vchannel"])
+                    })
+            dpg_image = np.frombuffer(Base_img.img_postchanneled.tobytes(),
+                                      dtype=np.uint8) / 255.0
+            Base_img.raw_data = array.array('f', dpg_image)
+            if Base_img.height < 1: Base_img.height = 0
+            if Base_img.height != 0:
+                Base_img.n_frames = ceil(Base_img.img.height / Base_img.height)
+            else:
+                Base_img.n_frames = 1
+            dpg.set_value(
+                items["buttons"]["height_setter"], Base_img.img.height
+                if Base_img.height == 0 else Base_img.height)
+            dpg.set_value(items["buttons"]["width_setter"], Base_img.img.width)
+            dpg.set_value(items["buttons"]["combo"], Base_img.color_format)
+            dpg.set_value(items["buttons"]["n_frames_setter"],
+                          Base_img.n_frames)
 
-        dpg.configure_item(items["buttons"]["width_setter"], enabled=True)
-        dpg.configure_item(items["buttons"]["height_setter"], enabled=True)
-        dpg.configure_item(items["buttons"]["nnumber"], enabled=True)
-        dpg.configure_item(items["buttons"]["nvalues"], enabled=True)
-        dpg.configure_item(items["buttons"]["reverse"], enabled=True)
+            dpg.configure_item(items["buttons"]["width_setter"], enabled=True)
+            dpg.configure_item(items["buttons"]["height_setter"], enabled=True)
+            dpg.configure_item(items["buttons"]["nnumber"], enabled=True)
+            dpg.configure_item(items["buttons"]["nvalues"], enabled=True)
+            dpg.configure_item(items["buttons"]["reverse"], enabled=True)
 
-        self.update_color_info()
+            self.update_color_info()
 
-        if fit_image:
-            dpg.fit_axis_data(items["plot"]["xaxis"])
-            dpg.fit_axis_data(items["plot"]["yaxis"])
+            if fit_image:
+                dpg.fit_axis_data(items["plot"]["xaxis"])
+                dpg.fit_axis_data(items["plot"]["yaxis"])
 
-        if (items["texture"]["raw"]):
-            dpg.delete_item(Base_img.image_series)
+            if (items["texture"]["raw"]):
+                dpg.delete_item(Base_img.image_series)
 
-        self.add_texture(Base_img.img.width, Base_img.img.height,
-                         Base_img.raw_data)
+            self.add_texture(Base_img.img.width, Base_img.img.height,
+                             Base_img.raw_data)
 
-        Base_img.image_series = dpg.add_image_series(
-            texture_tag=items["texture"]["raw"],
-            parent=items["plot"]["yaxis"],
-            label="Raw map",
-            bounds_min=[0, 0],
-            bounds_max=[Base_img.img.width, Base_img.img.height])
+            Base_img.image_series = dpg.add_image_series(
+                texture_tag=items["texture"]["raw"],
+                parent=items["plot"]["yaxis"],
+                label="Raw map",
+                bounds_min=[0, 0],
+                bounds_max=[Base_img.img.width, Base_img.img.height])
 
-        dpg.set_item_label(items["plot"]["main_plot"], Base_img.path_to_File)
+            dpg.set_item_label(items["plot"]["main_plot"],
+                               Base_img.path_to_File)
 
-        if dpg.does_item_exist(items["plot"]["annotation"]):
-            dpg.delete_item(items["plot"]["annotation"])
+            if dpg.does_item_exist(items["plot"]["annotation"]):
+                dpg.delete_item(items["plot"]["annotation"])
 
     def add_texture(self, width, height, image_data):
         if (items["texture"]["raw"]):
