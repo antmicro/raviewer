@@ -77,8 +77,8 @@ class Base_img():
 class Plot_events(Base_img):
     """Events assiociated with plot"""
 
-    def __init__(self):
-        pass
+    def __init__(self, use_software_rendering):
+        self._use_software_rendering = use_software_rendering
 
     def update_hexdump(callback):
 
@@ -216,8 +216,9 @@ class Plot_events(Base_img):
                 dpg.delete_item(items["plot"]["annotation"])
 
     def add_texture(self, width, height, image_data):
-        if (items["texture"]["raw"]):
-            dpg.delete_item(items["texture"]["raw"])
+        if self._use_software_rendering:
+            if (items["texture"]["raw"]):
+                dpg.delete_item(items["texture"]["raw"])
 
         with dpg.texture_registry():
             Base_img.texture_format = None
@@ -525,6 +526,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     """Events general purpose and inherited from Hexviewer_events, Plot_events"""
 
     def __init__(self, args):
+        Plot_events.__init__(self, args["software_rendering"])
         Base_img.path_to_File = args["FILE_PATH"]
         option_list = list(AVAILABLE_FORMATS.keys())
         for index in range(0, len(option_list)):
