@@ -697,6 +697,19 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
             dpg.show_item(items["buttons"]["camera_format"])
 
+            current_format, _ = cam.get_format()
+            format_names = [
+                name
+                for (name, color_format) in self.available_formats.items()
+                if color_format == current_format
+            ]
+            if len(format_names) > 0:
+                dpg.set_value(item=items["buttons"]["camera_format"],
+                              value=format_names[0])
+
+            self.get_available_framesizes(
+                callback_id, dpg.get_value(items["buttons"]["camera_format"]))
+
     def get_available_framesizes(self, callback_id, data):
         dpg.set_value(items["buttons"]["camera_framesize"], "")
 
@@ -711,6 +724,16 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
                                items=list(self.available_framesizes.keys()))
 
             dpg.show_item(items["buttons"]["camera_framesize"])
+
+            _, current_framesize = cam.get_format()
+            framesize_names = [
+                name
+                for (name, framesize) in self.available_framesizes.items()
+                if framesize == current_framesize
+            ]
+            if len(framesize_names) > 0:
+                dpg.set_value(item=items["buttons"]["camera_framesize"],
+                              value=framesize_names[0])
 
     def __refresh_available_cameras(self):
         self.available_cams = {}
