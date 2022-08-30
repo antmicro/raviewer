@@ -46,6 +46,8 @@ items = {
         "camera": dpg.generate_uuid(),
         "camera_format": dpg.generate_uuid(),
         "camera_framesize": dpg.generate_uuid(),
+        "stream": dpg.generate_uuid(),
+        "frame_rate": dpg.generate_uuid(),
     },
     "groups": {
         "camera_ctrls": dpg.generate_uuid(),

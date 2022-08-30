@@ -35,6 +35,7 @@ class AppInit():
             if self.events.camera_ctrls is not None:
                 self.events.camera_ctrls.update_volatile_ctrls()
 
+            self.events.refresh_frame()
             dpg.render_dearpygui_frame()
         '''
         hiding hex tab stops hexdump generation and prevents segfault when closing app while hexdump is being generated

@@ -152,12 +152,12 @@ class ParserYUV420(AbstractParser):
         u = numpy.array(image.processed_data[image.width * image.height +
                                              1::2])
         v = numpy.array(image.processed_data[image.width * image.height::2])
-        u = [x for x in u for _ in (0, 1)]
+        u = numpy.repeat(u, 2)
         u = numpy.array(u)
         u = numpy.reshape(u.astype('uint8'), (image.height // 2, image.width))
         u = u[up_row // 2:down_row // 2, left_column:right_column:2]
 
-        v = [x for x in v for _ in (0, 1)]
+        v = numpy.repeat(v, 2)
         v = numpy.array(v)
         v = numpy.reshape(v.astype('uint8'), (image.height // 2, image.width))
         v = v[up_row // 2:down_row // 2, left_column:right_column:2]
@@ -268,14 +268,14 @@ class ParserYUV420Planar(ParserYUV420):
             image.processed_data[image.width *
                                  image.height:image.width * image.height +
                                  image.width * image.height // 4])
-        u = [x for x in u for _ in (0, 1)]
+        u = numpy.repeat(u, 2)
         u = numpy.array(u)
         u = numpy.reshape(u.astype('uint8'), (image.height // 2, image.width))
         u = u[up_row // 2:(down_row // 2) + 1, left_column:right_column:2]
         u = u.flatten()
         v = numpy.array(image.processed_data[image.width * image.height +
                                              image.width * image.height // 4:])
-        v = [x for x in v for _ in (0, 1)]
+        v = numpy.repeat(v, 2)
         v = numpy.array(v)
         v = numpy.reshape(v.astype('uint8'), (image.height // 2, image.width))
         v = v[up_row // 2:(down_row // 2) + 1, left_column:right_column:2]
@@ -410,8 +410,8 @@ class ParserYUV422(AbstractParser):
                                                 pixel_format]["U"]::4]
         v = processed_data[self.yuv_442_offsets[image.color_format.
                                                 pixel_format]["V"]::4]
-        u = numpy.resize(numpy.array([x for x in u for _ in (0, 1)]), len(y))
-        v = numpy.resize(numpy.array([x for x in v for _ in (0, 1)]), len(y))
+        u = numpy.resize(numpy.repeat(u, 2), len(y))
+        v = numpy.resize(numpy.repeat(v, 2), len(y))
         plane_y = y.reshape((height, width, 1))
         plane_u = u.reshape((height, width, 1))
         plane_v = v.reshape((height, width, 1))
@@ -498,8 +498,8 @@ class ParserYUV422Planar(ParserYUV422):
                            (3 * width // 2 + width % 2)]
         v = processed_data[height * (3 * width // 2 + width % 2):]
 
-        u = numpy.resize(numpy.array([x for x in u for _ in (0, 1)]), len(y))
-        v = numpy.resize(numpy.array([x for x in v for _ in (0, 1)]), len(y))
+        u = numpy.resize(numpy.repeat(u, 2), len(y))
+        v = numpy.resize(numpy.repeat(v, 2), len(y))
         plane_y = y.reshape((height, width, 1))
         plane_u = u.reshape((height, width, 1))
         plane_v = v.reshape((height, width, 1))
@@ -525,7 +525,7 @@ class ParserYUV422Planar(ParserYUV422):
         u = numpy.array(
             image.processed_data[image.height * image.width:image.height *
                                  (3 * image.width // 2 + image.width % 2)])
-        u = [x for x in u for _ in (0, 1)]
+        u = numpy.repeat(u, 2)
         u = numpy.array(u)
         u = numpy.reshape(u.astype('uint8'), (image.height, image.width))
         u = u[up_row:down_row, left_column:right_column:2]
@@ -534,7 +534,7 @@ class ParserYUV422Planar(ParserYUV422):
         v = numpy.array(
             image.processed_data[image.height *
                                  (3 * image.width // 2 + image.width % 2):])
-        v = [x for x in v for _ in (0, 1)]
+        v = numpy.repeat(v, 2)
         v = numpy.array(v)
         v = numpy.reshape(v.astype('uint8'), (image.height, image.width))
         v = v[up_row:down_row, left_column:right_column:2]

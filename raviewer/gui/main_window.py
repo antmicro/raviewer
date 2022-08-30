@@ -104,6 +104,15 @@ class MainWindow():
                                 tag=items["buttons"]["camera_framesize"],
                                 height_mode=dpg.mvComboHeight_Regular,
                                 width=230,
+                                show=False,
+                                callback=self.events.get_available_frame_rates)
+
+                        with dpg.group(horizontal=True):
+                            dpg.add_text(default_value="Frame rate:", indent=5)
+                            dpg.add_combo(
+                                tag=items["buttons"]["frame_rate"],
+                                height_mode=dpg.mvComboHeight_Regular,
+                                width=225,
                                 show=False)
 
                         with dpg.group(horizontal=True):
@@ -116,10 +125,15 @@ class MainWindow():
                                               min_clamped=True,
                                               max_clamped=True,
                                               tag=items["buttons"]["nframes"])
-                        dpg.add_button(
-                            label="Load frame from camera",
-                            indent=5,
-                            callback=self.events.load_img_from_camera)
+
+                        with dpg.group(horizontal=True):
+                            dpg.add_button(
+                                label="Load frame from camera",
+                                indent=5,
+                                callback=self.events.load_img_from_camera)
+                            dpg.add_button(label="Start streaming",
+                                           callback=self.events.start_stream,
+                                           tag=items["buttons"]["stream"])
 
                         with dpg.group(tag=items["groups"]["camera_ctrls"],
                                        indent=5,
