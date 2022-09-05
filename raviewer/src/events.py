@@ -119,9 +119,9 @@ class Plot_events(Base_img):
     def align(self, app_data, user_data):
         nnumber = dpg.get_value(items["buttons"]["nnumber"])
         Base_img.nvalues = dpg.get_value(items["buttons"]["nvalues"])
-        Base_img.data_buffer = align_image(Base_img.data_buffer,
-                                           nnumber - Base_img.nnumber,
-                                           Base_img.nvalues)
+        Base_img.img.data_buffer = align_image(Base_img.img.data_buffer,
+                                               nnumber - Base_img.nnumber,
+                                               Base_img.nvalues)
         Base_img.nnumber = nnumber
         if Base_img.img != None:
             Plot_events.update_image(self, fit_image=False)
