@@ -145,20 +145,30 @@ def crop_image2rawformat(image: Image, up_row: int, down_row: int,
                                        right_column)
 
 
-def align_image(data_buffer, nnumber, nvalues=0):
-    """ Add or skip data at the beginning of the data
+def align_image(data_buffer, nnumber, nvalues=0, frame_num=1):
+    """ Add or skip data at the beginning of every frame in the data
     Keyword arguments:
         data_buffer (bytearray): byte array containing raw image data
         nnumber (int): number of bytes to append (or skip)
         nvalues (int): value of bytes to append
+        frame_num (int): number of frames
     Returns:
         bytearray: aligned buffer
     """
+
     raw_data = np.array(data_buffer)
+    frames = np.array_split(raw_data, frame_num)
+    new_frames = [None] * len(frames)
+
     if nnumber > 0:
-        raw_data = np.insert(raw_data, 0, [nvalues] * nnumber)
+        values_to_insert = np.repeat(nvalues, nnumber)
+        for i, frame in enumerate(frames):
+            new_frames[i] = np.insert(frame, 0, values_to_insert)
     else:
-        if abs(nnumber) > len(raw_data):
+        frame_len = len(raw_data) // frame_num
+        if abs(nnumber) > frame_len:
             return
-        raw_data = raw_data[abs(nnumber):]
-    return bytearray(raw_data.tobytes())
+        for i, frame in enumerate(frames):
+            new_frames[i] = frame[abs(nnumber):]
+
+    return bytearray(np.concatenate(new_frames).tobytes())

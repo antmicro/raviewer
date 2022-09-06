@@ -3,7 +3,6 @@
 import numpy as np
 import array
 import dearpygui.dearpygui as dpg
-from math import ceil
 from pathlib import Path
 from fcntl import ioctl
 from pyrav4l2 import *
@@ -119,9 +118,13 @@ class Plot_events(Base_img):
     def align(self, app_data, user_data):
         nnumber = dpg.get_value(items["buttons"]["nnumber"])
         Base_img.nvalues = dpg.get_value(items["buttons"]["nvalues"])
+        align_every_frame = dpg.get_value(
+            items["buttons"]["nnumber_every_frame"])
+        frame_num = dpg.get_value(
+            items["buttons"]["n_frames_setter"]) if align_every_frame else 1
         Base_img.img.data_buffer = align_image(Base_img.img.data_buffer,
                                                nnumber - Base_img.nnumber,
-                                               Base_img.nvalues)
+                                               Base_img.nvalues, frame_num)
         Base_img.nnumber = nnumber
         if Base_img.img != None:
             Plot_events.update_image(self, fit_image=False)
@@ -170,7 +173,7 @@ class Plot_events(Base_img):
             Base_img.raw_data = array.array('f', dpg_image)
             if Base_img.height < 1: Base_img.height = 0
             if Base_img.height != 0:
-                Base_img.n_frames = ceil(Base_img.img.height / Base_img.height)
+                Base_img.n_frames = Base_img.img.height // Base_img.height
             else:
                 Base_img.n_frames = 1
             dpg.set_value(

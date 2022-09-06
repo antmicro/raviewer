@@ -96,7 +96,9 @@ class SettingsWindow():
                                       readonly=True,
                                       default_value=1,
                                       width=100,
-                                      indent=5)
+                                      indent=5,
+                                      step=0,
+                                      step_fast=0)
                 dpg.add_separator()
                 dpg.add_color_picker(label="Color picker",
                                      tag=items["buttons"]["color_picker"],
@@ -162,6 +164,9 @@ class SettingsWindow():
                                       max_value=255,
                                       enabled=False,
                                       tag=items["buttons"]["nvalues"])
+                dpg.add_checkbox(label="Add/skip data in every frame",
+                                 indent=5,
+                                 tag=items["buttons"]["nnumber_every_frame"])
                 dpg.add_separator()
                 dpg.add_text(default_value="Reverse bytes", indent=5)
                 with dpg.group(horizontal=False):
