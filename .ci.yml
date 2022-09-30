@@ -1,4 +1,4 @@
-image: ubuntu:rolling
+image: debian:latest
 stages:
     - .pre
     - test
