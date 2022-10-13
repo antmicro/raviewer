@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - docs-build
   pull_request:
 
 jobs:
@@ -31,6 +30,7 @@ jobs:
         cd ..
 
     - name: Deploy
+      if: github.ref == 'refs/heads/main'
       run: |
         cd docs
         mkdir deploy
