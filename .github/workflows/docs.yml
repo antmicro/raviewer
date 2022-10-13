@@ -28,3 +28,20 @@ jobs:
       run: |
         cd docs
         make html
+        cd ..
+
+    - name: Deploy
+      run: |
+        cd docs
+        mkdir deploy
+        touch deploy/.nojekyll
+        cp build/html/* deploy -r
+        cd deploy
+        git init
+        cp ../../.git/config ./.git/config
+        git add .
+        git config --local user.email "push@gha"
+        git config --local user.name "GHA"
+        git commit -am "update ${{ github.sha }}"
+        git push -u origin +HEAD:gh-pages
+        rm -rf .git
