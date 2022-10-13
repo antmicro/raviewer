@@ -1,0 +1,47 @@
+name: Generate and publish docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python environment
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install sphinx myst-parser git+https://github.com/antmicro/sphinx_antmicro_theme
+    - name: Generate the docs
+      run: |
+        cd docs
+        make html
+        cd ..
+
+    - name: Deploy
+      if: github.ref == 'refs/heads/main'
+      run: |
+        cd docs
+        mkdir deploy
+        touch deploy/.nojekyll
+        cp build/html/* deploy -r
+        cd deploy
+        git init
+        cp ../../.git/config ./.git/config
+        git add .
+        git config --local user.email "push@gha"
+        git config --local user.name "GHA"
+        git commit -am "update ${{ github.sha }}"
+        git push -u origin +HEAD:gh-pages
+        rm -rf .git
