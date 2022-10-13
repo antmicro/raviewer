@@ -7,10 +7,6 @@ on:
       - test
 
   pull_request:
-    paths:
-      - 'raviewer/**'
-      - 'tests/**'
-      - '.github/workflows/python-lint.yml'
 
 jobs:
   python-run:
