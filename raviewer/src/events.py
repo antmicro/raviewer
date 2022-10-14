@@ -213,7 +213,7 @@ class Plot_events(Base_img):
             dtype=np.uint8).astype("float32") / 255.0
         if Base_img.height < 1: Base_img.height = 0
         if Base_img.height != 0:
-            Base_img.n_frames = ceil(Base_img.img.height / Base_img.height)
+            Base_img.n_frames = Base_img.img.height // Base_img.height
         else:
             Base_img.n_frames = 1
 
