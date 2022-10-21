@@ -569,6 +569,8 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     @Plot_events.update_hexdump
     @Plot_events.indicate_loading
     def load_img_from_camera(self, callback_id, data):
+        if self.stream_thread is not None:
+            self.stop_stream(callback_id, data)
         self._get_frame(dpg.get_value(items["buttons"]["nframes"]))
 
     def _get_frame(self, num_of_frames):
