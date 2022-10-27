@@ -26,7 +26,6 @@ items = {
         "export_image": dpg.generate_uuid(),
         "width_setter": dpg.generate_uuid(),
         "height_setter": dpg.generate_uuid(),
-        "color_picker": dpg.generate_uuid(),
         "anti_checkbox": dpg.generate_uuid(),
         "r_ychannel": dpg.generate_uuid(),
         "g_uchannel": dpg.generate_uuid(),

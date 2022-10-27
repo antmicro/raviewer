@@ -100,15 +100,6 @@ class SettingsWindow():
                                       step=0,
                                       step_fast=0)
                 dpg.add_separator()
-                dpg.add_color_picker(label="Color picker",
-                                     tag=items["buttons"]["color_picker"],
-                                     no_alpha=True,
-                                     picker_mode=dpg.mvColorPicker_bar,
-                                     no_side_preview=True,
-                                     width=170,
-                                     no_small_preview=True,
-                                     no_label=True,
-                                     indent=5)
                 with dpg.group(label="Resolution-change-group",
                                horizontal=True):
                     dpg.add_button(label=" Y:  0 ",

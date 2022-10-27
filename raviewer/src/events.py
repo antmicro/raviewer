@@ -258,8 +258,6 @@ class Plot_events(Base_img):
                         int(pixel_comp * 255)
                         for pixel_comp in listed_data[row_index:column_index]
                     ]
-                    dpg.set_value(items["buttons"]["color_picker"],
-                                  pixel_values)
                     yuv_pixels = RGBtoYUV(pixel_values, components_n)
                     dpg.set_item_label(items["buttons"]["ychannel"],
                                        f" Y:{yuv_pixels[0]:>3}")
