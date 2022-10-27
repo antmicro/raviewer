@@ -262,11 +262,11 @@ class Plot_events(Base_img):
                                   pixel_values)
                     yuv_pixels = RGBtoYUV(pixel_values, components_n)
                     dpg.set_item_label(items["buttons"]["ychannel"],
-                                       " Y:{} ".format(yuv_pixels[0]))
+                                       f" Y:{yuv_pixels[0]:>3}")
                     dpg.set_item_label(items["buttons"]["uchannel"],
-                                       " U:{} ".format(yuv_pixels[1]))
+                                       f" U:{yuv_pixels[1]:>3}")
                     dpg.set_item_label(items["buttons"]["vchannel"],
-                                       " V:{} ".format(yuv_pixels[2]))
+                                       f" V:{yuv_pixels[2]:>3}")
                     first_index = (int(plot_mouse_x) +
                                    row * Base_img.img.width)
                     components = list(
