@@ -15,7 +15,6 @@ class Controls:
     pan_button = dpg.mvMouseButton_Middle
     query_button = dpg.mvMouseButton_Left
     box_select_button = dpg.mvMouseButton_Right
-    add_annotation_button = dpg.mvMouseButton_Middle
     remove_annotation_button = dpg.mvMouseButton_Right
     autosize_button = dpg.mvMouseButton_Right
     dummy = 5

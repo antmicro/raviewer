@@ -238,6 +238,10 @@ class Plot_events(Base_img):
                 default_value=image_data)
 
     def on_mouse_release(self, idc, data):
+        new_pos = [int(x) for x in dpg.get_plot_mouse_pos()]
+        if new_pos != Base_img.mouse_down_pos:
+            return
+
         if dpg.is_item_hovered(items["plot"]["main_plot"]):
             if Base_img.img != None:
                 plot_mouse_x, plot_mouse_y = dpg.get_plot_mouse_pos()

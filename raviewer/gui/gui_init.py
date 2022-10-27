@@ -111,10 +111,10 @@ class AppInit():
 
     def init_mouse_handlers(self):
         with dpg.handler_registry():
-            dpg.add_mouse_click_handler(
+            dpg.add_mouse_release_handler(
                 callback=self.events.on_mouse_release,
                 tag=items["registries"]["add_mouse_click_handler"],
-                button=Controls.add_annotation_button)
+                button=Controls.query_button)
             dpg.add_mouse_drag_handler(button=Controls.query_button,
                                        callback=self.events.on_image_drag)
             dpg.add_mouse_click_handler(button=Controls.query_button,
