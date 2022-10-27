@@ -100,8 +100,21 @@ class SettingsWindow():
                                       step=0,
                                       step_fast=0)
                 dpg.add_separator()
-                with dpg.group(label="Resolution-change-group",
-                               horizontal=True):
+                dpg.add_text("Selected pixel values (middle click to select)",
+                             indent=5,
+                             tag=items["static_text"]["selected_pixel"])
+                with dpg.group(label="RGB data group", horizontal=True):
+                    dpg.add_button(label=" R:  0 ",
+                                   width=51,
+                                   tag=items["buttons"]["rchannel"],
+                                   indent=5)
+                    dpg.add_button(label=" G:  0 ",
+                                   width=51,
+                                   tag=items["buttons"]["gchannel"])
+                    dpg.add_button(label=" B:  0 ",
+                                   width=51,
+                                   tag=items["buttons"]["bchannel"])
+                with dpg.group(label="YUV data group", horizontal=True):
                     dpg.add_button(label=" Y:  0 ",
                                    width=51,
                                    tag=items["buttons"]["ychannel"],

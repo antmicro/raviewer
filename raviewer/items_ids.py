@@ -14,6 +14,7 @@ items = {
         "endianness": dpg.generate_uuid(),
         "color_description": dpg.generate_uuid(),
         "image_resolution": dpg.generate_uuid(),
+        "selected_pixel": dpg.generate_uuid(),
     },
     "registries": {
         "texture_registry": dpg.generate_uuid(),
@@ -31,6 +32,9 @@ items = {
         "g_uchannel": dpg.generate_uuid(),
         "b_vchannel": dpg.generate_uuid(),
         "a_vchannel": dpg.generate_uuid(),
+        "rchannel": dpg.generate_uuid(),
+        "gchannel": dpg.generate_uuid(),
+        "bchannel": dpg.generate_uuid(),
         "ychannel": dpg.generate_uuid(),
         "uchannel": dpg.generate_uuid(),
         "vchannel": dpg.generate_uuid(),

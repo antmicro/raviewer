@@ -258,6 +258,14 @@ class Plot_events(Base_img):
                         int(pixel_comp * 255)
                         for pixel_comp in listed_data[row_index:column_index]
                     ]
+
+                    dpg.set_item_label(items["buttons"]["rchannel"],
+                                       f" R:{pixel_values[0]:>3}")
+                    dpg.set_item_label(items["buttons"]["gchannel"],
+                                       f" G:{pixel_values[1]:>3}")
+                    dpg.set_item_label(items["buttons"]["bchannel"],
+                                       f" B:{pixel_values[2]:>3}")
+
                     yuv_pixels = RGBtoYUV(pixel_values, components_n)
                     dpg.set_item_label(items["buttons"]["ychannel"],
                                        f" Y:{yuv_pixels[0]:>3}")
