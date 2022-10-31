@@ -100,7 +100,7 @@ class SettingsWindow():
                                       step=0,
                                       step_fast=0)
                 dpg.add_separator()
-                dpg.add_text("Selected pixel values (middle click to select)",
+                dpg.add_text("Selected pixel values",
                              indent=5,
                              tag=items.static_text.selected_pixel)
                 with dpg.group(label="RGB data group", horizontal=True):

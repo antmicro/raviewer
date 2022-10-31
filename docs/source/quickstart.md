@@ -102,7 +102,7 @@ The selected area will be highlighted in yellow, and upon releasing **RMB**, Rav
 
 ## Color picker
 
-You can display raw data making up a pixel by using **MMB** (middle mouse button).
+You can display raw data making up a pixel by using **LMB** (left mouse button).
 It will show you RGB and YUV values as well as the hue, saturation, and lightness of a pixel.
 You will also be able to see the information about the bytes in a component:
 
