@@ -126,8 +126,13 @@ __items = {
 
 class __RaviewerItem(dict):
     __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+    def __setattr__(self, name, value):
+        if name in self.keys():
+            dict.__setitem__(self, name, value)
+        else:
+            raise KeyError(f"Item undefined: {name}")
 
 
 for k in __items:
