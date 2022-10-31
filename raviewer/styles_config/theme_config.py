@@ -1,8 +1,8 @@
 """File for static theme setup"""
 import dearpygui.dearpygui as dpg
-from ..items_ids import *
+from .. import items
 
-with dpg.theme() as items["theme"]["global"]:
+with dpg.theme() as items.theme.general:
     with dpg.theme_component(dpg.mvAll):
         pass
         #####Mock formula for binding color and rounding style to the buttons

@@ -4,7 +4,7 @@ import numpy as np
 import dearpygui.dearpygui as dpg
 from pathlib import Path
 
-from ..items_ids import *
+from .. import items
 from .core import (parse_image, load_image, get_displayable,
                    get_pixel_raw_components, crop_image2rawformat, align_image,
                    load_from_camera)
@@ -88,9 +88,8 @@ class Plot_events(Base_img):
             Hexviewer.altered = True
             Hexviewer.mutex.release()
             callback(self, app_data, user_data)
-            if dpg.does_item_exist(
-                    items["windows"]["hex_tab"]) or dpg.get_value(
-                        items["menu_bar"]["hex"]):
+            if dpg.does_item_exist(items.windows.hex_tab) or dpg.get_value(
+                    items.menu_bar.hex):
                 self.show_hex_format()
 
         return _wrapper
@@ -99,27 +98,28 @@ class Plot_events(Base_img):
         """ This function is a decorator that shows loading indicator while executing a function """
 
         def _wrapper(self, app_data, user_data):
-            dpg.show_item(items["file_selector"]["loading_indicator"])
+            dpg.show_item(items.file_selector.loading_indicator)
             """
             Position is set as the middle of the viewport subtracted by 25
             (loading indicator has a size of 50x50, so subtracting 25 from both dimensions
             makes it appear roughly in the middle of the window)
             """
-            dpg.set_item_pos(item=items["file_selector"]["loading_indicator"],
-                             pos=[
-                                 i // 2 - 25 for i in dpg.get_item_rect_size(
-                                     items["windows"]["viewport"])
-                             ])
+            dpg.set_item_pos(
+                item=items.file_selector.loading_indicator,
+                pos=[
+                    i // 2 - 25
+                    for i in dpg.get_item_rect_size(items.windows.viewport)
+                ])
             callback(self, app_data, user_data)
-            dpg.hide_item(items["file_selector"]["loading_indicator"])
+            dpg.hide_item(items.file_selector.loading_indicator)
 
         return _wrapper
 
     @indicate_loading
     def align(self, app_data, user_data):
         with Base_img.image_mutex:
-            nnumber = dpg.get_value(items["buttons"]["nnumber"])
-            Base_img.nvalues = dpg.get_value(items["buttons"]["nvalues"])
+            nnumber = dpg.get_value(items.buttons.nnumber)
+            Base_img.nvalues = dpg.get_value(items.buttons.nvalues)
             Base_img.data_buffer = align_image(Base_img.data_buffer,
                                                nnumber - Base_img.nnumber,
                                                Base_img.nvalues)
@@ -140,51 +140,49 @@ class Plot_events(Base_img):
                         "\nPixel plane:  " + str(color_format.pixel_plane)[11:] + "\nBits per component:  " + str(color_format.bits_per_components)
         # Converting enum object to string gives the full attribute name (eg. Endianness.LITTLE_ENDIAN)
         # To properly display endiannes, we must split result string by '.' and take it's second half
-        dpg.set_value(items["buttons"]["endianness"],
+        dpg.set_value(items.buttons.endianness,
                       str(color_format.endianness).split('.')[1])
-        dpg.set_value(items["static_text"]["color_description"], custom_text)
+        dpg.set_value(items.static_text.color_description, custom_text)
 
     def update_image(self, fit_image, channels=None):
         with dpg.mutex():
             self.refresh_image()
             dpg.set_value(
-                items["buttons"]["height_setter"], Base_img.img.height
+                items.buttons.height_setter, Base_img.img.height
                 if Base_img.height == 0 else Base_img.height)
-            dpg.set_value(items["buttons"]["width_setter"], Base_img.img.width)
-            dpg.set_value(items["buttons"]["combo"], Base_img.color_format)
-            dpg.set_value(items["buttons"]["n_frames_setter"],
-                          Base_img.n_frames)
+            dpg.set_value(items.buttons.width_setter, Base_img.img.width)
+            dpg.set_value(items.buttons.combo, Base_img.color_format)
+            dpg.set_value(items.buttons.n_frames_setter, Base_img.n_frames)
 
-            dpg.configure_item(items["buttons"]["width_setter"], enabled=True)
-            dpg.configure_item(items["buttons"]["height_setter"], enabled=True)
-            dpg.configure_item(items["buttons"]["nnumber"], enabled=True)
-            dpg.configure_item(items["buttons"]["nvalues"], enabled=True)
-            dpg.configure_item(items["buttons"]["reverse"], enabled=True)
+            dpg.configure_item(items.buttons.width_setter, enabled=True)
+            dpg.configure_item(items.buttons.height_setter, enabled=True)
+            dpg.configure_item(items.buttons.nnumber, enabled=True)
+            dpg.configure_item(items.buttons.nvalues, enabled=True)
+            dpg.configure_item(items.buttons.reverse, enabled=True)
 
             self.update_color_info()
 
             if fit_image:
-                dpg.fit_axis_data(items["plot"]["xaxis"])
-                dpg.fit_axis_data(items["plot"]["yaxis"])
+                dpg.fit_axis_data(items.plot.xaxis)
+                dpg.fit_axis_data(items.plot.yaxis)
 
-            if (items["texture"]["raw"]):
+            if (items.texture.raw):
                 dpg.delete_item(Base_img.image_series)
 
             self.add_texture(Base_img.img.width, Base_img.img.height,
                              Base_img.raw_data)
 
             Base_img.image_series = dpg.add_image_series(
-                texture_tag=items["texture"]["raw"],
-                parent=items["plot"]["yaxis"],
+                texture_tag=items.texture.raw,
+                parent=items.plot.yaxis,
                 label="Raw map",
                 bounds_min=[0, 0],
                 bounds_max=[Base_img.img.width, Base_img.img.height])
 
-            dpg.set_item_label(items["plot"]["main_plot"],
-                               Base_img.path_to_File)
+            dpg.set_item_label(items.plot.main_plot, Base_img.path_to_File)
 
-            if dpg.does_item_exist(items["plot"]["annotation"]):
-                dpg.delete_item(items["plot"]["annotation"])
+            if dpg.does_item_exist(items.plot.annotation):
+                dpg.delete_item(items.plot.annotation)
 
     def refresh_image(self):
         Base_img.img = parse_image(Base_img.img.data_buffer,
@@ -203,10 +201,10 @@ class Plot_events(Base_img):
         else:
             Base_img.img_postchanneled = get_displayable(
                 Base_img.img, Base_img.height, {
-                    "r_y": dpg.get_value(items["buttons"]["r_ychannel"]),
-                    "g_u": dpg.get_value(items["buttons"]["g_uchannel"]),
-                    "b_v": dpg.get_value(items["buttons"]["b_vchannel"]),
-                    "a_v": dpg.get_value(items["buttons"]["a_vchannel"])
+                    "r_y": dpg.get_value(items.buttons.r_ychannel),
+                    "g_u": dpg.get_value(items.buttons.g_uchannel),
+                    "b_v": dpg.get_value(items.buttons.b_vchannel),
+                    "a_v": dpg.get_value(items.buttons.a_vchannel)
                 })
         Base_img.raw_data = np.frombuffer(
             Base_img.img_postchanneled.tobytes(),
@@ -219,8 +217,8 @@ class Plot_events(Base_img):
 
     def add_texture(self, width, height, image_data):
         if self._use_software_rendering:
-            if (items["texture"]["raw"]):
-                dpg.delete_item(items["texture"]["raw"])
+            if (items.texture.raw):
+                dpg.delete_item(items.texture.raw)
 
         with dpg.texture_registry():
             Base_img.texture_format = None
@@ -231,7 +229,7 @@ class Plot_events(Base_img):
                 Base_img.texture_format = dpg.mvFormat_Float_rgba
             else:
                 Base_img.texture_format = dpg.mvFormat_Float_rgb
-            items["texture"]["raw"] = dpg.add_raw_texture(
+            items.texture.raw = dpg.add_raw_texture(
                 width=width,
                 height=height,
                 format=Base_img.texture_format,
@@ -242,7 +240,7 @@ class Plot_events(Base_img):
         if new_pos != Base_img.mouse_down_pos:
             return
 
-        if dpg.is_item_hovered(items["plot"]["main_plot"]):
+        if dpg.is_item_hovered(items.plot.main_plot):
             if Base_img.img != None:
                 plot_mouse_x, plot_mouse_y = dpg.get_plot_mouse_pos()
                 if (plot_mouse_x < Base_img.img.width and plot_mouse_x
@@ -263,19 +261,19 @@ class Plot_events(Base_img):
                         for pixel_comp in listed_data[row_index:column_index]
                     ]
 
-                    dpg.set_item_label(items["buttons"]["rchannel"],
+                    dpg.set_item_label(items.buttons.rchannel,
                                        f" R:{pixel_values[0]:>3}")
-                    dpg.set_item_label(items["buttons"]["gchannel"],
+                    dpg.set_item_label(items.buttons.gchannel,
                                        f" G:{pixel_values[1]:>3}")
-                    dpg.set_item_label(items["buttons"]["bchannel"],
+                    dpg.set_item_label(items.buttons.bchannel,
                                        f" B:{pixel_values[2]:>3}")
 
                     yuv_pixels = RGBtoYUV(pixel_values, components_n)
-                    dpg.set_item_label(items["buttons"]["ychannel"],
+                    dpg.set_item_label(items.buttons.ychannel,
                                        f" Y:{yuv_pixels[0]:>3}")
-                    dpg.set_item_label(items["buttons"]["uchannel"],
+                    dpg.set_item_label(items.buttons.uchannel,
                                        f" U:{yuv_pixels[1]:>3}")
-                    dpg.set_item_label(items["buttons"]["vchannel"],
+                    dpg.set_item_label(items.buttons.vchannel,
                                        f" V:{yuv_pixels[2]:>3}")
                     first_index = (int(plot_mouse_x) +
                                    row * Base_img.img.width)
@@ -285,17 +283,17 @@ class Plot_events(Base_img):
                                                  first_index))
                     bytes_in_components = "Bytes in components " + str(
                         components)
-                    if dpg.does_item_exist(items["plot"]["annotation"]):
-                        dpg.set_item_label(items["plot"]["annotation"],
+                    if dpg.does_item_exist(items.plot.annotation):
+                        dpg.set_item_label(items.plot.annotation,
                                            bytes_in_components)
                         dpg.set_value(
-                            items["plot"]["annotation"],
+                            items.plot.annotation,
                             (int(plot_mouse_x) + 0.5, int(plot_mouse_y) + 0.5))
                     else:
                         dpg.add_plot_annotation(
-                            id=items["plot"]["annotation"],
+                            id=items.plot.annotation,
                             offset=[10, 10],
-                            parent=items["plot"]["main_plot"],
+                            parent=items.plot.main_plot,
                             default_value=(int(plot_mouse_x) + 0.5,
                                            int(plot_mouse_y) + 0.5),
                             color=[0, 134, 255, 255],
@@ -303,28 +301,26 @@ class Plot_events(Base_img):
                             clamped=True)
 
     def on_image_down(self):
-        if dpg.is_item_hovered(items["plot"]["main_plot"]):
-            dpg.configure_item(items["plot"]["main_plot"],
+        if dpg.is_item_hovered(items.plot.main_plot):
+            dpg.configure_item(items.plot.main_plot,
                                pan_button=Controls.pan_button)
         plot_mouse_x, plot_mouse_y = dpg.get_plot_mouse_pos()
-        dpg.set_axis_limits_auto(items["plot"]["xaxis"])
-        dpg.set_axis_limits_auto(items["plot"]["yaxis"])
-        self.yaxis_size = dpg.get_axis_limits(items["plot"]["yaxis"])
-        self.xaxis_size = dpg.get_axis_limits(items["plot"]["xaxis"])
-        if dpg.is_item_hovered(items["plot"]["main_plot"]):
-            dpg.set_value(items["static_text"]["image_resolution"],
-                          "Size: 0 x 0")
+        dpg.set_axis_limits_auto(items.plot.xaxis)
+        dpg.set_axis_limits_auto(items.plot.yaxis)
+        self.yaxis_size = dpg.get_axis_limits(items.plot.yaxis)
+        self.xaxis_size = dpg.get_axis_limits(items.plot.xaxis)
+        if dpg.is_item_hovered(items.plot.main_plot):
+            dpg.set_value(items.static_text.image_resolution, "Size: 0 x 0")
         Base_img.mouse_down_pos = [int(plot_mouse_x), int(plot_mouse_y)]
 
     def remove_annotation(self):
-        if dpg.does_item_exist(items["plot"]["annotation"]):
-            dpg.delete_item(items["plot"]["annotation"])
+        if dpg.does_item_exist(items.plot.annotation):
+            dpg.delete_item(items.plot.annotation)
 
     def on_image_drag(self, idc, data):
-        dpg.configure_item(items["plot"]["main_plot"],
-                           pan_button=Controls.dummy)
+        dpg.configure_item(items.plot.main_plot, pan_button=Controls.dummy)
         x_resolution, y_resolution = 0, 0
-        if dpg.is_item_hovered(items["plot"]["main_plot"]):
+        if dpg.is_item_hovered(items.plot.main_plot):
             if Base_img.img != None:
                 plot_mouse_x, plot_mouse_y = dpg.get_plot_mouse_pos()
                 if Base_img.mouse_down_pos[0] >= Base_img.img.width:
@@ -420,7 +416,7 @@ class Plot_events(Base_img):
                 Base_img.selected_part = [x_resolution, y_resolution]
                 if x_resolution > 0 and y_resolution > 0:
                     dpg.set_value(
-                        items["static_text"]["image_resolution"], "Size: " +
+                        items.static_text.image_resolution, "Size: " +
                         str(x_resolution) + " x " + str(y_resolution))
 
     def change_channel_labels(self):
@@ -428,38 +424,26 @@ class Plot_events(Base_img):
                 PixelFormat.YUYV, PixelFormat.UYVY, PixelFormat.YVYU,
                 PixelFormat.VYUY, PixelFormat.YUV, PixelFormat.YVU
         ]:
-            dpg.configure_item(items["buttons"]["r_ychannel"],
-                               label="Y",
-                               show=True)
-            dpg.configure_item(items["buttons"]["g_uchannel"],
-                               label="U",
-                               show=True)
-            dpg.configure_item(items["buttons"]["b_vchannel"],
-                               label="V",
-                               show=True)
-            dpg.hide_item(items["buttons"]["a_vchannel"])
+            dpg.configure_item(items.buttons.r_ychannel, label="Y", show=True)
+            dpg.configure_item(items.buttons.g_uchannel, label="U", show=True)
+            dpg.configure_item(items.buttons.b_vchannel, label="V", show=True)
+            dpg.hide_item(items.buttons.a_vchannel)
         elif Base_img.img.color_format.pixel_format == PixelFormat.MONO:
-            dpg.hide_item(items["buttons"]["r_ychannel"])
-            dpg.hide_item(items["buttons"]["g_uchannel"])
-            dpg.hide_item(items["buttons"]["b_vchannel"])
-            dpg.hide_item(items["buttons"]["a_vchannel"])
+            dpg.hide_item(items.buttons.r_ychannel)
+            dpg.hide_item(items.buttons.g_uchannel)
+            dpg.hide_item(items.buttons.b_vchannel)
+            dpg.hide_item(items.buttons.a_vchannel)
         else:
-            dpg.configure_item(items["buttons"]["r_ychannel"],
-                               label="R",
-                               show=True)
-            dpg.configure_item(items["buttons"]["g_uchannel"],
-                               label="G",
-                               show=True)
-            dpg.configure_item(items["buttons"]["b_vchannel"],
-                               label="B",
-                               show=True)
+            dpg.configure_item(items.buttons.r_ychannel, label="R", show=True)
+            dpg.configure_item(items.buttons.g_uchannel, label="G", show=True)
+            dpg.configure_item(items.buttons.b_vchannel, label="B", show=True)
             if Base_img.img.color_format.pixel_format in [
                     PixelFormat.ABGR, PixelFormat.ARGB, PixelFormat.RGBA,
                     PixelFormat.BGRA
             ]:
-                dpg.show_item(items["buttons"]["a_vchannel"])
+                dpg.show_item(items.buttons.a_vchannel)
             else:
-                dpg.hide_item(items["buttons"]["a_vchannel"])
+                dpg.hide_item(items.buttons.a_vchannel)
 
 
 class Hexviewer_events(Base_img):
@@ -489,28 +473,28 @@ class Hexviewer_events(Base_img):
 
     def resolve_status(self):
         if Base_img.img != None:
-            if not dpg.get_value(items["menu_bar"]["hex"]):
-                dpg.delete_item(items["windows"]["hex_mode"])
-                dpg.delete_item(items["windows"]["hex_tab"])
+            if not dpg.get_value(items.menu_bar.hex):
+                dpg.delete_item(items.windows.hex_mode)
+                dpg.delete_item(items.windows.hex_tab)
                 return True
-            if not dpg.does_item_exist(items["windows"]["hex_tab"]):
+            if not dpg.does_item_exist(items.windows.hex_tab):
                 self.create_tab()
 
-            if dpg.does_item_exist(items["windows"]["hex_mode"]):
-                dpg.delete_item(items["windows"]["hex_mode"])
-            dpg.show_item(items["windows"]["hex_tab"])
+            if dpg.does_item_exist(items.windows.hex_mode):
+                dpg.delete_item(items.windows.hex_mode)
+            dpg.show_item(items.windows.hex_tab)
             return False
         return True
 
     def create_tab(self):
-        items["windows"]["hex_tab"] = dpg.generate_uuid()
+        items.windows.hex_tab = dpg.generate_uuid()
         dpg.add_tab(label="Hexdump",
-                    parent=items["plot"]["tab"],
-                    id=items["windows"]["hex_tab"])
+                    parent=items.plot.tab,
+                    id=items.windows.hex_tab)
 
     def create_table(self):
-        dpg.add_table(parent=items["windows"]["hex_tab"],
-                      id=items["windows"]["hex_mode"],
+        dpg.add_table(parent=items.windows.hex_tab,
+                      id=items.windows.hex_mode,
                       header_row=True,
                       no_host_extendX=False,
                       delay_search=True,
@@ -526,12 +510,11 @@ class Hexviewer_events(Base_img):
                       scrollX=True,
                       precise_widths=True,
                       resizable=True)
-        dpg.add_table_column(label="Offset(h)",
-                             parent=items["windows"]["hex_mode"])
-        dpg.add_table_column(label="Dump", parent=items["windows"]["hex_mode"])
+        dpg.add_table_column(label="Offset(h)", parent=items.windows.hex_mode)
+        dpg.add_table_column(label="Dump", parent=items.windows.hex_mode)
         dpg.add_table_column(label="ASCII",
                              width=10,
-                             parent=items["windows"]["hex_mode"])
+                             parent=items.windows.hex_mode)
 
 
 class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
@@ -558,11 +541,10 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         self.__refresh_available_cameras()
 
     def lock_queried_image_callback(self):
-        if Base_img.img != None and dpg.is_plot_queried(
-                items["plot"]["main_plot"]):
-            dpg.set_axis_limits(items["plot"]["yaxis"], self.yaxis_size[0],
+        if Base_img.img != None and dpg.is_plot_queried(items.plot.main_plot):
+            dpg.set_axis_limits(items.plot.yaxis, self.yaxis_size[0],
                                 self.yaxis_size[1])
-            dpg.set_axis_limits(items["plot"]["xaxis"], self.xaxis_size[0],
+            dpg.set_axis_limits(items.plot.xaxis, self.xaxis_size[0],
                                 self.xaxis_size[1])
 
     @Plot_events.update_hexdump
@@ -574,20 +556,19 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.img = load_image(Base_img.path_to_File)
             Base_img.data_buffer = Base_img.img.data_buffer
             Plot_events.update_image(self, fit_image=True)
-            dpg.enable_item(items["menu_bar"]["export_tab"])
+            dpg.enable_item(items.menu_bar.export_tab)
 
     @Plot_events.update_hexdump
     @Plot_events.indicate_loading
     def load_img_from_camera(self, callback_id, data):
         if self.stream_thread is not None:
             self.stop_stream(callback_id, data)
-        self._get_frame(dpg.get_value(items["buttons"]["nframes"]))
+        self._get_frame(dpg.get_value(items.buttons.nframes))
 
     def _get_frame(self, num_of_frames):
-        selected_camera = dpg.get_value(items["buttons"]["camera"])
-        selected_format = dpg.get_value(items["buttons"]["camera_format"])
-        selected_framesize = dpg.get_value(
-            items["buttons"]["camera_framesize"])
+        selected_camera = dpg.get_value(items.buttons.camera)
+        selected_format = dpg.get_value(items.buttons.camera_format)
+        selected_framesize = dpg.get_value(items.buttons.camera_framesize)
 
         if selected_camera in self.available_cams.keys(
         ) and selected_format in self.available_formats.keys(
@@ -602,8 +583,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
                 iter(k for k, v in AVAILABLE_FORMATS.items()
                      if v.fourcc == color_format.pixelformat), None)
             if format_name is not None:
-                dpg.set_value(item=items["buttons"]["combo"],
-                              value=format_name)
+                dpg.set_value(item=items.buttons.combo, value=format_name)
                 self._format_color(format_name)
 
             Base_img.path_to_File = cam.path
@@ -612,9 +592,9 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.data_buffer = Base_img.img.data_buffer
 
             Plot_events.update_image(self, fit_image=True)
-            dpg.enable_item(items["menu_bar"]["export_tab"])
+            dpg.enable_item(items.menu_bar.export_tab)
 
-            dpg.set_value(item=items["buttons"]["width_setter"],
+            dpg.set_value(item=items.buttons.width_setter,
                           value=framesize.width)
             self._update_width(framesize.width)
 
@@ -623,12 +603,12 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
     def start_stream(self, callback_id, data):
         if self._get_frame(1):
-            selected_frame_rate = dpg.get_value(items["buttons"]["frame_rate"])
+            selected_frame_rate = dpg.get_value(items.buttons.frame_rate)
             if selected_frame_rate not in self.available_frame_rates.keys():
                 selected_frame_rate = min(
                     self.available_frame_rates.keys(),
                     key=lambda x: abs(float(x) - float(selected_frame_rate)))
-            camera = dpg.get_value(items["buttons"]["camera"])
+            camera = dpg.get_value(items.buttons.camera)
 
             while True:
                 try:
@@ -637,21 +617,21 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
                     break
                 except WrongFrameInterval:
                     selected_format = dpg.get_value(
-                        items["buttons"]["camera_format"])
+                        items.buttons.camera_format)
                     selected_framesize = dpg.get_value(
-                        items["buttons"]["camera_framesize"])
+                        items.buttons.camera_framesize)
                     self.__refresh_available_frame_rates(
                         self.available_cams[camera],
                         self.available_formats[selected_format],
                         self.available_framesizes[selected_framesize])
                     selected_frame_rate = list(
                         self.available_frame_rates.keys())[0]
-                    dpg.configure_item(items["buttons"]["frame_rate"],
+                    dpg.configure_item(items.buttons.frame_rate,
                                        items=list(
                                            self.available_frame_rates.keys()))
-            dpg.set_value(items["buttons"]["frame_rate"],
+            dpg.set_value(items.buttons.frame_rate,
                           self.available_frame_rates[selected_frame_rate])
-            dpg.configure_item(item=items["buttons"]["stream"],
+            dpg.configure_item(item=items.buttons.stream,
                                label="Stop streaming",
                                callback=self.stop_stream)
 
@@ -660,25 +640,25 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
                 args=(self.available_cams[camera], ))
             self.stream_thread.start()
 
-            dpg.disable_item(items["buttons"]["camera"])
-            dpg.disable_item(items["buttons"]["camera_format"])
-            dpg.disable_item(items["buttons"]["camera_framesize"])
-            dpg.disable_item(items["buttons"]["frame_rate"])
-            dpg.disable_item(items["buttons"]["nframes"])
+            dpg.disable_item(items.buttons.camera)
+            dpg.disable_item(items.buttons.camera_format)
+            dpg.disable_item(items.buttons.camera_framesize)
+            dpg.disable_item(items.buttons.frame_rate)
+            dpg.disable_item(items.buttons.nframes)
 
     def stop_stream(self, callback, data):
         self.stop_streaming_event.set()
         self.stream_thread.join()
         self.stream_thread = None
-        dpg.configure_item(item=items["buttons"]["stream"],
+        dpg.configure_item(item=items.buttons.stream,
                            label="Start streaming",
                            callback=self.start_stream)
 
-        dpg.enable_item(items["buttons"]["camera"])
-        dpg.enable_item(items["buttons"]["camera_format"])
-        dpg.enable_item(items["buttons"]["camera_framesize"])
-        dpg.enable_item(items["buttons"]["frame_rate"])
-        dpg.enable_item(items["buttons"]["nframes"])
+        dpg.enable_item(items.buttons.camera)
+        dpg.enable_item(items.buttons.camera_format)
+        dpg.enable_item(items.buttons.camera_framesize)
+        dpg.enable_item(items.buttons.frame_rate)
+        dpg.enable_item(items.buttons.nframes)
 
     def _refresh_frame(self, camera):
         for frame in Stream(camera):
@@ -694,8 +674,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             if self.frame_ready_event.is_set():
                 self.frame_ready_event.clear()
                 Plot_events.refresh_image(self)
-                dpg.set_value(item=items["texture"]["raw"],
-                              value=Base_img.raw_data)
+                dpg.set_value(item=items.texture.raw, value=Base_img.raw_data)
 
     def file_save(self, callback_id, data):
         path = data["file_path_name"]
@@ -770,10 +749,10 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         dpg.show_tool(dpg.mvTool_Metrics)
 
     def get_available_cameras(self, callback_id, data):
-        dpg.set_value(items["buttons"]["camera"], "")
-        dpg.hide_item(items["buttons"]["camera_format"])
-        dpg.hide_item(items["buttons"]["camera_framesize"])
-        dpg.hide_item(items["buttons"]["frame_rate"])
+        dpg.set_value(items.buttons.camera, "")
+        dpg.hide_item(items.buttons.camera_format)
+        dpg.hide_item(items.buttons.camera_framesize)
+        dpg.hide_item(items.buttons.frame_rate)
 
         if self.camera_ctrls is not None:
             self.camera_ctrls.release()
@@ -781,13 +760,13 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
         self.__refresh_available_cameras()
 
-        dpg.configure_item(items["buttons"]["camera"],
+        dpg.configure_item(items.buttons.camera,
                            items=list(self.available_cams.keys()))
 
     def get_available_formats(self, callback_id, data):
-        dpg.hide_item(items["buttons"]["camera_framesize"])
-        dpg.hide_item(items["buttons"]["frame_rate"])
-        dpg.set_value(items["buttons"]["camera_format"], "")
+        dpg.hide_item(items.buttons.camera_framesize)
+        dpg.hide_item(items.buttons.frame_rate)
+        dpg.set_value(items.buttons.camera_format, "")
 
         if data in self.available_cams.keys():
             cam = self.available_cams[data]
@@ -797,10 +776,10 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             self.camera_ctrls = CameraCtrls(cam)
             self.__refresh_available_formats(cam)
 
-            dpg.configure_item(items["buttons"]["camera_format"],
+            dpg.configure_item(items.buttons.camera_format,
                                items=list(self.available_formats.keys()))
 
-            dpg.show_item(items["buttons"]["camera_format"])
+            dpg.show_item(items.buttons.camera_format)
 
             current_format, _ = cam.get_format()
             format_names = [
@@ -809,26 +788,25 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
                 if color_format == current_format
             ]
             if len(format_names) > 0:
-                dpg.set_value(item=items["buttons"]["camera_format"],
+                dpg.set_value(item=items.buttons.camera_format,
                               value=format_names[0])
 
             self.get_available_framesizes(
-                callback_id, dpg.get_value(items["buttons"]["camera_format"]))
+                callback_id, dpg.get_value(items.buttons.camera_format))
 
     def get_available_framesizes(self, callback_id, data):
-        dpg.set_value(items["buttons"]["camera_framesize"], "")
+        dpg.set_value(items.buttons.camera_framesize, "")
 
         if data in self.available_formats.keys():
-            cam = self.available_cams[dpg.get_value(
-                items["buttons"]["camera"])]
+            cam = self.available_cams[dpg.get_value(items.buttons.camera)]
             color_format = self.available_formats[data]
 
             self.__refresh_available_framesizes(cam, color_format)
 
-            dpg.configure_item(items["buttons"]["camera_framesize"],
+            dpg.configure_item(items.buttons.camera_framesize,
                                items=list(self.available_framesizes.keys()))
 
-            dpg.show_item(items["buttons"]["camera_framesize"])
+            dpg.show_item(items.buttons.camera_framesize)
 
             _, current_framesize = cam.get_format()
             framesize_names = [
@@ -837,27 +815,25 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
                 if framesize == current_framesize
             ]
             if len(framesize_names) > 0:
-                dpg.set_value(item=items["buttons"]["camera_framesize"],
+                dpg.set_value(item=items.buttons.camera_framesize,
                               value=framesize_names[0])
                 self.get_available_frame_rates(
-                    callback_id,
-                    dpg.get_value(items["buttons"]["camera_framesize"]))
+                    callback_id, dpg.get_value(items.buttons.camera_framesize))
 
     def get_available_frame_rates(self, callback_id, data):
         if data in self.available_framesizes.keys():
-            cam = self.available_cams[dpg.get_value(
-                items["buttons"]["camera"])]
+            cam = self.available_cams[dpg.get_value(items.buttons.camera)]
             color_format = self.available_formats[dpg.get_value(
-                items["buttons"]["camera_format"])]
+                items.buttons.camera_format)]
             framesize = self.available_framesizes[data]
 
             self.__refresh_available_frame_rates(cam, color_format, framesize)
 
-            dpg.configure_item(items["buttons"]["frame_rate"],
+            dpg.configure_item(items.buttons.frame_rate,
                                items=list(self.available_frame_rates.keys()))
-            dpg.set_value(items["buttons"]["frame_rate"],
+            dpg.set_value(items.buttons.frame_rate,
                           str(cam.get_frame_interval()))
-            dpg.show_item(items["buttons"]["frame_rate"])
+            dpg.show_item(items.buttons.frame_rate)
 
     def __refresh_available_cameras(self):
         self.available_cams = {}

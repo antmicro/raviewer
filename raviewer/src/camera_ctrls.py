@@ -3,7 +3,7 @@ from pyrav4l2 import *
 from abc import ABC, abstractmethod
 import logging
 
-from ..items_ids import *
+from .. import items
 
 
 class CameraCtrls:
@@ -20,7 +20,7 @@ class CameraCtrls:
             elif current_class in self.controls.keys():
                 self.controls[current_class].append_ctrl(self.camera, ctrl)
 
-        dpg.show_item(items["groups"]["camera_ctrls"])
+        dpg.show_item(items.groups.camera_ctrls)
 
     def release(self):
         for ctrl_class in self.controls.keys():
@@ -36,8 +36,7 @@ class Group:
     def __init__(self, name):
         self.name = name
         self.controls = []
-        self.group = dpg.add_group(parent=items["groups"]["camera_ctrls"],
-                                   indent=5)
+        self.group = dpg.add_group(parent=items.groups.camera_ctrls, indent=5)
         dpg.add_separator(parent=self.group)
         dpg.add_text(default_value=name, parent=self.group)
 

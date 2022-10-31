@@ -4,7 +4,7 @@ import dearpygui.dearpygui as dpg
 import binascii
 import threading
 
-from ..items_ids import *
+from .. import items
 
 
 class Hexviewer:
@@ -61,15 +61,15 @@ class Hexviewer:
         Hexviewer.status = False
         while len(file_chunk) > 0:
             #Return while processing if we hided window or unchecked tab
-            if not (dpg.is_item_shown(items["windows"]["hex_tab"])
-                    and dpg.get_value(items["menu_bar"]["hex"])):
+            if not (dpg.is_item_shown(items.windows.hex_tab)
+                    and dpg.get_value(items.menu_bar.hex)):
                 return
             self.mutex.acquire()
             #Stop processing if the image was altered
             if (Hexviewer.altered):
                 self.mutex.release()
                 return
-            with dpg.table_row(parent=items["windows"]["hex_mode"]):
+            with dpg.table_row(parent=items.windows.hex_mode):
                 dpg.add_text(self.form_offset(self.offset),
                              color=[203, 62, 62, 255])
                 hex_output, hex_array = self.iterate_bytes(file_chunk)

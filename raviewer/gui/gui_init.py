@@ -1,7 +1,7 @@
 """Inits the widgets/items building process and parses arguments."""
 import dearpygui.dearpygui as dpg
 
-from ..items_ids import *
+from .. import items
 from .main_window import MainWindow
 from .settings_window import SettingsWindow
 from ..src.events import Events
@@ -41,17 +41,17 @@ class AppInit():
         hiding hex tab stops hexdump generation and prevents segfault when closing app while hexdump is being generated
         if hex tab has not been opened, hiding it would throw an error
         '''
-        if dpg.does_item_exist(items["windows"]["hex_tab"]):
-            dpg.hide_item(items["windows"]["hex_tab"])
+        if dpg.does_item_exist(items.windows.hex_tab):
+            dpg.hide_item(items.windows.hex_tab)
         dpg.destroy_context()
 
     def on_resize(self, id_callback, data):
-        dpg.set_item_height(items["windows"]["viewport"], data[1])
-        dpg.set_item_width(items["windows"]["viewport"], data[0])
-        dpg.set_item_width(items["windows"]["settings"], int(data[0] / 4))
+        dpg.set_item_height(items.windows.viewport, data[1])
+        dpg.set_item_width(items.windows.viewport, data[0])
+        dpg.set_item_width(items.windows.settings, int(data[0] / 4))
         relative_x_width = int(data[0] - int(data[0] / 4))
-        dpg.set_item_pos(items["windows"]["settings"], [relative_x_width, -1])
-        dpg.set_item_width(items["windows"]["previewer"], relative_x_width + 2)
+        dpg.set_item_pos(items.windows.settings, [relative_x_width, -1])
+        dpg.set_item_width(items.windows.previewer, relative_x_width + 2)
 
     def init_file_dialogs(self):
         with dpg.file_dialog(directory_selector=False,
@@ -60,7 +60,7 @@ class AppInit():
                              label="Open file",
                              callback=self.events.open_file,
                              file_count=1,
-                             tag=items["file_selector"]["read"]):
+                             tag=items.file_selector.read):
             dpg.add_file_extension(".*", color=(255, 255, 255, 255))
         with dpg.file_dialog(directory_selector=False,
                              show=False,
@@ -68,7 +68,7 @@ class AppInit():
                              label="Export image",
                              callback=self.events.file_save,
                              file_count=1,
-                             tag=items["file_selector"]["export"]):
+                             tag=items.file_selector.export):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
         with dpg.file_dialog(directory_selector=False,
                              show=False,
@@ -76,7 +76,7 @@ class AppInit():
                              label="Export raw frame",
                              callback=self.events.export_raw_buffer,
                              file_count=1,
-                             tag=items["file_selector"]["export_raw_buffer"]):
+                             tag=items.file_selector.export_raw_buffer):
             pass
         with dpg.file_dialog(directory_selector=False,
                              show=False,
@@ -84,16 +84,15 @@ class AppInit():
                              label="Export selection as png",
                              callback=self.events.export_as_image,
                              file_count=1,
-                             tag=items["file_selector"]["export_image"]):
+                             tag=items.file_selector.export_image):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
-        with dpg.file_dialog(
-                directory_selector=False,
-                show=False,
-                modal=True,
-                label="Export raw selection",
-                callback=self.events.export_raw_selection,
-                file_count=1,
-                tag=items["file_selector"]["export_raw_selection"]):
+        with dpg.file_dialog(directory_selector=False,
+                             show=False,
+                             modal=True,
+                             label="Export raw selection",
+                             callback=self.events.export_raw_selection,
+                             file_count=1,
+                             tag=items.file_selector.export_raw_selection):
             pass
 
     def init_loading_indicator(self):
@@ -106,14 +105,14 @@ class AppInit():
                         no_resize=True,
                         no_close=True,
                         no_move=True,
-                        tag=items["file_selector"]["loading_indicator"]):
+                        tag=items.file_selector.loading_indicator):
             dpg.add_loading_indicator(style=1, radius=6, pos=(20, 25))
 
     def init_mouse_handlers(self):
         with dpg.handler_registry():
             dpg.add_mouse_release_handler(
                 callback=self.events.on_mouse_release,
-                tag=items["registries"]["add_mouse_click_handler"],
+                tag=items.registries.add_mouse_click_handler,
                 button=Controls.query_button)
             dpg.add_mouse_drag_handler(button=Controls.query_button,
                                        callback=self.events.on_image_drag)
@@ -135,9 +134,9 @@ class AppInit():
                 callback=self.events.remove_annotation)
 
     def init_styles(self):
-        dpg.bind_theme(items["theme"]["global"])
+        dpg.bind_theme(items.theme.general)
         #INFO: Uncomment to bind font with the controls
-        #dpg.bind_font(items["fonts"]["opensans_bold"])
+        #dpg.bind_font(items.fonts.opensans_bold)
 
     def create_gui_widgets(self, args):
         self.init_viewport_spec()

@@ -146,7 +146,7 @@ To create a new theme, you must edit the `theme_config.py` file in the `raviewer
 To edit the global theme, simply add the formulas in the appropriate line:
 
 ```python
-with dpg.theme() as items["theme"]["global"]:
+with dpg.theme() as items.theme.general:
     with dpg.theme_component(dpg.mvAll):
         pass
         dpg.add_theme_color(dpg.mvThemeCol_FrameBg, (150, 50, 50), category=dpg.mvThemeCat_Core)
