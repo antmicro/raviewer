@@ -319,105 +319,97 @@ class Plot_events(Base_img):
 
     def on_image_drag(self, idc, data):
         dpg.configure_item(items.plot.main_plot, pan_button=Controls.dummy)
+
+        if Base_img.img is None:
+            return
+
+        if not dpg.is_item_hovered(items.plot.main_plot):
+            return
+
+        start_x, start_y = Base_img.mouse_down_pos
+        plot_mouse_x, plot_mouse_y = (int(x) for x in dpg.get_plot_mouse_pos())
+        img_x, img_y = Base_img.img.width, Base_img.img.height
         x_resolution, y_resolution = 0, 0
-        if dpg.is_item_hovered(items.plot.main_plot):
-            if Base_img.img != None:
-                plot_mouse_x, plot_mouse_y = dpg.get_plot_mouse_pos()
-                if Base_img.mouse_down_pos[0] >= Base_img.img.width:
-                    if int(plot_mouse_x) > 0:
-                        x_resolution = Base_img.img.width - int(plot_mouse_x)
-                        Base_img.right_column = Base_img.img.width
-                        Base_img.left_column = int(plot_mouse_x)
-                    else:
-                        x_resolution = Base_img.img.width
-                        Base_img.right_column = Base_img.img.width
-                        Base_img.left_column = 0
-                elif Base_img.mouse_down_pos[0] <= 0:
-                    if int(plot_mouse_x) < Base_img.img.width:
-                        x_resolution = int(plot_mouse_x) + 1
-                        Base_img.right_column = int(plot_mouse_x) + 1
-                        Base_img.left_column = 0
-                    else:
-                        x_resolution = Base_img.img.width
-                        Base_img.right_column = Base_img.img.width
-                        Base_img.left_column = 0
+
+        if start_x >= img_x:
+            if plot_mouse_x > 0:
+                x_resolution = img_x - plot_mouse_x
+                Base_img.right_column = img_x
+                Base_img.left_column = plot_mouse_x
+            else:
+                x_resolution = img_x
+                Base_img.right_column = img_x
+                Base_img.left_column = 0
+        elif start_x <= 0:
+            if plot_mouse_x < img_x:
+                x_resolution = plot_mouse_x + 1
+                Base_img.right_column = plot_mouse_x + 1
+                Base_img.left_column = 0
+            else:
+                x_resolution = img_x
+                Base_img.right_column = img_x
+                Base_img.left_column = 0
+        else:
+            if start_x <= plot_mouse_x:
+                if plot_mouse_x >= img_x:
+                    x_resolution = img_x - start_x
+                    Base_img.right_column = img_x
+                    Base_img.left_column = start_x
                 else:
-                    if Base_img.mouse_down_pos[0] <= int(plot_mouse_x):
-                        if int(plot_mouse_x) >= Base_img.img.width:
-                            x_resolution = Base_img.img.width - Base_img.mouse_down_pos[
-                                0]
-                            Base_img.right_column = Base_img.img.width
-                            Base_img.left_column = Base_img.mouse_down_pos[0]
-                        else:
-                            x_resolution = int(
-                                plot_mouse_x) - Base_img.mouse_down_pos[0] + 1
-                            Base_img.right_column = int(plot_mouse_x) + 1
-                            Base_img.left_column = Base_img.mouse_down_pos[0]
-                    else:
-                        if int(plot_mouse_x) < 0:
-                            x_resolution = Base_img.mouse_down_pos[0]
-                            Base_img.right_column = Base_img.mouse_down_pos[
-                                0] + 1
-                            Base_img.left_column = 0
-                        else:
-                            x_resolution = Base_img.mouse_down_pos[0] - int(
-                                plot_mouse_x) + 1
-                            Base_img.right_column = Base_img.mouse_down_pos[
-                                0] + 1
-                            Base_img.left_column = int(plot_mouse_x)
-                if Base_img.mouse_down_pos[1] >= Base_img.img.height:
-                    if int(plot_mouse_y) < 0:
-                        y_resolution = Base_img.img.height
-                        Base_img.up_row = 0
-                        Base_img.down_row = Base_img.img.height
-                    else:
-                        y_resolution = Base_img.img.height - int(plot_mouse_y)
-                        Base_img.up_row = 0
-                        Base_img.down_row = Base_img.img.height - int(
-                            plot_mouse_y)
-                elif Base_img.mouse_down_pos[1] <= 0:
-                    if int(plot_mouse_y) >= Base_img.img.height:
-                        y_resolution = Base_img.img.height
-                        Base_img.up_row = 0
-                        Base_img.down_row = Base_img.img.height
-                    else:
-                        y_resolution = int(plot_mouse_y) + 1
-                        Base_img.up_row = Base_img.img.height - int(
-                            plot_mouse_y) - 1
-                        Base_img.down_row = Base_img.img.height
+                    x_resolution = plot_mouse_x - start_x + 1
+                    Base_img.right_column = plot_mouse_x + 1
+                    Base_img.left_column = start_x
+            else:
+                if plot_mouse_x < 0:
+                    x_resolution = start_x
+                    Base_img.right_column = start_x + 1
+                    Base_img.left_column = 0
                 else:
-                    if Base_img.mouse_down_pos[1] < int(plot_mouse_y):
-                        if int(plot_mouse_y) >= Base_img.img.height:
-                            y_resolution = Base_img.img.height - Base_img.mouse_down_pos[
-                                1]
-                            Base_img.up_row = 0
-                            Base_img.down_row = Base_img.img.height - Base_img.mouse_down_pos[
-                                1]
-                        else:
-                            y_resolution = int(
-                                plot_mouse_y) - Base_img.mouse_down_pos[1] + 1
-                            Base_img.up_row = Base_img.img.height - int(
-                                plot_mouse_y) - 1
-                            Base_img.down_row = Base_img.img.height - Base_img.mouse_down_pos[
-                                1]
-                    else:
-                        if int(plot_mouse_y) < 0:
-                            y_resolution = Base_img.mouse_down_pos[1]
-                            Base_img.up_row = Base_img.img.height - Base_img.mouse_down_pos[
-                                1] - 1
-                            Base_img.down_row = Base_img.img.height
-                        else:
-                            y_resolution = Base_img.mouse_down_pos[1] - int(
-                                plot_mouse_y) + 1
-                            Base_img.up_row = Base_img.img.height - Base_img.mouse_down_pos[
-                                1] - 1
-                            Base_img.down_row = Base_img.img.height - int(
-                                plot_mouse_y)
-                Base_img.selected_part = [x_resolution, y_resolution]
-                if x_resolution > 0 and y_resolution > 0:
-                    dpg.set_value(
-                        items.static_text.image_resolution, "Size: " +
-                        str(x_resolution) + " x " + str(y_resolution))
+                    x_resolution = start_x - plot_mouse_x + 1
+                    Base_img.right_column = start_x + 1
+                    Base_img.left_column = plot_mouse_x
+        if start_y >= img_y:
+            if plot_mouse_y < 0:
+                y_resolution = img_y
+                Base_img.up_row = 0
+                Base_img.down_row = img_y
+            else:
+                y_resolution = img_y - plot_mouse_y
+                Base_img.up_row = 0
+                Base_img.down_row = img_y - plot_mouse_y
+        elif start_y <= 0:
+            if plot_mouse_y >= img_y:
+                y_resolution = img_y
+                Base_img.up_row = 0
+                Base_img.down_row = img_y
+            else:
+                y_resolution = plot_mouse_y + 1
+                Base_img.up_row = img_y - plot_mouse_y - 1
+                Base_img.down_row = img_y
+        else:
+            if start_y < plot_mouse_y:
+                if plot_mouse_y >= img_y:
+                    y_resolution = img_y - start_y
+                    Base_img.up_row = 0
+                    Base_img.down_row = img_y - start_y
+                else:
+                    y_resolution = plot_mouse_y - start_y + 1
+                    Base_img.up_row = img_y - plot_mouse_y - 1
+                    Base_img.down_row = img_y - start_y
+            else:
+                if plot_mouse_y < 0:
+                    y_resolution = start_y
+                    Base_img.up_row = img_y - start_y - 1
+                    Base_img.down_row = img_y
+                else:
+                    y_resolution = start_y - plot_mouse_y + 1
+                    Base_img.up_row = img_y - start_y - 1
+                    Base_img.down_row = img_y - plot_mouse_y
+        Base_img.selected_part = [x_resolution, y_resolution]
+        if x_resolution > 0 and y_resolution > 0:
+            dpg.set_value(
+                items.static_text.image_resolution,
+                "Size: " + str(x_resolution) + " x " + str(y_resolution))
 
     def change_channel_labels(self):
         if Base_img.img.color_format.pixel_format in [
