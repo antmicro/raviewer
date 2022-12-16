@@ -2,9 +2,6 @@ name: Running Python CI jobs
 
 on:
   push:
-    branches:
-      - main
-
   pull_request:
 
 jobs:
@@ -31,6 +28,7 @@ jobs:
       - name: Test with pytest
         run: |
           ./.github/run_tests.sh
+
   installation-test:
     runs-on: ubuntu-latest
 
@@ -52,3 +50,24 @@ jobs:
           # we should be able to execute from any directory now
           cd /tmp/
           raviewer --help
+
+  run-in-cli-mode:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Raviewer dependencies
+        run: pip download -d ./dependencies .
+
+      - run: |
+          mkdir -p shared-dir/raviewer
+          cp -r ./raviewer ./shared-dir/raviewer
+          cp setup.py ./shared-dir/raviewer
+          cp -r ./dependencies ./shared-dir
+
+      - name: Run in Renode
+        uses: antmicro/renode-linux-runner-action@main
+        with:
+          shared-dir: ./shared-dir
+          renode-run: pip install --no-index --find-links ./dependencies ./raviewer
