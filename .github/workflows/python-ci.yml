@@ -71,5 +71,5 @@ jobs:
         with:
           shared-dir: ./shared-dir
           renode-run: |
-            for lib in ./dependencies/* do; pip install $lib; done
+            for lib in ./dependencies/*; do pip install $lib; done
             pip install --no-deps ./raviewer
