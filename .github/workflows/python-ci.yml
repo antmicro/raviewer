@@ -70,4 +70,6 @@ jobs:
         uses: antmicro/renode-linux-runner-action@main
         with:
           shared-dir: ./shared-dir
-          renode-run: pip install --no-deps ./raviewer
+          renode-run: |
+            for lib in ./dependencies/* do; pip install $lib; done
+            pip install --no-deps ./raviewer
