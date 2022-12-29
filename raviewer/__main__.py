@@ -46,7 +46,7 @@ def run(file_path, width, height, color_format, export, args):
 
     if export is None:
         if not GUI:
-            print("Raviewer was installed in no-gui mode")
+            print("To run Raviewer in GUI mode you need to install DearPyGUI")
             sys.exit(1)
 
         app = AppInit(args)
