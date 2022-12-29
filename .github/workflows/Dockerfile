@@ -21,5 +21,3 @@ WORKDIR /workspace
 RUN NO_GUI=1 pip wheel ./raviewer
 
 RUN mkdir /output
-
-RUN cp *.whl /output
