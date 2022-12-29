@@ -32,7 +32,7 @@ setup(
             'raviewer = raviewer.__main__:main',
         ]
     },
-    install_requires=core_dependencies + ([] if getenv("NO_GUI", True) else ['dearpygui==1.1.1']),
+    install_requires=core_dependencies + ([] if getenv("NO_GUI", False) else ['dearpygui==1.1.1']),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",

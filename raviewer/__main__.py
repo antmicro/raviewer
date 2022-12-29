@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 """Raviewer - terminal functionality."""
 
-#since dearpygui>0.8.64
-import dearpygui.dearpygui as dpg
+try:
+    GUI = True
 
-dpg.create_context()
+    #since dearpygui>0.8.64
+    import dearpygui.dearpygui as dpg
+    dpg.create_context()
+
+    from .gui.gui_init import AppInit
+except ImportError:
+    GUI = False
 
 import argparse
 import os
@@ -13,7 +19,6 @@ import logging
 from .src.core import (get_displayable, load_image, parse_image)
 from .src.utils import save_image_as_file
 from .image.color_format import AVAILABLE_FORMATS
-from .gui.gui_init import AppInit
 from tests import test_formats
 
 
@@ -40,6 +45,10 @@ def run(file_path, width, height, color_format, export, args):
                         format="%(asctime)s - %(levelname)s - %(message)s")
 
     if export is None:
+        if not GUI:
+            print("Raviewer was installed in no-gui mode")
+            sys.exit(1)
+
         app = AppInit(args)
         app.run_gui()
     else:
