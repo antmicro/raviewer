@@ -51,6 +51,22 @@ jobs:
           cd /tmp/
           raviewer --help
 
+  build-dependencies-for-riscv64:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-qemu-action@v2
+        with:
+          platforms: riscv64
+      - run: |
+          mkdir -p shared-dir/raviewer
+          cp -r ./raviewer ./shared-dir/raviewer
+          cp setup.py ./shared-dir/raviewer
+      - run: docker build --platform=riscv64 -t riscv-rav-build -f .github/workflows/Dockerfile .
+      - run: docker run --rm -v "$(pwd)"/shared-dir:/output --platform linux/riscv64 riscv64-deps-build "cp *.whl /output"
+      - run: ls shared-dir
+
   run-in-cli-mode:
     runs-on: ubuntu-latest
 

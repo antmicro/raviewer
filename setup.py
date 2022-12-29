@@ -6,6 +6,16 @@ except ImportError:
     import distribute_setup
     distribute_setup.use_setuptools()
     from setuptools import setup
+from os import getenv
+
+core_dependencies = [
+    'opencv-python',
+    'numpy',
+    'Pillow',
+    'terminaltables',
+    'pytest',
+    'pyrav4l2 @ git+https://github.com/antmicro/pyrav4l2.git'
+]
 
 setup(
     name='Raviewer',
@@ -20,16 +30,9 @@ setup(
     entry_points={
         'console_scripts': [
             'raviewer = raviewer.__main__:main',
-        ]},
-    install_requires=[
-        'numpy',
-        'opencv-python',
-        'Pillow',
-        'dearpygui==1.1.1',
-        'terminaltables',
-        'pytest',
-        'pyrav4l2 @ git+https://github.com/antmicro/pyrav4l2.git'
-    ],
+        ]
+    },
+    install_requires=core_dependencies + ([] if getenv("NO_GUI", True) else ['dearpygui==1.1.1']),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
