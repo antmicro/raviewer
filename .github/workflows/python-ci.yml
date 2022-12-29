@@ -51,41 +51,33 @@ jobs:
           cd /tmp/
           raviewer --help
 
-  build-dependencies-for-riscv64:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v2
-        with:
-          platforms: riscv64
-      - run: |
-          mkdir -p shared-dir/raviewer
-          cp -r ./raviewer ./shared-dir/raviewer
-          cp setup.py ./shared-dir/raviewer
-      - run: docker build --platform=riscv64 -t riscv-rav-build -f .github/workflows/Dockerfile .
-      - run: docker run --rm -v "$(pwd)"/shared-dir:/output --platform linux/riscv64 riscv64-deps-build "cp *.whl /output"
-      - run: ls shared-dir
-
   run-in-cli-mode:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Download Raviewer dependencies
-        run: pip download -d ./dependencies .
+      - name: Setup qemu riscv64 platform for docker
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: riscv64
 
-      - run: |
-          mkdir -p shared-dir/raviewer
-          cp -r ./raviewer ./shared-dir/raviewer
+      - name: Create shared dirtory with Raviewer source code
+        run: |
+          mkdir -p shared-dir/raviewer/deps
+          cp -r ./raviewer ./shared-dir/raviewer/raviewer
           cp setup.py ./shared-dir/raviewer
-          cp -r ./dependencies ./shared-dir
+
+      - name: Build docker with riscv64 Raviewer dependencies
+        run: docker build --platform=riscv64 -t riscv64-deps-build -f .github/workflows/Dockerfile .
+
+      - name: Run docker
+        run: docker run --rm -v "$(pwd)"/shared-dir/deps:/output --platform linux/riscv64 riscv64-deps-build "cp *.whl /output"
 
       - name: Run in Renode
         uses: antmicro/renode-linux-runner-action@main
         with:
           shared-dir: ./shared-dir
           renode-run: |
-            for lib in ./dependencies/*; do pip install $lib; done
+            for lib in ./deps/*; do pip install --no-deps $lib; done
             pip install --no-deps ./raviewer
