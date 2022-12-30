@@ -72,7 +72,7 @@ jobs:
         run: docker build --platform=riscv64 -t riscv64-deps-build -f .github/workflows/Dockerfile .
 
       - name: Run docker
-        run: docker run --rm -v "$(pwd)"/shared-dir/deps:/output --platform linux/riscv64 riscv64-deps-build "cp *.whl /output"
+        run: docker run --rm -v "$(pwd)"/shared-dir/deps:/shared-dir --platform linux/riscv64 riscv64-deps-build "cp /deps/*.whl /shared-dir"
 
       - name: Run in Renode
         uses: antmicro/renode-linux-runner-action@main
