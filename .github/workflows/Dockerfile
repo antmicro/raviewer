@@ -1,23 +1,31 @@
-FROM riscv64/ubuntu
+FROM riscv64/ubuntu AS builder
 
 RUN apt-get update -qq && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y install \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
+    ca-certificates \
     cmake \
     file \
-    gcc-riscv64-linux-gnu \
+    g++-riscv64-linux-gnu \
     git \
     libjpeg-dev \
     libssl-dev \
+    make \
     python3 \
     python3-dev \
     python3-pip \
     zlib1g && \
+    apt-get autoclean && apt-get clean && apt-get autoremove -y && \
+    update-ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-COPY shared-dir /workspace
+COPY shared-dir /shared-dir
 
-WORKDIR /workspace
+WORKDIR /shared-dir
 
-RUN NO_GUI=1 pip wheel ./raviewer
+RUN mkdir /tmp/deps && \
+    NO_GUI=1 pip wheel --wheel-dir /tmp/deps ./raviewer
 
-RUN mkdir /output
+
+FROM alpine:latest
+
+COPY --from=builder /tmp/deps /deps
