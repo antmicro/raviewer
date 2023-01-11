@@ -29,7 +29,7 @@ Documentation:
     variables:
         DOCS_DIR: 'docs'
     script:
-        - pip3 install -r $DOCS_DIR/requirements.txt
+        - pip3 install -r $DOCS_DIR/requirements.sphinx.txt
         - cd $DOCS_DIR
         - make SPHINXOPTS="-A commit=$CI_BUILD_REF -A branch=$CI_BUILD_REF_NAME" html latexpdf
         - cp build/latex/*.pdf build/html
