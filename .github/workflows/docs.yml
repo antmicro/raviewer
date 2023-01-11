@@ -26,15 +26,21 @@ jobs:
           pip install -r docs/requirements.txt
 
       - name: Generate the docs
-        run: make -C docs SPHINXOPTS="-A commit=$GITHUB_SHA -A branch=$GITHUB_REF_NAME" html latexpdf
+        run: |
+          cd docs
+          make SPHINXOPTS="-A commit=$GITHUB_SHA -A branch=$GITHUB_REF_NAME" html latexpdf
+          cp build/latex/*.pdf build/html/
+
+      - name: 'Upload artifact: Sphinx HTML and PDF'
+        uses: actions/upload-artifact@v3
+        with:
+          name: Documentation
+          path: docs/build/html
 
       - name: Deploy
         if: github.ref == 'refs/heads/main'
         run: |
-          cd docs/build
-          cp latex/*.pdf html/
-
-          cd html
+          cd docs/build/html
           touch .nojekyll
           git init
           cp ../../../.git/config ./.git/config
