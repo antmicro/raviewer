@@ -20,3 +20,21 @@ Test-with-pytest:
     stage: test
     script:
         - ./.github/run_tests.sh
+
+Documentation:
+    stage: test
+    image: $CI_DOCS_DOCKER_IMAGE
+    tags:
+        - docs
+    variables:
+        DOCS_DIR: 'docs'
+    script:
+        - pip3 install -r $DOCS_DIR/requirements.txt
+        - cd $DOCS_DIR
+        - make SPHINXOPTS="-A commit=$CI_BUILD_REF -A branch=$CI_BUILD_REF_NAME" html latexpdf
+        - cp build/latex/*.pdf build/html
+        - tar cf ../$CI_DOCS_ARCHIVE -C build/html/ .
+    artifacts:
+        paths:
+            - $DOCS_DIR/build
+            - $CI_DOCS_ARCHIVE
