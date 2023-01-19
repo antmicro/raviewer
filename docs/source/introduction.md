@@ -11,7 +11,7 @@ Initially, the project was created for our internal needs, but we decided to rel
 
 ## Core features
 
-Raviewer supports many popular color formats like [RGB, YUV, BAYER, or GRAYSCALE](formats.md) and allows you to add new color formats.
+Raviewer supports many popular color formats like [RGB, YUV, BAYER, or GRAYSCALE](formats.md) and lets you add new color formats.
 
 - [Checkboxes controlling the displayed channels](controlling-color-channels)
 - [On-click displaying raw data making up a pixel as decoded RGB and YUV](color-picker)
