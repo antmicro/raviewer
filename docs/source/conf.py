@@ -10,8 +10,6 @@ from datetime import datetime
 from antmicro_sphinx_utils.defaults import (
     extensions as default_extensions,
     myst_enable_extensions as default_myst_enable_extensions,
-    default_antmicro_html_theme_options,
-    default_antmicro_latex_elements,
     html_logo as default_html_logo,
     antmicro_html_theme_options,
     antmicro_latex_elements
