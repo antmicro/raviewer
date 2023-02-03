@@ -32,6 +32,7 @@ jobs:
       - name: Deploy
         if: github.ref == 'refs/heads/main'
         run: |
+          sudo chown -R $(whoami) docs
           cd docs/build/html
           touch .nojekyll
           git init
