@@ -7,12 +7,15 @@
 
 from datetime import datetime
 
-from antmicro_sphinx_utils import assets
 from antmicro_sphinx_utils.defaults import (
     extensions as default_extensions,
     myst_enable_extensions as default_myst_enable_extensions,
     default_antmicro_html_theme_options,
-    default_antmicro_latex_elements
+    default_antmicro_latex_elements,
+    html_logo as default_html_logo,
+    antmicro_html_theme_options,
+    antmicro_latex_elements
+
 )
 
 # -- General configuration -----------------------------------------------------
@@ -65,7 +68,7 @@ html_last_updated_fmt = today_fmt
 
 html_show_sphinx = False
 
-html_theme_options = default_antmicro_html_theme_options(pdf_url=f"{basic_filename}.pdf")
+html_theme_options = antmicro_html_theme_options(pdf_url=f"{basic_filename}.pdf")
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -76,7 +79,7 @@ html_title = project
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = str(assets.logo('html'))
+html_logo = default_html_logo
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = basic_filename
@@ -92,7 +95,7 @@ html_context['basic_filename'] = basic_filename
     latex_documents,
     latex_logo,
     latex_additional_files
-) = default_antmicro_latex_elements(basic_filename, authors, project)
+) = antmicro_latex_elements(basic_filename, authors, project)
 
 # -- Options for man output --------------------------------------------------
 
