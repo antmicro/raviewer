@@ -59,7 +59,10 @@ html_title = project
     html_logo,
     html_theme_options,
     html_context
-) = antmicro_html(pdf_url=f"{basic_filename}.pdf")
+) = antmicro_html(
+    gh_slug="antmicro/raviewer",
+    pdf_url=f"{basic_filename}.pdf"
+)
 
 # -- Options for LaTeX output --------------------------------------------------
 
