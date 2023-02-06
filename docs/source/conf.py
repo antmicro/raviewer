@@ -10,9 +10,8 @@ from datetime import datetime
 from antmicro_sphinx_utils.defaults import (
     extensions as default_extensions,
     myst_enable_extensions as default_myst_enable_extensions,
-    html_logo as default_html_logo,
-    antmicro_html_theme_options,
-    antmicro_latex_elements
+    antmicro_html,
+    antmicro_latex
 
 )
 
@@ -54,11 +53,13 @@ html_last_updated_fmt = today_fmt
 
 html_show_sphinx = False
 
-html_theme_options = antmicro_html_theme_options(pdf_url=f"{basic_filename}.pdf")
-
 html_title = project
 
-html_logo = default_html_logo
+(
+    html_logo,
+    html_theme_options,
+    html_context
+) = antmicro_html(pdf_url=f"{basic_filename}.pdf")
 
 # -- Options for LaTeX output --------------------------------------------------
 
@@ -67,7 +68,7 @@ html_logo = default_html_logo
     latex_documents,
     latex_logo,
     latex_additional_files
-) = antmicro_latex_elements(basic_filename, authors, project)
+) = antmicro_latex(basic_filename, authors, project)
 
 # -- Options for man output --------------------------------------------------
 
