@@ -38,3 +38,8 @@ Documentation:
         paths:
             - $DOCS_DIR/build
             - $CI_DOCS_ARCHIVE
+
+Test-performance:
+    stage: test
+    script:
+        - ./.github/performance.sh
