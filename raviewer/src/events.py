@@ -12,7 +12,6 @@ from ..parser.factory import ParserFactory
 from ..image.color_format import PixelFormat, Endianness
 from ..image.color_format import AVAILABLE_FORMATS
 from ..image.image import Image
-import PIL
 from .utils import (RGBtoYUV, determine_color_format, save_image_as_file)
 from .hexviewer import Hexviewer
 from .controls import Controls
@@ -713,10 +712,10 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     def export_as_image(self, callback_id, data):
         path = data["file_path_name"]
         if Base_img.img != None:
-            im = PIL.Image.fromarray(Base_img.img_postchanneled[
-                Base_img.up_row:Base_img.down_row,
-                Base_img.left_column:Base_img.right_column])
-            im.save(path)
+            save_image_as_file(
+                Base_img.img_postchanneled[
+                    Base_img.up_row:Base_img.down_row,
+                    Base_img.left_column:Base_img.right_column], path)
 
     def export_raw_selection(self, callback_id, data):
         path = data["file_path_name"]
