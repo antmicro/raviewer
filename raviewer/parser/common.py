@@ -104,7 +104,7 @@ class AbstractParser(metaclass=ABCMeta):
         pixel_size = sum(color_format.bits_per_components)
         if pixel_size & 7 != 0:
             raise Exception("Invalid pixel format")
-        curr_dtype = self.get_dtype(16, color_format.endianness)
+        curr_dtype = self.get_dtype(pixel_size, color_format.endianness)
         if len(raw_data) % (pixel_size // 8) != 0:
             raw_data += b'\x00' * (pixel_size // 8 - (len(raw_data) %
                                                       (pixel_size // 8)))
