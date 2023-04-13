@@ -13,7 +13,6 @@ Raviewer is an open-source utility dedicated to parsing and displaying binary da
 * Python >= v3.9
 * numpy
 * opencv-python
-* Pillow
 * dearpygui == 1.1.1
 * terminaltables
 * pytest

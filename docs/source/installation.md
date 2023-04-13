@@ -8,7 +8,6 @@ You also need the following Python libraries:
 
 * [numpy](https://numpy.org/doc/stable/)
 * [opencv-python](https://docs.opencv.org/4.x/index.html)
-* [Pillow](https://pillow.readthedocs.io/en/stable/)
 * [dearpygui](https://dearpygui.readthedocs.io/en/latest/) == 1.1.1
 * [terminaltables](https://robpol86.github.io/terminaltables/)
 * [pytest](https://docs.pytest.org/en/7.1.x/)

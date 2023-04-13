@@ -24,7 +24,6 @@ setup(
     install_requires=[
         'numpy',
         'opencv-python',
-        'Pillow',
         'dearpygui==1.1.1',
         'terminaltables',
         'pytest',
