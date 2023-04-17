@@ -67,7 +67,6 @@ def main():
                         help=('List of image formats to be benchmarked. '
                               'By default all supported formats are tested'))
     args = parser.parse_args()
-
     print_header(args.count)
 
     if args.DIRECTORY is not None:
@@ -106,15 +105,20 @@ def main():
 
     if args.FILE_PATH is not None:
         img = load_image(args.FILE_PATH)
-    else:
-        img = Image(os.urandom(args.size[0] * args.size[1]))
-
-    if args.coverage is None and args.DIRECTORY is None:
         for fmt in args.image_formats:
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, fmt, args.size[0]))
             res = map(t.timeit, args.count)
             print_result(fmt, args.size[0], args.size[1], args.count, res)
+    else:
+        for fmt in args.image_formats:
+            fmt = determine_color_format(fmt)
+            img_size = (args.size[0] * args.size[1]*sum(fmt.bits_per_components) // 8) + sum(fmt.bits_per_components) * (sum(fmt.bits_per_components) % 8 > 0)
+            img = Image(os.urandom(img_size))
+            t = timeit.Timer(
+                lambda: parse_image(img.data_buffer, fmt.name, args.size[0]))
+            res = map(t.timeit, args.count)
+            print_result(fmt.name, args.size[0], args.size[1], args.count, res)
     return 0
 
 
