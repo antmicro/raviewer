@@ -11,19 +11,15 @@ from raviewer.image.image import Image
 from raviewer.src.utils import determine_color_format
 
 
-def print_result(fmt, width, height, counts, res):
+def print_result(fmt, width, height, res):
     print(f'{fmt:20} {width:<6} {height:<6}', end='')
-    maxcount = max(len(str(max(counts))), len("Runs"))
-    for c, r in zip(counts, res):
-        print(f' {c:<{maxcount}} {r:<12.6f}', end='')
+    print(f' {res:<12.6f}', end='')
     print()
 
 
-def print_header(counts):
+def print_header():
     print(f'{"Format":20} {"Width":6} {"Height":6}', end='')
-    maxcount = max(len(str(max(counts))), len("Runs"))
-    for _ in counts:
-        print(f' {"Runs":{maxcount}} {"Result[sec]":12}', end='')
+    print(f' {"Result[sec]":12}', end='')
     print()
 
 
@@ -56,8 +52,7 @@ def main():
                         help='Size of image')
     parser.add_argument('-c',
                         '--count',
-                        default=[100],
-                        nargs='+',
+                        default=10,
                         type=int,
                         help='Number of repetitions')
     parser.add_argument('-i',
@@ -67,7 +62,7 @@ def main():
                         help=('List of image formats to be benchmarked. '
                               'By default all supported formats are tested'))
     args = parser.parse_args()
-    print_header(args.count)
+    print_header()
 
     if args.DIRECTORY is not None:
         filename_regex = re.compile('([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)')
@@ -83,8 +78,8 @@ def main():
                 continue
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, fmt, int(width)))
-            res = map(t.timeit, args.count)
-            print_result(fmt, width, height, args.count, res)
+            res = t.timeit(args.count) / args.count
+            print_result(fmt, width, height, res)
         return 0
 
     if args.coverage is not None:
@@ -97,10 +92,10 @@ def main():
                         '_' + str(args.size[1])))
                 t = timeit.Timer(
                     lambda: parse_image(img.data_buffer, fmt, args.size[0]))
-                res = map(t.timeit, args.count)
+                res = t.timeit(args.count) / args.count
             except FileNotFoundError:
                 res = [float('nan')] * len(args.count)
-            print_result(fmt, args.size[0], args.size[1], args.count, res)
+            print_result(fmt, args.size[0], args.size[1], res)
         return 0
 
     if args.FILE_PATH is not None:
@@ -108,17 +103,18 @@ def main():
         for fmt in args.image_formats:
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, fmt, args.size[0]))
-            res = map(t.timeit, args.count)
-            print_result(fmt, args.size[0], args.size[1], args.count, res)
+            res = t.timeit(args.count)
+            print_result(fmt, args.size[0], args.size[1], res)
     else:
         for fmt in args.image_formats:
             fmt = determine_color_format(fmt)
-            img_size = (args.size[0] * args.size[1]*sum(fmt.bits_per_components) // 8) + sum(fmt.bits_per_components) * (sum(fmt.bits_per_components) % 8 > 0)
+            img_size = (args.size[0] * args.size[1] * sum(fmt.bits_per_components) // 8) \
+                + sum(fmt.bits_per_components) * (sum(fmt.bits_per_components) % 8 > 0)
             img = Image(os.urandom(img_size))
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, fmt.name, args.size[0]))
-            res = map(t.timeit, args.count)
-            print_result(fmt.name, args.size[0], args.size[1], args.count, res)
+            res = t.timeit(args.count) / args.count
+            print_result(fmt.name, args.size[0], args.size[1], res)
     return 0
 
 
