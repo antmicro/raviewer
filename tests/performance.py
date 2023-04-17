@@ -11,15 +11,17 @@ from raviewer.image.image import Image
 from raviewer.src.utils import determine_color_format
 
 
-def print_result(fmt, width, height, res):
-    print(f'{fmt:20} {width:<6} {height:<6}', end='')
-    print(f' {res:<12.6f}', end='')
+def print_result(fmt, res):
+    print(f'{fmt:20}', end='')
+    for r in res:
+        print(f' {r:<14.6f}', end='')
     print()
 
 
-def print_header():
-    print(f'{"Format":20} {"Width":6} {"Height":6}', end='')
-    print(f' {"Result[sec]":12}', end='')
+def print_header(sizes):
+    print(f'{"Format":20}', end='')
+    for i in range(0, len(sizes), 2):
+        print(f' {str(sizes[i])+"x"+str(sizes[i+1])+"[sec]":14}', end='')
     print()
 
 
@@ -39,17 +41,15 @@ def main():
                        '--random',
                        action='store_true',
                        help='Use random data for testing')
-    group.add_argument(
-        '--coverage',
-        help=
-        'Run dedicated test from specified directory for each supported format'
-    )
+    group.add_argument('--coverage',
+                       help=('Run dedicated test from specified '
+                             'directory for each supported format'))
     parser.add_argument('-s',
                         '--size',
                         default=[1000, 750],
-                        nargs=2,
+                        nargs='+',
                         type=int,
-                        help='Size of image')
+                        help='Sizes of images to test')
     parser.add_argument('-c',
                         '--count',
                         default=10,
@@ -62,7 +62,8 @@ def main():
                         help=('List of image formats to be benchmarked. '
                               'By default all supported formats are tested'))
     args = parser.parse_args()
-    print_header()
+
+    print_header(args.size)
 
     if args.DIRECTORY is not None:
         filename_regex = re.compile('([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)')
@@ -73,13 +74,12 @@ def main():
             img = load_image(os.path.join(args.DIRECTORY, f.group(0)))
             fmt = f.group(1)
             width = f.group(2)
-            height = f.group(3)
             if fmt not in args.image_formats:
                 continue
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, fmt, int(width)))
             res = t.timeit(args.count) / args.count
-            print_result(fmt, width, height, res)
+            print_result(fmt, [res])
         return 0
 
     if args.coverage is not None:
@@ -95,7 +95,7 @@ def main():
                 res = t.timeit(args.count) / args.count
             except FileNotFoundError:
                 res = [float('nan')] * len(args.count)
-            print_result(fmt, args.size[0], args.size[1], res)
+            print_result(fmt, [res])
         return 0
 
     if args.FILE_PATH is not None:
@@ -104,17 +104,20 @@ def main():
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, fmt, args.size[0]))
             res = t.timeit(args.count)
-            print_result(fmt, args.size[0], args.size[1], res)
+            print_result(fmt, [res])
     else:
         for fmt in args.image_formats:
             fmt = determine_color_format(fmt)
-            img_size = (args.size[0] * args.size[1] * sum(fmt.bits_per_components) // 8) \
-                + sum(fmt.bits_per_components) * (sum(fmt.bits_per_components) % 8 > 0)
+            num_bits = sum(fmt.bits_per_components)
+            img_size = (args.size[0] * args.size[1] * num_bits // 8) \
+                + num_bits * (num_bits % 8 > 0)
             img = Image(os.urandom(img_size))
-            t = timeit.Timer(
-                lambda: parse_image(img.data_buffer, fmt.name, args.size[0]))
-            res = t.timeit(args.count) / args.count
-            print_result(fmt.name, args.size[0], args.size[1], res)
+            res = []
+            for w in args.size[0::2]:
+                t = timeit.Timer(
+                    lambda: parse_image(img.data_buffer, fmt.name, w))
+                res.append(t.timeit(args.count) / args.count)
+            print_result(fmt.name, res)
     return 0
 
 
