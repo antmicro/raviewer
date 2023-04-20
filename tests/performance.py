@@ -128,18 +128,18 @@ def main():
     args = parser.parse_args()
 
     if args.DIRECTORY is not None:
-        return directory_mode(args.DIRECTORY, args.sizes, args.image_formats,
+        return directory_mode(args.DIRECTORY, args.size, args.image_formats,
                               args.count)
 
     if args.coverage is not None:
-        return coverage_mode(args.coverage, args.sizes, args.image_formats,
+        return coverage_mode(args.coverage, args.size, args.image_formats,
                              args.count)
 
     if args.FILE_PATH is not None:
-        return file_mode(args.FILE_PATH, args.sizes, args.image_formats,
+        return file_mode(args.FILE_PATH, args.size, args.image_formats,
                          args.count)
 
-    return random_mode(args.sizes, args.image_formats, args.count)
+    return random_mode(args.size, args.image_formats, args.count)
 
 
 if __name__ == '__main__':
