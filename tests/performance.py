@@ -31,16 +31,14 @@ def directory_mode(args):
     """Run benchkmark for all files in specified directory"""
     filename_regex = re.compile('([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)')
     files = sorted(os.listdir(args.DIRECTORY))
-    files = filter(lambda x: x is not None, map(filename_regex.match,
-                                                files))
+    files = filter(lambda x: x is not None, map(filename_regex.match, files))
     for f in files:
         img = load_image(os.path.join(args.DIRECTORY, f.group(0)))
         fmt = f.group(1)
         width = f.group(2)
         if fmt not in args.image_formats:
             continue
-        t = timeit.Timer(
-            lambda: parse_image(img.data_buffer, fmt, int(width)))
+        t = timeit.Timer(lambda: parse_image(img.data_buffer, fmt, int(width)))
         res = t.timeit(args.count) / args.count
         print_result(fmt, [res])
     return 0
@@ -53,8 +51,8 @@ def coverage_mode(args):
         try:
             img = load_image(
                 os.path.join(
-                    args.coverage, fmt_name + '_' + str(args.size[0]) +
-                    '_' + str(args.size[1])))
+                    args.coverage, fmt_name + '_' + str(args.size[0]) + '_' +
+                    str(args.size[1])))
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, fmt, args.size[0]))
             res = t.timeit(args.count) / args.count
@@ -84,8 +82,8 @@ def random_mode(args):
             img_size = (args.size[i] * args.size[i+1] * num_bits // 8) \
                 + num_bits * (num_bits % 8 > 0)
             img = Image(os.urandom(img_size))
-            t = timeit.Timer(
-                lambda: parse_image(img.data_buffer, format.name, args.size[i]))
+            t = timeit.Timer(lambda: parse_image(img.data_buffer, format.name,
+                                                 args.size[i]))
             res.append(t.timeit(args.count) / args.count)
         print_result(fmt, res)
 
