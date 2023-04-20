@@ -107,17 +107,17 @@ def main():
             print_result(fmt, [res])
     else:
         for fmt in args.image_formats:
-            fmt = determine_color_format(fmt)
-            num_bits = sum(fmt.bits_per_components)
+            format = determine_color_format(fmt)
+            num_bits = sum(format.bits_per_components)
             img_size = (args.size[0] * args.size[1] * num_bits // 8) \
                 + num_bits * (num_bits % 8 > 0)
             img = Image(os.urandom(img_size))
             res = []
             for w in args.size[0::2]:
                 t = timeit.Timer(
-                    lambda: parse_image(img.data_buffer, fmt.name, w))
+                    lambda: parse_image(img.data_buffer, format.name, w))
                 res.append(t.timeit(args.count) / args.count)
-            print_result(fmt.name, res)
+            print_result(fmt, res)
     return 0
 
 
