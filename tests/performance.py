@@ -59,7 +59,7 @@ def coverage_mode(args):
                 lambda: parse_image(img.data_buffer, fmt, args.size[0]))
             res = t.timeit(args.count) / args.count
         except FileNotFoundError:
-            res = [float('nan')] * len(args.count)
+            res = float('nan')
         print_result(fmt, [res])
     return 0
 
