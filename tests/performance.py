@@ -15,7 +15,7 @@ def print_result(fmt, res):
     """Print one row of table with format name and results"""
     print(f'{fmt:20}', end='')
     for r in res:
-        print(f' {r:<14.6f}', end='')
+        print(f' {r:>14.3f}', end='')
     print()
 
 
@@ -23,12 +23,12 @@ def print_header(sizes):
     """Print header of the table with sizes of test images"""
     print(f'{"Format":20}', end='')
     for i in range(0, len(sizes), 2):
-        print(f' {str(sizes[i])+"x"+str(sizes[i+1])+"[sec]":14}', end='')
+        print(f' {str(sizes[i])+"x"+str(sizes[i+1])+"[ms]":>14}', end='')
     print()
 
 
 def directory_mode(args):
-    """Run benchkmark for all files in specified directory"""
+    """Run benchmark for all files in specified directory"""
     filename_regex = re.compile('([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)')
     files = sorted(os.listdir(args.DIRECTORY))
     files = filter(lambda x: x is not None, map(filename_regex.match, files))
@@ -39,7 +39,7 @@ def directory_mode(args):
         if fmt not in args.image_formats:
             continue
         t = timeit.Timer(lambda: parse_image(img.data_buffer, fmt, int(width)))
-        res = t.timeit(args.count) / args.count
+        res = 1000 * t.timeit(args.count) / args.count
         print_result(fmt, [res])
     return 0
 
@@ -55,7 +55,7 @@ def coverage_mode(args):
                     str(args.size[1])))
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, fmt, args.size[0]))
-            res = t.timeit(args.count) / args.count
+            res = 1000 * t.timeit(args.count) / args.count
         except FileNotFoundError:
             res = float('nan')
         print_result(fmt, [res])
@@ -68,7 +68,7 @@ def file_mode(args):
     for fmt in args.image_formats:
         t = timeit.Timer(
             lambda: parse_image(img.data_buffer, fmt, args.size[0]))
-        res = t.timeit(args.count)
+        res = 1000 * t.timeit(args.count)
         print_result(fmt, [res])
 
 
@@ -84,7 +84,7 @@ def random_mode(args):
             img = Image(os.urandom(img_size))
             t = timeit.Timer(lambda: parse_image(img.data_buffer, format.name,
                                                  args.size[i]))
-            res.append(t.timeit(args.count) / args.count)
+            res.append(1000 * t.timeit(args.count) / args.count)
         print_result(fmt, res)
 
 
