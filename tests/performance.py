@@ -27,8 +27,9 @@ def print_header(sizes):
     print()
 
 
-def directory_mode(directory, image_formats, count):
+def directory_mode(directory, sizes, image_formats, count):
     """Run benchmark for all files in specified directory"""
+    print_header(sizes)
     filename_regex = re.compile('([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)')
     files = sorted(os.listdir(directory))
     files = filter(lambda x: x is not None, map(filename_regex.match, files))
@@ -44,15 +45,16 @@ def directory_mode(directory, image_formats, count):
     return 0
 
 
-def coverage_mode(coverage, width, height, image_formats, count):
+def coverage_mode(coverage, sizes, image_formats, count):
     """For each supported format run dedicated test from specified directory"""
+    print_header(sizes)
     for fmt in image_formats:
         fmt_name = determine_color_format(fmt).name
         try:
             img = load_image(
-                os.path.join(coverage,
-                             fmt_name + '_' + str(width) + '_' + str(height)))
-            t = timeit.Timer(lambda: parse_image(img.data_buffer, fmt, width))
+                os.path.join(coverage, f'{fmt_name}_{sizes[0]}_{sizes[1]}'))
+            t = timeit.Timer(
+                lambda: parse_image(img.data_buffer, fmt, sizes[0]))
             res = 1000 * t.timeit(count) / count
         except FileNotFoundError:
             res = float('nan')
@@ -60,17 +62,19 @@ def coverage_mode(coverage, width, height, image_formats, count):
     return 0
 
 
-def file_mode(file_path, width, image_formats, count):
+def file_mode(file_path, sizes, image_formats, count):
     """Run benchmark on specified file"""
+    print_header(sizes)
     img = load_image(file_path)
     for fmt in image_formats:
-        t = timeit.Timer(lambda: parse_image(img.data_buffer, fmt, width))
+        t = timeit.Timer(lambda: parse_image(img.data_buffer, fmt, sizes[0]))
         res = 1000 * t.timeit(count) / count
         print_result(fmt, [res])
 
 
 def random_mode(sizes, image_formats, count):
     """Run benchmark on random data"""
+    print_header(sizes)
     for fmt in image_formats:
         format = determine_color_format(fmt)
         num_bits = sum(format.bits_per_components)
@@ -123,17 +127,16 @@ def main():
                               'By default all supported formats are tested'))
     args = parser.parse_args()
 
-    print_header(args.size)
-
     if args.DIRECTORY is not None:
-        return directory_mode(args.DIRECTORY, args.image_formats, args.count)
+        return directory_mode(args.DIRECTORY, args.sizes, args.image_formats,
+                              args.count)
 
     if args.coverage is not None:
-        return coverage_mode(args.coverage, args.size[0], args.size[1],
-                             args.image_formats, args.count)
+        return coverage_mode(args.coverage, args.sizes, args.image_formats,
+                             args.count)
 
     if args.FILE_PATH is not None:
-        return file_mode(args.FILE_PATH, args.size[0], args.image_formats,
+        return file_mode(args.FILE_PATH, args.sizes, args.image_formats,
                          args.count)
 
     return random_mode(args.sizes, args.image_formats, args.count)
