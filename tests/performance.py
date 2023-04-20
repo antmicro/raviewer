@@ -27,64 +27,61 @@ def print_header(sizes):
     print()
 
 
-def directory_mode(args):
+def directory_mode(directory, image_formats, count):
     """Run benchmark for all files in specified directory"""
     filename_regex = re.compile('([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)')
-    files = sorted(os.listdir(args.DIRECTORY))
+    files = sorted(os.listdir(directory))
     files = filter(lambda x: x is not None, map(filename_regex.match, files))
     for f in files:
-        img = load_image(os.path.join(args.DIRECTORY, f.group(0)))
+        img = load_image(os.path.join(directory, f.group(0)))
         fmt = f.group(1)
         width = f.group(2)
-        if fmt not in args.image_formats:
+        if fmt not in image_formats:
             continue
         t = timeit.Timer(lambda: parse_image(img.data_buffer, fmt, int(width)))
-        res = 1000 * t.timeit(args.count) / args.count
+        res = 1000 * t.timeit(count) / count
         print_result(fmt, [res])
     return 0
 
 
-def coverage_mode(args):
+def coverage_mode(coverage, width, height, image_formats, count):
     """For each supported format run dedicated test from specified directory"""
-    for fmt in args.image_formats:
+    for fmt in image_formats:
         fmt_name = determine_color_format(fmt).name
         try:
             img = load_image(
-                os.path.join(
-                    args.coverage, fmt_name + '_' + str(args.size[0]) + '_' +
-                    str(args.size[1])))
-            t = timeit.Timer(
-                lambda: parse_image(img.data_buffer, fmt, args.size[0]))
-            res = 1000 * t.timeit(args.count) / args.count
+                os.path.join(coverage,
+                             fmt_name + '_' + str(width) + '_' + str(height)))
+            t = timeit.Timer(lambda: parse_image(img.data_buffer, fmt, width))
+            res = 1000 * t.timeit(count) / count
         except FileNotFoundError:
             res = float('nan')
         print_result(fmt, [res])
     return 0
 
 
-def file_mode(args):
+def file_mode(file_path, width, image_formats, count):
     """Run benchmark on specified file"""
-    img = load_image(args.FILE_PATH)
-    for fmt in args.image_formats:
-        t = timeit.Timer(
-            lambda: parse_image(img.data_buffer, fmt, args.size[0]))
-        res = 1000 * t.timeit(args.count)
+    img = load_image(file_path)
+    for fmt in image_formats:
+        t = timeit.Timer(lambda: parse_image(img.data_buffer, fmt, width))
+        res = 1000 * t.timeit(count) / count
         print_result(fmt, [res])
 
 
-def random_mode(args):
+def random_mode(sizes, image_formats, count):
     """Run benchmark on random data"""
-    for fmt in args.image_formats:
+    for fmt in image_formats:
         format = determine_color_format(fmt)
         num_bits = sum(format.bits_per_components)
         res = []
-        for i in range(0, len(args.size), 2):
-            img_size = (args.size[i] * args.size[i+1] * num_bits // 8) \
+        for i in range(0, len(sizes), 2):
+            img_size = (sizes[i] * sizes[i+1] * num_bits // 8) \
                 + num_bits * (num_bits % 8 > 0)
             img = Image(os.urandom(img_size))
-            t = timeit.Timer(lambda: parse_image(img.data_buffer, format.name,
-                                                 args.size[i]))
-            res.append(1000 * t.timeit(args.count) / args.count)
+            t = timeit.Timer(
+                lambda: parse_image(img.data_buffer, format.name, sizes[i]))
+            res.append(1000 * t.timeit(count) / count)
         print_result(fmt, res)
 
 
@@ -129,15 +126,17 @@ def main():
     print_header(args.size)
 
     if args.DIRECTORY is not None:
-        return directory_mode(args)
+        return directory_mode(args.DIRECTORY, args.image_formats, args.count)
 
     if args.coverage is not None:
-        return coverage_mode(args)
+        return coverage_mode(args.coverage, args.size[0], args.size[1],
+                             args.image_formats, args.count)
 
     if args.FILE_PATH is not None:
-        return file_mode(args)
+        return file_mode(args.FILE_PATH, args.size[0], args.image_formats,
+                         args.count)
 
-    return random_mode(args)
+    return random_mode(args.sizes, args.image_formats, args.count)
 
 
 if __name__ == '__main__':
