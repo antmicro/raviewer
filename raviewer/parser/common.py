@@ -69,11 +69,12 @@ class AbstractParser(metaclass=ABCMeta):
                 if (temp.size % (width * 3) != 0):
                     temp = numpy.concatenate(
                         (temp,
-                         numpy.zeros((width * 3) - (temp.size % (width * 3)))))
+                         numpy.zeros((width * 3) - (temp.size % (width * 3)),
+                                     dtype=curr_dtype)))
 
                 temp = cv.cvtColor(
-                    numpy.reshape(temp, (int(len(temp_raw_data) /
-                                             (3 * width)), width, 3)),
+                    numpy.reshape(temp,
+                                  (int(temp.size / (3 * width)), width, 3)),
                     cv.COLOR_RGB2RGBA)
                 data_array = numpy.reshape(temp, temp.size)
         else:
