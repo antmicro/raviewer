@@ -5,6 +5,7 @@ from ..image.image import Image
 from ..image.color_format import Endianness
 import numpy
 import math
+import cv2 as cv
 
 
 class AbstractParser(metaclass=ABCMeta):
@@ -63,23 +64,17 @@ class AbstractParser(metaclass=ABCMeta):
                                          byteorder="little")
             temp_raw_data = self.reverse(raw_data, reverse_bytes)
             temp = numpy.frombuffer(temp_raw_data, curr_dtype)
-            temp = numpy.empty((int(len(temp_raw_data)/ (3 * width)), width, 4), dtype=curr_dtype)
-            temp[:,:,0:3]  = numpy.reshape(numpy.asarray(temp_raw_data, curr_dtype),
-                                          (int(len(temp_raw_data)/ (3 * width)), width, 3))          
-            temp[:,:,3] = 255
             data_array = temp
-            if False and len(temp_set) == 2: #skip edge cases for testing
+            if len(temp_set) == 2:
                 if (temp.size % (width * 3) != 0):
                     temp = numpy.concatenate(
                         (temp,
                          numpy.zeros((width * 3) - (temp.size % (width * 3)))))
-                temp = numpy.concatenate(
-                    (numpy.reshape(temp,
-                                   (int(temp.size / (width * 3)), width, 3)),
-                     numpy.full((int(temp.size / (width * 3)), width, 1),
-                                255,
-                                dtype=curr_dtype)),
-                    axis=2)
+
+                temp = cv.cvtColor(
+                    numpy.reshape(temp, (int(len(temp_raw_data) /
+                                             (3 * width)), width, 3)),
+                    cv.COLOR_RGB2RGBA)
                 data_array = numpy.reshape(temp, temp.size)
         else:
             temp_raw_data = self.reverse(raw_data, reverse_bytes)
