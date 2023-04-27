@@ -108,13 +108,11 @@ class AbstractParser(metaclass=ABCMeta):
                                                       (pixel_size // 8)))
         processed_data = numpy.frombuffer(raw_data, dtype=curr_dtype)
         temp = pixel_size
-        channels = []
-        for i in color_format.bits_per_components:
+        res = numpy.empty((4 * len(processed_data), ), dtype=curr_dtype)
+        for j, i in enumerate(color_format.bits_per_components):
             mask = (1 << i) - 1
             mask <<= temp - i
             temp -= i
             channel = numpy.bitwise_and(processed_data, mask)
-            channel_shifted = numpy.right_shift(channel, temp)
-            channels.append(channel_shifted)
-        processed_data = numpy.ravel(channels, order='F').astype('uint8')
-        return processed_data
+            numpy.right_shift(channel, temp, out=res[j::4])
+        return res
