@@ -112,7 +112,7 @@ class ParserARGB(AbstractParser):
             data_array = self._parse_not_bytefilled(temp_raw_data,
                                                     color_format)
 
-        processed_data = numpy.array(data_array, dtype=curr_dtype)
+        processed_data = data_array
         if (processed_data.size % (width * 4) != 0):
             processed_data = numpy.concatenate(
                 (processed_data,

@@ -54,7 +54,7 @@ class ParserYUV420(AbstractParser):
                 "Other than 8-bit YUVs are not currently supported")
         data_array = numpy.frombuffer(self.reverse(raw_data, reverse_bytes),
                                       dtype=curr_dtype)
-        processed_data = numpy.array(data_array, dtype=curr_dtype)
+        processed_data = data_array
         if (processed_data.size % width != 0):
             processed_data = numpy.concatenate(
                 (processed_data,
@@ -339,7 +339,7 @@ class ParserYUV422(AbstractParser):
 
         data_array = numpy.frombuffer(self.reverse(raw_data, reverse_bytes),
                                       dtype=curr_dtype)
-        processed_data = numpy.array(data_array, dtype=curr_dtype)
+        processed_data = data_array
 
         if (processed_data.size % (width * 2) != 0):
             processed_data = numpy.concatenate(
