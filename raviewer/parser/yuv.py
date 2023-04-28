@@ -41,7 +41,6 @@ class ParserYUV420(AbstractParser):
         max_value = max(color_format.bits_per_components)
         curr_dtype = self.get_dtype(max_value, color_format.endianness)
 
-        data_array = []
         raw_data = bytearray(raw_data)
         if len(set(
                 color_format.bits_per_components)) == 2 and max_value % 8 == 0:
