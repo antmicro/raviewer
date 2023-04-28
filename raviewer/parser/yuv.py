@@ -51,9 +51,9 @@ class ParserYUV420(AbstractParser):
         else:
             raise NotImplementedError(
                 "Other than 8-bit YUVs are not currently supported")
-        data_array = numpy.frombuffer(self.reverse(raw_data, reverse_bytes),
-                                      dtype=curr_dtype)
-        processed_data = data_array
+        processed_data = numpy.frombuffer(self.reverse(raw_data,
+                                                       reverse_bytes),
+                                          dtype=curr_dtype)
         if (processed_data.size % width != 0):
             processed_data = numpy.concatenate(
                 (processed_data,
@@ -108,25 +108,24 @@ class ParserYUV420(AbstractParser):
                     return_data = return_data[0:image.width * height]
                     conversion_const = cv.COLOR_GRAY2RGB
 
-            data_array = numpy.reshape(return_data, (int(
+            processed_data = numpy.reshape(return_data, (int(
                 return_data.size / image.width), image.width)).astype('uint8')
 
             if conversion_const != cv.COLOR_GRAY2RGB:
-                if (data_array.shape[0] % 3 != 0):
-                    data_array = numpy.concatenate(
-                        (data_array,
+                if (processed_data.shape[0] % 3 != 0):
+                    processed_data = numpy.concatenate(
+                        (processed_data,
+                         numpy.zeros((3 - (processed_data.shape[0] % 3),
+                                      processed_data.shape[1]),
+                                     dtype=numpy.uint8)))
+                if (processed_data.shape[1] % 2 != 0):
+                    processed_data = numpy.concatenate(
+                        (processed_data,
                          numpy.zeros(
-                             (3 -
-                              (data_array.shape[0] % 3), data_array.shape[1]),
-                             dtype=numpy.uint8)))
-                if (data_array.shape[1] % 2 != 0):
-                    data_array = numpy.concatenate(
-                        (data_array,
-                         numpy.zeros(
-                             (data_array.shape[0], 1), dtype=numpy.uint8)),
+                             (processed_data.shape[0], 1), dtype=numpy.uint8)),
                         axis=1)
 
-            return_data = cv.cvtColor(data_array, conversion_const)
+            return_data = cv.cvtColor(processed_data, conversion_const)
             tmp.append(return_data)
         return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
 
@@ -226,23 +225,22 @@ class ParserYUV420Planar(ParserYUV420):
                     return_data = return_data[0:height * image.width]
                     conversion_const = cv.COLOR_GRAY2RGB
 
-            data_array = numpy.reshape(return_data, (int(
+            processed_data = numpy.reshape(return_data, (int(
                 return_data.size / image.width), image.width)).astype('uint8')
             if conversion_const != cv.COLOR_GRAY2RGB:
-                if (data_array.shape[0] % 3 != 0):
-                    data_array = numpy.concatenate(
-                        (data_array,
+                if (processed_data.shape[0] % 3 != 0):
+                    processed_data = numpy.concatenate(
+                        (processed_data,
+                         numpy.zeros((3 - (processed_data.shape[0] % 3),
+                                      processed_data.shape[1]),
+                                     dtype=numpy.uint8)))
+                if (processed_data.shape[1] % 2 != 0):
+                    processed_data = numpy.concatenate(
+                        (processed_data,
                          numpy.zeros(
-                             (3 -
-                              (data_array.shape[0] % 3), data_array.shape[1]),
-                             dtype=numpy.uint8)))
-                if (data_array.shape[1] % 2 != 0):
-                    data_array = numpy.concatenate(
-                        (data_array,
-                         numpy.zeros(
-                             (data_array.shape[0], 1), dtype=numpy.uint8)),
+                             (processed_data.shape[0], 1), dtype=numpy.uint8)),
                         axis=1)
-            tmp.append(cv.cvtColor(data_array, conversion_const))
+            tmp.append(cv.cvtColor(processed_data, conversion_const))
         return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
 
     def get_pixel_raw_components(self, image, row, column, index):
@@ -336,9 +334,9 @@ class ParserYUV422(AbstractParser):
             raise NotImplementedError(
                 "Other than 8-bit YUVs are not currently supported")
 
-        data_array = numpy.frombuffer(self.reverse(raw_data, reverse_bytes),
-                                      dtype=curr_dtype)
-        processed_data = data_array
+        processed_data = numpy.frombuffer(self.reverse(raw_data,
+                                                       reverse_bytes),
+                                          dtype=curr_dtype)
 
         if (processed_data.size % (width * 2) != 0):
             processed_data = numpy.concatenate(
@@ -467,10 +465,10 @@ class ParserYUV422Planar(ParserYUV422):
                 if not channels["b_v"]:
                     temp_processed_data[height * (3 * image.width // 2 +
                                                   image.width % 2):] = 0
-            data_array = numpy.reshape(
+            processed_data = numpy.reshape(
                 temp_processed_data[:(height * image.width)],
                 (height, image.width)).astype('uint8')
-            return_data[:, :, 0] = data_array
+            return_data[:, :, 0] = processed_data
             chromas_data = numpy.reshape(
                 temp_processed_data[(height * image.width):height *
                                     (3 * image.width // 2 + image.width % 2)],

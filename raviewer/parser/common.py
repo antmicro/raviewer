@@ -63,7 +63,7 @@ class AbstractParser(metaclass=ABCMeta):
                                          byteorder="little")
             temp_raw_data = self.reverse(raw_data, reverse_bytes)
             temp = numpy.frombuffer(temp_raw_data, curr_dtype)
-            data_array = temp
+            processed_data = temp
             if len(temp_set) == 2:
                 if (temp.size % (width * 3) != 0):
                     temp = numpy.concatenate(
@@ -75,13 +75,12 @@ class AbstractParser(metaclass=ABCMeta):
                     numpy.reshape(temp,
                                   (int(temp.size / (3 * width)), width, 3)),
                     cv.COLOR_RGB2RGBA)
-                data_array = numpy.reshape(temp, temp.size)
+                processed_data = numpy.reshape(temp, temp.size)
         else:
             temp_raw_data = self.reverse(raw_data, reverse_bytes)
-            data_array = self._parse_not_bytefilled(temp_raw_data,
-                                                    color_format)
+            processed_data = self._parse_not_bytefilled(
+                temp_raw_data, color_format)
 
-        processed_data = data_array
         if (processed_data.size % (width * 4) != 0):
             processed_data = numpy.concatenate(
                 (processed_data,
@@ -107,15 +106,15 @@ class AbstractParser(metaclass=ABCMeta):
         if len(raw_data) % (pixel_size // 8) != 0:
             raw_data += b'\x00' * (pixel_size // 8 - (len(raw_data) %
                                                       (pixel_size // 8)))
-        data_array = numpy.frombuffer(raw_data, dtype=curr_dtype)
+        processed_data = numpy.frombuffer(raw_data, dtype=curr_dtype)
         temp = pixel_size
         channels = []
         for i in color_format.bits_per_components:
             mask = (1 << i) - 1
             mask <<= temp - i
             temp -= i
-            channel = numpy.bitwise_and(data_array, mask)
+            channel = numpy.bitwise_and(processed_data, mask)
             channel_shifted = numpy.right_shift(channel, temp)
             channels.append(channel_shifted)
-        data_array = numpy.ravel(channels, order='F').astype('uint8')
-        return data_array
+        processed_data = numpy.ravel(channels, order='F').astype('uint8')
+        return processed_data

@@ -92,7 +92,7 @@ class ParserARGB(AbstractParser):
                                          byteorder="little")
             temp_raw_data = self.reverse(raw_data, reverse_bytes)
             temp = numpy.frombuffer(temp_raw_data, curr_dtype)
-            data_array = temp
+            processed_data = temp
             if len(temp_set) == 2:
                 if (temp.size % (width * 3) != 0):
                     temp = numpy.concatenate(
@@ -105,13 +105,12 @@ class ParserARGB(AbstractParser):
                      numpy.reshape(temp,
                                    (int(temp.size / (width * 3)), width, 3))),
                     axis=2)
-                data_array = numpy.reshape(temp, temp.size)
+                processed_data = numpy.reshape(temp, temp.size)
         else:
             temp_raw_data = self.reverse(raw_data, reverse_bytes)
-            data_array = self._parse_not_bytefilled(temp_raw_data,
-                                                    color_format)
+            processed_data = self._parse_not_bytefilled(
+                temp_raw_data, color_format)
 
-        processed_data = data_array
         if (processed_data.size % (width * 4) != 0):
             processed_data = numpy.concatenate(
                 (processed_data,
