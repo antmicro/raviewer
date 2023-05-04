@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-pytest tests/ --cov=raviewer
+pytest -rfEsx tests/ --cov=raviewer
