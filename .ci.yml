@@ -20,6 +20,10 @@ Test-with-pytest:
     stage: test
     script:
         - ./.github/run_tests.sh
+    artifacts:
+        when: on_failure
+        paths:
+            - ./tests/logs
 
 Documentation:
     stage: test
