@@ -44,7 +44,7 @@ class Base_img():
         height: frame height
         n_frames: number of frames in the file,
         selected_part: selected area resolution in pixels
-        left_column, right_column, up_row, down_row: corner coordinates of selected area 
+        left_column, right_column, up_row, down_row: corner coordinates of selected area
         texture_format: actual used texture format(mvFormat_Float_rgba or mvFormat_Float_rgb)
         mouse_down_pos: position of right mouse click on plot
         img_postchanneled: image presentation after channel mask staging
@@ -241,9 +241,9 @@ class Plot_events(Base_img):
         if dpg.is_item_hovered(items["plot"]["main_plot"]):
             if Base_img.img != None:
                 plot_mouse_x, plot_mouse_y = dpg.get_plot_mouse_pos()
-                if (plot_mouse_x < Base_img.img.width and plot_mouse_x > 0
-                    ) and (plot_mouse_y < Base_img.img.height
-                           and plot_mouse_y > 0):
+                if (plot_mouse_x < Base_img.img.width and plot_mouse_x
+                        > 0) and (plot_mouse_y < Base_img.img.height
+                                  and plot_mouse_y > 0):
                     listed_data = Base_img.raw_data.tolist()
                     if Base_img.texture_format == dpg.mvFormat_Float_rgba:
                         components_n = 4
