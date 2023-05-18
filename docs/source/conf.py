@@ -5,14 +5,16 @@
 # Updated documentation of the configuration options is available at
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+from os import environ
 from datetime import datetime
 
 from antmicro_sphinx_utils.defaults import (
+    numfig_format,
     extensions as default_extensions,
     myst_enable_extensions as default_myst_enable_extensions,
+    myst_fence_as_directive as default_myst_fence_as_directive,
     antmicro_html,
     antmicro_latex
-
 )
 
 # -- General configuration -----------------------------------------------------
@@ -21,7 +23,7 @@ from antmicro_sphinx_utils.defaults import (
 project = u'Raviewer - User Guide'
 basic_filename = 'raviewer--user-guide'
 authors = u'Antmicro'
-copyright = authors + u', {}'.format(datetime.now().year)
+copyright = f'{authors}, {datetime.now().year}'
 
 # The short X.Y version.
 version = ''
@@ -36,6 +38,7 @@ numfig = True
 # If you need to add extensions just add to those lists
 extensions = default_extensions
 myst_enable_extensions = default_myst_enable_extensions
+myst_fence_as_directive = default_myst_fence_as_directive
 
 myst_substitutions = {
     "project": project
@@ -60,7 +63,7 @@ html_title = project
     html_theme_options,
     html_context
 ) = antmicro_html(
-    gh_slug="antmicro/raviewer",
+    gh_slug=environ.get('GITHUB_REPOSITORY', 'antmicro/raviewer'),
     pdf_url=f"{basic_filename}.pdf"
 )
 
