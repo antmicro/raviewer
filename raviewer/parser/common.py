@@ -99,7 +99,8 @@ class AbstractParser(metaclass=ABCMeta):
 
         Returns: properly parsed buffer data (numpy ndarray)
         """
-        pixel_size = sum(color_format.bits_per_components)
+        cbits = color_format.bits_per_components
+        pixel_size = sum(cbits)
         if pixel_size & 7 != 0:
             raise Exception("Invalid pixel format")
         curr_dtype = self.get_dtype(pixel_size, color_format.endianness)
@@ -109,10 +110,20 @@ class AbstractParser(metaclass=ABCMeta):
         processed_data = numpy.frombuffer(raw_data, dtype=curr_dtype)
         temp = pixel_size
         res = numpy.empty((4 * len(processed_data), ), dtype=curr_dtype)
-        for j, i in enumerate(color_format.bits_per_components):
+        all_equal = True
+        for j, i in enumerate(cbits):
+            if i != cbits[0]:
+                all_equal = False
+        mask = 0
+        for j, i in enumerate(cbits):
             mask = (1 << i) - 1
             mask <<= temp - i
             temp -= i
-            channel = numpy.bitwise_and(processed_data, mask)
-            numpy.right_shift(channel, temp, out=res[j::4])
+            if all_equal:
+                numpy.right_shift(processed_data, temp, out=res[j::4])
+            else:
+                channel = numpy.bitwise_and(processed_data, mask)
+                numpy.right_shift(channel, temp, out=res[j::4])
+        if all_equal:
+            return numpy.bitwise_and(res, mask, out=res)
         return res
