@@ -34,7 +34,7 @@ Documentation:
         DOCS_DIR: 'docs'
     script:
         - cd $DOCS_DIR
-        - pip3 install -r requirements.sphinx.txt
+        - pip3 install -r requirements.txt
         - make html latexpdf
         - cp build/latex/*.pdf build/html
         - tar cf ../$CI_DOCS_ARCHIVE -C build/html/ .
