@@ -54,6 +54,7 @@ class ParserYUV420(AbstractParser):
         processed_data = numpy.frombuffer(self.reverse(raw_data,
                                                        reverse_bytes),
                                           dtype=curr_dtype)
+        processed_data = numpy.array(processed_data, dtype=curr_dtype)
         if (processed_data.size % width != 0):
             processed_data = numpy.concatenate(
                 (processed_data,
@@ -337,7 +338,7 @@ class ParserYUV422(AbstractParser):
         processed_data = numpy.frombuffer(self.reverse(raw_data,
                                                        reverse_bytes),
                                           dtype=curr_dtype)
-
+        processed_data = numpy.array(processed_data, dtype=curr_dtype)
         if (processed_data.size % (width * 2) != 0):
             processed_data = numpy.concatenate(
                 (processed_data,
