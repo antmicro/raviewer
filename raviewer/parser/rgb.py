@@ -5,6 +5,7 @@ from ..image.image import Image
 from .common import AbstractParser
 
 import numpy
+import cv2 as cv
 
 
 class ParserRGBA(AbstractParser):
@@ -22,17 +23,23 @@ class ParserRGBA(AbstractParser):
 
         Returns: Numpy array containing displayable data.
         """
-        return_data = numpy.reshape(image.processed_data.astype('float64'),
+        return_data = numpy.reshape(image.processed_data.astype('uint8'),
                                     (image.height, image.width, 4))
 
         bpcs = 4
-        if image.color_format.bits_per_components[3] == 0:
-            return_data[:, :, 3] = 255
-            bpcs = 3
+        cbits = image.color_format.bits_per_components
 
+        if image.color_format.bits_per_components[3] == 0:
+            bpcs = 3
         for i in range(bpcs):
-            return_data[:, :, i] = (255 * return_data[:, :, i]) / (
-                2**image.color_format.bits_per_components[i] - 1)
+            if cbits[i] != 8:
+                coeff = 255 / (2**cbits[i] - 1)
+                numpy.multiply(return_data[:, :, i],
+                               coeff,
+                               out=return_data[:, :, i],
+                               casting="unsafe")
+        if image.color_format.bits_per_components[3] == 0:
+            return_data[:, :, 3] = numpy.uint8(255)
 
         if image.color_format.pixel_format in [
                 PixelFormat.BGRA, PixelFormat.BGR
@@ -48,7 +55,7 @@ class ParserRGBA(AbstractParser):
             return_data[:, :, 2] = 0
         if not channels["a_v"]:
             return_data[:, :, 3] = 255
-        return return_data.astype('uint8')
+        return return_data
 
     def get_pixel_raw_components(self, image, row, column, index):
         step_bytes = len(image.color_format._bpcs)
@@ -132,12 +139,23 @@ class ParserARGB(AbstractParser):
         Returns: Numpy array containing displayable data.
         """
 
-        return_data = numpy.reshape(image.processed_data.astype('float64'),
+        return_data = numpy.reshape(image.processed_data.astype('uint8'),
                                     (image.height, image.width, 4))
+        cbits = image.color_format.bits_per_components
+        bpcs = 4
+        cbits = image.color_format.bits_per_components
 
-        for i in range(4):
-            return_data[:, :, i] = (255 * return_data[:, :, i]) / (
-                2**image.color_format.bits_per_components[i] - 1)
+        if image.color_format.bits_per_components[3] == 0:
+            bpcs = 3
+        for i in range(bpcs):
+            if cbits[i] != 8:
+                coeff = 255 / (2**cbits[i] - 1)
+                numpy.multiply(return_data[:, :, i],
+                               coeff,
+                               out=return_data[:, :, i],
+                               casting="unsafe")
+        if image.color_format.bits_per_components[3] == 0:
+            return_data[:, :, 3] = numpy.uint8(255)
 
         if image.color_format.pixel_format == PixelFormat.ABGR:
             return_data = return_data[:, :, [3, 2, 1, 0]]
@@ -154,7 +172,7 @@ class ParserARGB(AbstractParser):
         if not channels["a_v"]:
             return_data[:, :, 3] = 255
 
-        return return_data.astype('uint8')
+        return return_data
 
     def get_pixel_raw_components(self, image, row, column, index):
         step_bytes = len(image.color_format._bpcs)
