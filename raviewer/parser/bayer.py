@@ -67,8 +67,8 @@ class ParserBayerRG(AbstractParser):
 
         Returns: Numpy array containing displayable data.
         """
-        return_data = numpy.reshape(
-            image.processed_data, (image.height, image.width)).astype('float')
+        return_data = numpy.reshape(numpy.copy(image.processed_data),
+                                    (image.height, image.width))
 
         #Set RGGB channels
         if not channels["r_y"]:
@@ -79,8 +79,8 @@ class ParserBayerRG(AbstractParser):
         if not channels["b_v"]:
             return_data[1::2, 1::2] = 0
 
-        return_data[:, :] = (255 * return_data[:, :]) / (
-            2**image.color_format.bits_per_components[0] - 1)
+        coeff = 255 / (2**image.color_format.bits_per_components[0] - 1)
+        numpy.multiply(return_data, coeff, out=return_data, casting="unsafe")
         # Converting from Bayer BG (but data is Bayer RG) to RGB -> THIS IS A BUG IN OPENCV
         return cv.cvtColor(return_data.astype('uint8'), cv.COLOR_BAYER_BG2RGB)
 
