@@ -75,6 +75,11 @@ def file_mode(file_path, sizes, image_formats, count):
 def random_mode(sizes, image_formats, count):
     """Run benchmark on random data"""
     print_header(sizes)
+    max_size = 0
+    for i in range(0, len(sizes), 2):
+        max_size = max(max_size, sizes[i] * sizes[i + 1])
+    max_size *= 8  # 2 bytes per channel times 4 channels
+    random_image_data = os.urandom(max_size)
     for fmt in image_formats:
         format = determine_color_format(fmt)
         num_bits = sum(format.bits_per_components)
@@ -89,7 +94,7 @@ def random_mode(sizes, image_formats, count):
             if isinstance(format, SubsampledColorFormat):
                 img_size += 2 * img_size // (format.subsampling_horizontal *
                                              format.subsampling_vertical)
-            img = Image(os.urandom(img_size))
+            img = Image(random_image_data[:img_size])
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, format.name, sizes[i]))
             res.append(1000 * t.timeit(count) / count)
