@@ -128,7 +128,12 @@ class ParserYUV420(AbstractParser):
 
             return_data = cv.cvtColor(processed_data, conversion_const)
             tmp.append(return_data)
-        return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
+        if tmp == []:
+            return numpy.array([])
+        elif len(tmp) == 1:
+            return tmp[0]
+        else:
+            return numpy.concatenate(tmp, axis=0)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
@@ -242,7 +247,12 @@ class ParserYUV420Planar(ParserYUV420):
                              (processed_data.shape[0], 1), dtype=numpy.uint8)),
                         axis=1)
             tmp.append(cv.cvtColor(processed_data, conversion_const))
-        return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
+        if tmp == []:
+            return numpy.array([])
+        elif len(tmp) == 1:
+            return tmp[0]
+        else:
+            numpy.concatenate(tmp, axis=0)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
@@ -399,7 +409,12 @@ class ParserYUV422(AbstractParser):
                                                image.width, height,
                                                conversion_const, image)
             tmp.append(return_data)
-        return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
+        if tmp == []:
+            return numpy.array([])
+        elif len(tmp) == 1:
+            return tmp[0]
+        else:
+            numpy.concatenate(tmp, axis=0)
 
     def convert2RGB(self, processed_data, width, height, conversion, image):
         y = processed_data[self.yuv_442_offsets[image.color_format.
@@ -408,14 +423,13 @@ class ParserYUV422(AbstractParser):
                                                 pixel_format]["U"]::4]
         v = processed_data[self.yuv_442_offsets[image.color_format.
                                                 pixel_format]["V"]::4]
-        u = numpy.resize(numpy.repeat(u, 2), len(y))
-        v = numpy.resize(numpy.repeat(v, 2), len(y))
-        plane_y = y.reshape((height, width, 1))
-        plane_u = u.reshape((height, width, 1))
-        plane_v = v.reshape((height, width, 1))
-        yuv = numpy.concatenate((plane_y, plane_u, plane_v),
-                                axis=2).astype('uint8')
-        rgb = cv.cvtColor(yuv, cv.COLOR_YUV2RGB)
+        yuv = numpy.empty((height * width, 3), dtype=numpy.uint8)
+        yuv[:, 0] = y
+        yuv[0::2, 1] = u
+        yuv[1::2, 1] = u
+        yuv[0::2, 2] = v
+        yuv[1::2, 2] = v
+        rgb = cv.cvtColor(yuv.reshape((height, width, 3)), cv.COLOR_YUV2RGB)
         return rgb
 
     def get_pixel_raw_components(self, image, row, column, index):
@@ -455,7 +469,8 @@ class ParserYUV422Planar(ParserYUV422):
                 image.width * height) * 2):int((1 + i) *
                                                (image.width * height) * 2)]
             height = math.ceil(len(temp_processed_data) / image.width / 2)
-            return_data = numpy.zeros((height, image.width, 2)).astype('uint8')
+            return_data = numpy.zeros((height, image.width, 2),
+                                      dtype=numpy.uint8)
             if image.color_format.pixel_format == PixelFormat.YUV:
                 if not channels["r_y"]:
                     temp_processed_data[0:height * image.width:] = 0
@@ -488,22 +503,25 @@ class ParserYUV422Planar(ParserYUV422):
                                                image.width, height,
                                                conversion_const)
             tmp.append(return_data)
-        return numpy.array([]) if tmp == [] else numpy.concatenate(tmp, axis=0)
+        if tmp == []:
+            return numpy.array([])
+        elif len(tmp) == 1:
+            return tmp[0]
+        else:
+            return numpy.concatenate(tmp, axis=0)
 
     def convert2RGB(self, processed_data, width, height, conversion):
         y = processed_data[0:height * width:]
         u = processed_data[height * width:height *
                            (3 * width // 2 + width % 2)]
         v = processed_data[height * (3 * width // 2 + width % 2):]
-
-        u = numpy.resize(numpy.repeat(u, 2), len(y))
-        v = numpy.resize(numpy.repeat(v, 2), len(y))
-        plane_y = y.reshape((height, width, 1))
-        plane_u = u.reshape((height, width, 1))
-        plane_v = v.reshape((height, width, 1))
-        yuv = numpy.concatenate((plane_y, plane_u, plane_v),
-                                axis=2).astype('uint8')
-        rgb = cv.cvtColor(yuv, cv.COLOR_YUV2RGB)
+        yuv = numpy.empty((height * width, 3), dtype=numpy.uint8)
+        yuv[:, 0] = y
+        yuv[0::2, 1] = u
+        yuv[1::2, 1] = u
+        yuv[0::2, 2] = v
+        yuv[1::2, 2] = v
+        rgb = cv.cvtColor(yuv.reshape((height, width, 3)), cv.COLOR_YUV2RGB)
         return rgb
 
     def get_pixel_raw_components(self, image, row, column, index):
