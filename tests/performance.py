@@ -6,7 +6,7 @@ import os
 import re
 
 from raviewer.src.core import load_image, parse_image
-from raviewer.image.color_format import AVAILABLE_FORMATS, PixelFormat
+from raviewer.image.color_format import AVAILABLE_FORMATS, PixelFormat, SubsampledColorFormat
 from raviewer.image.image import Image
 from raviewer.src.utils import determine_color_format
 
@@ -78,13 +78,17 @@ def random_mode(sizes, image_formats, count):
     for fmt in image_formats:
         format = determine_color_format(fmt)
         num_bits = sum(format.bits_per_components)
-        if format.pixel_format == PixelFormat.BAYER_RG:
+        if format.pixel_format == PixelFormat.BAYER_RG or isinstance(
+                format, SubsampledColorFormat):
             num_bits = format.bits_per_components[0]
         if num_bits % 8 != 0:
             num_bits += 8 - (num_bits % 8)
         res = []
         for i in range(0, len(sizes), 2):
             img_size = (sizes[i] * sizes[i + 1] * num_bits // 8)
+            if isinstance(format, SubsampledColorFormat):
+                img_size += 2 * img_size // (format.subsampling_horizontal *
+                                             format.subsampling_vertical)
             img = Image(os.urandom(img_size))
             t = timeit.Timer(
                 lambda: parse_image(img.data_buffer, format.name, sizes[i]))
