@@ -36,7 +36,8 @@ class TestYUVParserClass(unittest.TestCase):
         self.Y420_IMAGE = Mock(color_format=self.Y420_FORMAT,
                                width=2,
                                height=2)
-        self.Y420_IMAGE.processed_data = numpy.array([255, 255, 0, 0, 255, 0])
+        self.Y420_IMAGE.processed_data = numpy.array([255, 255, 0, 0, 255, 0],
+                                                     dtype=numpy.uint8)
         self.raw_data_Y420 = bytes((255, 255, 0, 0, 255, 0))
         self.Y420_IMAGE.data_buffer = self.raw_data_Y420
 
@@ -52,7 +53,7 @@ class TestYUVParserClass(unittest.TestCase):
                                width=2,
                                height=2)
         self.Y422_IMAGE.processed_data = numpy.array(
-            [255, 255, 0, 255, 0, 0, 255, 0])
+            [255, 255, 0, 255, 0, 0, 255, 0], dtype=numpy.uint8)
         self.raw_data_Y422 = bytes((255, 255, 0, 255, 0, 0, 255, 0))
         self.Y422_IMAGE.data_buffer = self.raw_data_Y422
 
@@ -116,10 +117,10 @@ class TestYUVParserClass(unittest.TestCase):
         self.assertEqual(displayable.shape,
                          (self.Y422_IMAGE.height, self.Y422_IMAGE.width, 3))
         print(displayable)
-        self.assertTrue((displayable == numpy.array([[[109, 255, 255],
-                                                      [109, 255, 255]],
-                                                     [[145, 0, 0],
-                                                      [145, 0, 0]]])).all())
+        self.assertTrue((displayable == numpy.array([[[74, 255, 255],
+                                                      [74, 255, 255]],
+                                                     [[203, 0, 0],
+                                                      [203, 0, 0]]])).all())
 
 
 class TestYUVPlanarParserClass(unittest.TestCase):
@@ -134,7 +135,8 @@ class TestYUVPlanarParserClass(unittest.TestCase):
         self.Y420_IMAGE = Mock(color_format=self.Y420_FORMAT,
                                width=2,
                                height=2)
-        self.Y420_IMAGE.processed_data = numpy.array([255, 255, 0, 0, 255, 0])
+        self.Y420_IMAGE.processed_data = numpy.array([255, 255, 0, 0, 255, 0],
+                                                     dtype=numpy.uint8)
         self.raw_data_Y420 = bytes((255, 255, 0, 0, 255, 0))
         self.Y420_IMAGE.data_buffer = self.raw_data_Y420
 
@@ -150,7 +152,7 @@ class TestYUVPlanarParserClass(unittest.TestCase):
                                width=2,
                                height=2)
         self.Y422_IMAGE.processed_data = numpy.array(
-            [255, 255, 0, 0, 255, 0, 0, 255])
+            [255, 255, 0, 0, 255, 0, 0, 255], dtype=numpy.uint8)
         self.raw_data_Y422 = bytes((255, 255, 0, 0, 255, 0, 0, 255))
         self.Y422_IMAGE.data_buffer = self.raw_data_Y422
         self.parserY422 = ParserYUV422Planar()
@@ -203,10 +205,10 @@ class TestYUVPlanarParserClass(unittest.TestCase):
         self.assertEqual(displayable.shape,
                          (self.Y422_IMAGE.height, self.Y422_IMAGE.width, 3))
         print(displayable)
-        self.assertTrue((displayable == numpy.array([[[109, 255, 255],
-                                                      [109, 255, 255]],
-                                                     [[145, 0, 0],
-                                                      [145, 0, 0]]])).all())
+        self.assertTrue((displayable == numpy.array([[[74, 255, 255],
+                                                      [74, 255, 255]],
+                                                     [[203, 0, 0],
+                                                      [203, 0, 0]]])).all())
 
 
 if __name__ == "__main__":
