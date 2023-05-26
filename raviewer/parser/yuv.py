@@ -417,20 +417,8 @@ class ParserYUV422(AbstractParser):
             numpy.concatenate(tmp, axis=0)
 
     def convert2RGB(self, processed_data, width, height, conversion, image):
-        y = processed_data[self.yuv_442_offsets[image.color_format.
-                                                pixel_format]["Y"]::2]
-        u = processed_data[self.yuv_442_offsets[image.color_format.
-                                                pixel_format]["U"]::4]
-        v = processed_data[self.yuv_442_offsets[image.color_format.
-                                                pixel_format]["V"]::4]
-        yuv = numpy.empty((height * width, 3), dtype=numpy.uint8)
-        yuv[:, 0] = y
-        yuv[0::2, 1] = u
-        yuv[1::2, 1] = u
-        yuv[0::2, 2] = v
-        yuv[1::2, 2] = v
-        rgb = cv.cvtColor(yuv.reshape((height, width, 3)), cv.COLOR_YUV2RGB)
-        return rgb
+        return cv.cvtColor(processed_data.reshape(height, width, 2),
+                           conversion)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return image.processed_data[(index // 2) * 4:(index // 2) * 4 + 4]
@@ -515,13 +503,11 @@ class ParserYUV422Planar(ParserYUV422):
         u = processed_data[height * width:height *
                            (3 * width // 2 + width % 2)]
         v = processed_data[height * (3 * width // 2 + width % 2):]
-        yuv = numpy.empty((height * width, 3), dtype=numpy.uint8)
+        yuv = numpy.empty((height * width, 2), dtype=numpy.uint8)
         yuv[:, 0] = y
         yuv[0::2, 1] = u
-        yuv[1::2, 1] = u
-        yuv[0::2, 2] = v
-        yuv[1::2, 2] = v
-        rgb = cv.cvtColor(yuv.reshape((height, width, 3)), cv.COLOR_YUV2RGB)
+        yuv[1::2, 1] = v
+        rgb = cv.cvtColor(yuv.reshape((height, width, 2)), conversion)
         return rgb
 
     def get_pixel_raw_components(self, image, row, column, index):
