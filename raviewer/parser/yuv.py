@@ -399,6 +399,8 @@ class ParserYUV422(AbstractParser):
             elif image.color_format.pixel_format == PixelFormat.YVYU:
                 conversion_const = cv.COLOR_YUV2RGB_YVYU
             elif image.color_format.pixel_format == PixelFormat.VYUY:
+                temp_processed_data = temp_processed_data.reshape((-1, 4))[:, [2, 1, 0, 3]]
+                temp_processed_data = temp_processed_data.reshape((height, image.width, 2))
                 conversion_const = cv.COLOR_YUV2RGB_UYVY
 
             if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:

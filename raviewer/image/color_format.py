@@ -313,7 +313,7 @@ AVAILABLE_FORMATS = {
                           8,
                           8,
                           8,
-                          "UYVY",
+                          "VYUY",
                           2,
                           1,
                           fourcc=V4L2_PIX_FMT_VYUY),
