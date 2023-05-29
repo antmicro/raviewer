@@ -23,6 +23,23 @@ def interleave_channels(u, v):
     return data
 
 
+def concatenate_frames(frames):
+    """Concatenates list of images into one image
+
+    Keyword arguments:
+
+        frames: list of images (numpy ndarray) of the same shape
+
+    Returns: concatenated image (numpy ndarray)
+    """
+    if frames == []:
+        return numpy.array([], dtype=numpy.uint8)
+    elif len(frames) == 1:
+        return frames[0]
+    else:
+        numpy.concatenate(frames, axis=0)
+
+
 class ParserYUV420(AbstractParser):
     """A semi-planar YUV420 implementation of a parser"""
 
@@ -128,12 +145,8 @@ class ParserYUV420(AbstractParser):
 
             return_data = cv.cvtColor(processed_data, conversion_const)
             tmp.append(return_data)
-        if tmp == []:
-            return numpy.array([])
-        elif len(tmp) == 1:
-            return tmp[0]
-        else:
-            return numpy.concatenate(tmp, axis=0)
+
+        return concatenate_frames(tmp)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
@@ -247,12 +260,8 @@ class ParserYUV420Planar(ParserYUV420):
                              (processed_data.shape[0], 1), dtype=numpy.uint8)),
                         axis=1)
             tmp.append(cv.cvtColor(processed_data, conversion_const))
-        if tmp == []:
-            return numpy.array([])
-        elif len(tmp) == 1:
-            return tmp[0]
-        else:
-            numpy.concatenate(tmp, axis=0)
+
+        return concatenate_frames(tmp)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
@@ -399,8 +408,10 @@ class ParserYUV422(AbstractParser):
             elif image.color_format.pixel_format == PixelFormat.YVYU:
                 conversion_const = cv.COLOR_YUV2RGB_YVYU
             elif image.color_format.pixel_format == PixelFormat.VYUY:
-                temp_processed_data = temp_processed_data.reshape((-1, 4))[:, [2, 1, 0, 3]]
-                temp_processed_data = temp_processed_data.reshape((height, image.width, 2))
+                temp_processed_data = temp_processed_data.reshape(
+                    (-1, 4))[:, [2, 1, 0, 3]]
+                temp_processed_data = temp_processed_data.reshape(
+                    (height, image.width, 2))
                 conversion_const = cv.COLOR_YUV2RGB_UYVY
 
             if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
@@ -411,12 +422,8 @@ class ParserYUV422(AbstractParser):
                                                image.width, height,
                                                conversion_const, image)
             tmp.append(return_data)
-        if tmp == []:
-            return numpy.array([])
-        elif len(tmp) == 1:
-            return tmp[0]
-        else:
-            numpy.concatenate(tmp, axis=0)
+
+        return concatenate_frames(tmp)
 
     def convert2RGB(self, processed_data, width, height, conversion, image):
         return cv.cvtColor(processed_data.reshape(height, width, 2),
@@ -493,12 +500,8 @@ class ParserYUV422Planar(ParserYUV422):
                                                image.width, height,
                                                conversion_const)
             tmp.append(return_data)
-        if tmp == []:
-            return numpy.array([])
-        elif len(tmp) == 1:
-            return tmp[0]
-        else:
-            return numpy.concatenate(tmp, axis=0)
+
+        return concatenate_frames(tmp)
 
     def convert2RGB(self, processed_data, width, height, conversion):
         y = processed_data[0:height * width:]
