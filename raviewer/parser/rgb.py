@@ -8,6 +8,22 @@ import numpy
 import cv2 as cv
 
 
+def rescale_to_8bit(data, cbits):
+    bpcs = 4
+    if cbits[3] == 0:
+        bpcs = 3
+    for i in range(bpcs):
+        if cbits[i] != 8:
+            coeff = 255 / (2**cbits[i] - 1)
+            numpy.multiply(data[:, :, i],
+                           coeff,
+                           out=data[:, :, i],
+                           casting="unsafe")
+    if cbits[3] == 0:
+        data[:, :, 3] = numpy.uint8(255)
+    return data
+
+
 class ParserRGBA(AbstractParser):
     """An RGB/BGR implementation of a parser - ALPHA LAST"""
 
@@ -26,20 +42,8 @@ class ParserRGBA(AbstractParser):
         return_data = numpy.reshape(image.processed_data.astype('uint8'),
                                     (image.height, image.width, 4))
 
-        bpcs = 4
-        cbits = image.color_format.bits_per_components
-
-        if image.color_format.bits_per_components[3] == 0:
-            bpcs = 3
-        for i in range(bpcs):
-            if cbits[i] != 8:
-                coeff = 255 / (2**cbits[i] - 1)
-                numpy.multiply(return_data[:, :, i],
-                               coeff,
-                               out=return_data[:, :, i],
-                               casting="unsafe")
-        if image.color_format.bits_per_components[3] == 0:
-            return_data[:, :, 3] = numpy.uint8(255)
+        return_data = rescale_to_8bit(return_data,
+                                      image.color_format.bits_per_components)
 
         if image.color_format.pixel_format in [
                 PixelFormat.BGRA, PixelFormat.BGR
@@ -141,21 +145,9 @@ class ParserARGB(AbstractParser):
 
         return_data = numpy.reshape(image.processed_data.astype('uint8'),
                                     (image.height, image.width, 4))
-        cbits = image.color_format.bits_per_components
-        bpcs = 4
-        cbits = image.color_format.bits_per_components
 
-        if image.color_format.bits_per_components[3] == 0:
-            bpcs = 3
-        for i in range(bpcs):
-            if cbits[i] != 8:
-                coeff = 255 / (2**cbits[i] - 1)
-                numpy.multiply(return_data[:, :, i],
-                               coeff,
-                               out=return_data[:, :, i],
-                               casting="unsafe")
-        if image.color_format.bits_per_components[3] == 0:
-            return_data[:, :, 3] = numpy.uint8(255)
+        return_data = rescale_to_8bit(return_data,
+                                      image.color_format.bits_per_components)
 
         if image.color_format.pixel_format == PixelFormat.ABGR:
             return_data = return_data[:, :, [3, 2, 1, 0]]
