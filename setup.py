@@ -24,7 +24,7 @@ setup(
     install_requires=[
         'numpy',
         'opencv-python',
-        'dearpygui==1.1.1',
+        'dearpygui==1.9.1',
         'terminaltables',
         'pytest',
         'pyrav4l2 @ git+https://github.com/antmicro/pyrav4l2.git'
