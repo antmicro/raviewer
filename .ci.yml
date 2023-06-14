@@ -1,15 +1,14 @@
 image: debian:latest
 stages:
-    - .pre
     - test
 
 before_script:
     - apt-get update
     - DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
     - apt-get install python3 python3-pip git libsm6 libxext6 ffmpeg -y
-    - python3 -m pip install --upgrade pip
-    - python3 -m pip install .
-    - python3 -m pip install yapf pytest pytest-cov
+    - pip3 install --break-system-packages --upgrade pip
+    - pip3 install --break-system-packages .
+    - pip3 install --break-system-packages yapf pytest pytest-cov
 
 Lint-with-yapf:
     stage: test
@@ -32,6 +31,8 @@ Documentation:
         - docs
     variables:
         DOCS_DIR: 'docs'
+    before_script:
+        - echo "Building the documentation"
     script:
         - cd $DOCS_DIR
         - pip3 install -r requirements.txt
