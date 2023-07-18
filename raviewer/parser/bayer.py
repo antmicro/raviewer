@@ -62,7 +62,7 @@ class ParserBayerRG(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // width)
 
-    def get_displayable(self, image, channels):
+    def get_displayable(self, image, channels, debayer=True):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
@@ -81,8 +81,34 @@ class ParserBayerRG(AbstractParser):
 
         coeff = 255 / (2**image.color_format.bits_per_components[0] - 1)
         numpy.multiply(return_data, coeff, out=return_data, casting="unsafe")
+
         # Converting from Bayer BG (but data is Bayer RG) to RGB -> THIS IS A BUG IN OPENCV
-        return cv.cvtColor(return_data.astype('uint8'), cv.COLOR_BAYER_BG2RGB)
+        if debayer:
+            return cv.cvtColor(return_data.astype('uint8'),
+                               cv.COLOR_BAYER_BG2RGB)
+
+        palette = numpy.array([[1, 0, 0], [0, 1, 0], [0, 1, 0],
+                               [0, 0, 1]]).reshape((1, 4, 3))
+
+        return self.__non_debayerized_display(return_data,
+                                              palette).astype('uint8')
+
+    @staticmethod
+    def __non_debayerized_display(raw, palette):
+        """Converts bayer formatted image to displayable image data
+
+        Returns: Numpy array containing displayable data (width x height x 3)
+        """
+        if palette.shape != (1, 4, 3):
+            raise ValueError("Expected palette to be (1, 4, 3) shaped.")
+
+        t = numpy.vstack(numpy.hsplit(raw,
+                                      raw.shape[1] // 2)).reshape(-1, 4, 1)
+        t = t * palette
+        t = t.reshape(-1, 2, 3)
+        t = numpy.hstack(numpy.vsplit(t, raw.shape[1] // 2))
+
+        return t
 
     def get_pixel_raw_components(self, image, row, column, index):
         #Bayer interpolation
