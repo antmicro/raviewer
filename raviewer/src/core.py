@@ -48,8 +48,8 @@ def get_displayable(image,
                         "g_u": True,
                         "b_v": True,
                         "a_v": True
-                    }):
-
+                    },
+                    raw=False):
     if image.color_format is None:
         raise Exception("Image should be already parsed!")
     parser = ParserFactory.create_object(image.color_format)
@@ -60,6 +60,10 @@ def get_displayable(image,
             PixelPlane.SEMIPLANAR, PixelPlane.PLANAR
     ]:
         return parser.get_displayable(image, height, channels=channels)
+    elif image.color_format.pixel_format == PixelFormat.BAYER_RG:
+        return parser.get_displayable(image,
+                                      channels=channels,
+                                      debayer=(not raw))
     else:
         return parser.get_displayable(image, channels=channels)
 

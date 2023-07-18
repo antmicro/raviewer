@@ -49,6 +49,7 @@ class Base_img():
         img_postchanneled: image presentation after channel mask staging
         raw_data: image raw data in texture float format
         image_series: image series associated with plot
+        display_raw: whether image should be displayed raw (e.g. non-debayerized)
     """
 
     img = None
@@ -69,6 +70,7 @@ class Base_img():
     reverse_bytes = 0
     nnumber, nvalues = 0, 0
     image_mutex = threading.Lock()
+    display_raw = False
 
     def __init__(self):
         pass
@@ -196,15 +198,18 @@ class Plot_events(Base_img):
                 Base_img.reverse_bytes)
         self.change_channel_labels()
         if Base_img.img.color_format.pixel_format == PixelFormat.MONO:
-            Base_img.img_postchanneled = get_displayable(Base_img.img)
+            Base_img.img_postchanneled = get_displayable(
+                Base_img.img, raw=Base_img.display_raw)
         else:
             Base_img.img_postchanneled = get_displayable(
-                Base_img.img, Base_img.height, {
+                Base_img.img,
+                Base_img.height, {
                     "r_y": dpg.get_value(items.buttons.r_ychannel),
                     "g_u": dpg.get_value(items.buttons.g_uchannel),
                     "b_v": dpg.get_value(items.buttons.b_vchannel),
                     "a_v": dpg.get_value(items.buttons.a_vchannel)
-                })
+                },
+                raw=Base_img.display_raw)
         Base_img.raw_data = np.frombuffer(
             Base_img.img_postchanneled.tobytes(),
             dtype=np.uint8).astype("float32") / 255.0
