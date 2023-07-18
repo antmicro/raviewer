@@ -189,3 +189,9 @@ class SettingsWindow():
                              show=True,
                              tag=items.static_text.image_resolution)
                 dpg.add_separator()
+
+                dpg.add_checkbox(label="Raw display",
+                                 indent=5,
+                                 callback=self.events.display_raw,
+                                 tag=items.buttons.raw_display)
+                dpg.add_separator()

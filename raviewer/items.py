@@ -66,6 +66,7 @@ __items = {
         "nnumber",
         "nvalues",
         "nnumber_every_frame",
+        "raw_display",
         "n_frames_setter",
         "frame_setter",
         "reverse",

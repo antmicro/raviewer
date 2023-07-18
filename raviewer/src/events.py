@@ -134,6 +134,12 @@ class Plot_events(Base_img):
             if Base_img.img != None:
                 self.update_image(fit_image=True)
 
+    def display_raw(self, sender, app_data):
+        with Base_img.image_mutex:
+            Base_img.display_raw = app_data
+            if Base_img.img != None:
+                self.update_image(False)
+
     def update_color_info(self):
         color_format = determine_color_format(Base_img.color_format)
         custom_text= "Pixel format name:  " +  color_format.name +\
