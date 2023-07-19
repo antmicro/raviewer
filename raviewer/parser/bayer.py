@@ -103,10 +103,19 @@ class ParserBayerRG(AbstractParser):
         if palette.shape != (1, 4, 3):
             raise ValueError("Expected palette to be (1, 4, 3) shaped.")
 
-        t = numpy.vstack(numpy.hsplit(raw,
-                                      raw.shape[1] // 2)).reshape(-1, 4, 1)
+        # Split image into 2 pixels wide columns and stack them vertically.
+        t = numpy.vstack(numpy.hsplit(raw, raw.shape[1] // 2))
+
+        # Reshape it into a shape (x, 4, 1) broadcastable with the palette (1, 4, 3)
+        t = t.reshape(-1, 4, 1)
+
+        # Compute RGB values by scaling each palette vector by corresponding pixel.
         t = t * palette
+
+        # Return to the shape obtained in the first step
         t = t.reshape(-1, 2, 3)
+
+        # Perform an inverse operation to one from the first step
         t = numpy.hstack(numpy.vsplit(t, raw.shape[1] // 2))
 
         return t
