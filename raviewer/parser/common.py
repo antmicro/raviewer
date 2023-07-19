@@ -23,6 +23,13 @@ class AbstractParser(metaclass=ABCMeta):
         """
         pass
 
+    def raw_coloring(self, image, palette):
+        raise NotImplementedError
+
+    @property
+    def supports_raw(self):
+        return False
+
     def get_dtype(self, max_value, endianness):
         if max_value <= 8:
             return '>u1' if endianness == Endianness.BIG_ENDIAN else '<u1'
