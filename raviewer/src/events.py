@@ -50,6 +50,7 @@ class Base_img():
         raw_data: image raw data in texture float format
         image_series: image series associated with plot
         display_raw: whether image should be displayed raw (e.g. non-debayerized)
+        palette: dictionary containing color mappings for raw display
     """
 
     img = None
@@ -71,6 +72,7 @@ class Base_img():
     nnumber, nvalues = 0, 0
     image_mutex = threading.Lock()
     display_raw = False
+    palette = {"R": (1., 0., 0.), "G": (0., 1., 0.), "B": (0., 0., 1.)}
 
     def __init__(self):
         pass
@@ -205,7 +207,9 @@ class Plot_events(Base_img):
         self.change_channel_labels()
         if Base_img.img.color_format.pixel_format == PixelFormat.MONO:
             Base_img.img_postchanneled = get_displayable(
-                Base_img.img, raw=Base_img.display_raw)
+                Base_img.img,
+                raw=Base_img.display_raw,
+                palette=Base_img.palette)
         else:
             Base_img.img_postchanneled = get_displayable(
                 Base_img.img,
@@ -215,7 +219,8 @@ class Plot_events(Base_img):
                     "b_v": dpg.get_value(items.buttons.b_vchannel),
                     "a_v": dpg.get_value(items.buttons.a_vchannel)
                 },
-                raw=Base_img.display_raw)
+                raw=Base_img.display_raw,
+                palette=Base_img.palette)
         Base_img.raw_data = np.frombuffer(
             Base_img.img_postchanneled.tobytes(),
             dtype=np.uint8).astype("float32") / 255.0

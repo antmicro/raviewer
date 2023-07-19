@@ -62,7 +62,7 @@ class ParserBayerRG(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // width)
 
-    def get_displayable(self, image, channels, debayer=True):
+    def get_displayable(self, image, channels, debayer=True, palette=None):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
@@ -87,11 +87,12 @@ class ParserBayerRG(AbstractParser):
             return cv.cvtColor(return_data.astype('uint8'),
                                cv.COLOR_BAYER_BG2RGB)
 
-        palette = numpy.array([[1, 0, 0], [0, 1, 0], [0, 1, 0],
-                               [0, 0, 1]]).reshape((1, 4, 3))
+        n_palette = numpy.array(
+            [palette["R"], palette["G"], palette["G"], palette["B"]]).reshape(
+                (1, 4, 3))
 
         return self.__non_debayerized_display(return_data,
-                                              palette).astype('uint8')
+                                              n_palette).astype('uint8')
 
     @staticmethod
     def __non_debayerized_display(raw, palette):

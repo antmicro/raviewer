@@ -49,7 +49,8 @@ def get_displayable(image,
                         "b_v": True,
                         "a_v": True
                     },
-                    raw=False):
+                    raw=False,
+                    palette=None):
     if image.color_format is None:
         raise Exception("Image should be already parsed!")
     parser = ParserFactory.create_object(image.color_format)
@@ -63,7 +64,8 @@ def get_displayable(image,
     elif image.color_format.pixel_format == PixelFormat.BAYER_RG:
         return parser.get_displayable(image,
                                       channels=channels,
-                                      debayer=(not raw))
+                                      debayer=(not raw),
+                                      palette=palette)
     else:
         return parser.get_displayable(image, channels=channels)
 
