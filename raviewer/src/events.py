@@ -142,6 +142,12 @@ class Plot_events(Base_img):
             if Base_img.img != None:
                 self.update_image(False)
 
+    def update_palette(self, sender, app_data, user_data):
+        with Base_img.image_mutex:
+            Base_img.palette[user_data] = tuple(app_data[:3])
+            if Base_img.img != None:
+                self.update_image(False)
+
     def update_color_info(self):
         color_format = determine_color_format(Base_img.color_format)
         custom_text= "Pixel format name:  " +  color_format.name +\

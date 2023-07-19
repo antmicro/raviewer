@@ -190,8 +190,35 @@ class SettingsWindow():
                              tag=items.static_text.image_resolution)
                 dpg.add_separator()
 
-                dpg.add_checkbox(label="Raw display",
+                dpg.add_checkbox(label="Raw view",
                                  indent=5,
                                  callback=self.events.display_raw,
                                  tag=items.buttons.raw_display)
+
+                with dpg.group(label="Palette group"):
+                    dpg.add_color_edit(default_value=(255, 0, 0),
+                                       label='R',
+                                       no_alpha=True,
+                                       alpha_bar=False,
+                                       callback=self.events.update_palette,
+                                       tag=items.color_edit.rchannel,
+                                       user_data='R',
+                                       indent=5)
+                    dpg.add_color_edit(default_value=(0, 255, 0),
+                                       label='G',
+                                       no_alpha=True,
+                                       alpha_bar=False,
+                                       callback=self.events.update_palette,
+                                       tag=items.color_edit.gchannel,
+                                       user_data='G',
+                                       indent=5)
+                    dpg.add_color_edit(default_value=(0, 0, 255),
+                                       label='B',
+                                       no_alpha=True,
+                                       alpha_bar=False,
+                                       callback=self.events.update_palette,
+                                       tag=items.color_edit.bchannel,
+                                       user_data='B',
+                                       indent=5)
+
                 dpg.add_separator()

@@ -122,6 +122,7 @@ __items = {
     "theme": [
         "general",
     ],
+    "color_edit": ["rchannel", "gchannel", "bchannel"]
 }
 
 
