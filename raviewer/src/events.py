@@ -16,6 +16,7 @@ from .utils import (RGBtoYUV, determine_color_format, save_image_as_file)
 from .hexviewer import Hexviewer
 from .controls import Controls
 from .camera_ctrls import CameraCtrls
+from ..format_recognition.detect import classify_top1, classify_all, predict_resolution
 from pyrav4l2 import Device, Stream, WrongFrameInterval
 import threading
 
@@ -56,8 +57,10 @@ class Base_img():
     data_buffer = None
     path_to_File = None
     color_format = None
+    list_of_formats = list(AVAILABLE_FORMATS.keys())
     width = 800
     height = 0
+    list_of_resolutions = [[800, 0]]
     n_frames = 1
     selected_part = list()
     left_column, right_column = 0, 0
@@ -71,6 +74,7 @@ class Base_img():
     nnumber, nvalues = 0, 0
     image_mutex = threading.Lock()
     display_raw = False
+    endianness = None
 
     def __init__(self):
         pass
@@ -200,14 +204,13 @@ class Plot_events(Base_img):
         custom_text= "Pixel format name:  " +  color_format.name +\
                         "\nPixel format:  " + str(color_format.pixel_format)[12:]+\
                         "\nPixel plane:  " + str(color_format.pixel_plane)[11:] + "\nBits per component:  " + str(color_format.bits_per_components)
-        # Converting enum object to string gives the full attribute name (eg. Endianness.LITTLE_ENDIAN)
-        # To properly display endiannes, we must split result string by '.' and take it's second half
-        dpg.set_value(items.buttons.endianness,
-                      str(color_format.endianness).split('.')[1])
+        dpg.set_value(items.buttons.endianness, Base_img.endianness)
         dpg.set_value(items.static_text.color_description, custom_text)
 
     def update_image(self, fit_image, channels=None):
         with dpg.mutex():
+            AVAILABLE_FORMATS[Base_img.color_format].endianness = Endianness[
+                Base_img.endianness]
             self.refresh_image()
             dpg.set_value(
                 items.buttons.height_setter, Base_img.img.height
@@ -594,7 +597,40 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             self._set_color_format(args["color_format"])
             Base_img.height = args["height"]
             Base_img.img = load_image(Base_img.path_to_File)
+            if args["color_format"] == "unknown":
+                predictions, endianness = classify_all(Base_img.img)
+                args["color_format"] = predictions[0]
+                list_of_formats = predictions + [
+                    fmt for fmt in option_list if fmt not in predictions
+                ]
+                Base_img.endianness = endianness
+            else:
+                predictions, endianness = classify_all(Base_img.img)
+                list_of_formats = [args["color_format"]] + [
+                    fmt for fmt in predictions if fmt != args["color_format"]
+                ] + [
+                    fmt for fmt in option_list
+                    if fmt != args["color_format"] and fmt not in predictions
+                ]
+                Base_img.endianness = str(AVAILABLE_FORMATS[
+                    args["color_format"]].endianness).split('.')[1]
+            resolutions = predict_resolution(Base_img.img,
+                                             args["color_format"])
+            if args["width"] == 0:
+                args["width"] = resolutions[0][0]
+            else:
+                resolutions = [[args["width"], args["height"]]] + resolutions
+            Base_img.width = args["width"]
+            Base_img.height = args["height"]
+            Base_img.list_of_resolutions = resolutions
             Base_img.data_buffer = Base_img.img.data_buffer
+        else:
+            args["color_format"] = "RGB24"
+            list_of_formats = [args["color_format"]] + [
+                fmt for fmt in option_list if fmt != args["color_format"]
+            ]
+        Base_img.color_format = args["color_format"]
+        Base_img.list_of_formats = list_of_formats
         self.camera_ctrls = None
 
         self.stream_thread = None
@@ -617,6 +653,19 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             path = list_of_paths[0]
             Base_img.path_to_File = path
             Base_img.img = load_image(Base_img.path_to_File)
+            predictions, endianness = classify_all(Base_img.img)
+            Base_img.color_format = predictions[0]
+            option_list = list(AVAILABLE_FORMATS.keys())
+            list_of_formats = predictions + [
+                fmt for fmt in option_list if fmt not in predictions
+            ]
+            dpg.configure_item(items.buttons.combo, items=list_of_formats)
+            self.change_endianness(0, endianness)
+            Base_img.list_of_formats = list_of_formats
+            Base_img.list_of_resolutions = predict_resolution(
+                Base_img.img, Base_img.color_format)
+            Base_img.width = Base_img.list_of_resolutions[0][0]
+            Base_img.height = 0
             Base_img.data_buffer = Base_img.img.data_buffer
             Plot_events.update_image(self, fit_image=True)
             dpg.enable_item(items.menu_bar.export_tab)
@@ -765,6 +814,17 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
                 Base_img.height = data
                 Plot_events.update_image(self, fit_image=True)
 
+    def change_resolution(self, callback_id, data):
+        idx = -1
+        i = 0
+        while i < len(Base_img.list_of_resolutions):
+            if Base_img.width == Base_img.list_of_resolutions[i][0]:
+                idx = i
+                break
+            i += 1
+        idx = (idx + 1) % len(Base_img.list_of_resolutions)
+        self._update_width(Base_img.list_of_resolutions[idx][0])
+
     @Plot_events.indicate_loading
     def format_color(self, callback_id, data):
         self._format_color(data)
@@ -772,12 +832,15 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     def _format_color(self, color_format):
         with Base_img.image_mutex:
             self._set_color_format(color_format)
+            Base_img.endianness = str(
+                AVAILABLE_FORMATS[color_format].endianness).split('.')[1]
             Plot_events.update_color_info(self)
             if Base_img.img != None:
                 Plot_events.update_image(self, fit_image=True)
 
     def change_endianness(self, callback_id, data):
         AVAILABLE_FORMATS[Base_img.color_format].endianness = Endianness[data]
+        Base_img.endianness = data
         if Base_img.img != None:
             Plot_events.update_image(self, fit_image=True)
 

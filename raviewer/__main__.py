@@ -14,6 +14,7 @@ from .src.core import (get_displayable, load_image, parse_image)
 from .src.utils import save_image_as_file
 from .image.color_format import AVAILABLE_FORMATS
 from .gui.gui_init import AppInit
+from .format_recognition.detect import classify_top1, predict_resolution
 from tests import test_formats
 
 
@@ -61,6 +62,10 @@ def run(file_path, width, height, color_format, export, args):
             raise FileNotFoundError(
                 "{} - no such file or directory".format(export))
         img = load_image(file_path)
+        if color_format == "unknown":
+            color_format, _ = classify_top1(img)
+        if width == 0:
+            width, _ = predict_resolution(img, color_format)[0]
         img = parse_image(img.data_buffer, color_format, width)
         if height < 1: height = img.height
         save_image_as_file(get_displayable(img, height), export)
@@ -78,14 +83,14 @@ def main():
 
     parser.add_argument("-c",
                         "--color_format",
-                        default=list(AVAILABLE_FORMATS.keys())[0],
+                        default="unknown",
                         help="Target color format (default: %(default)s)")
 
     parser.add_argument("-w",
                         "--width",
                         metavar=("width"),
                         type=int,
-                        default=800,
+                        default=0,
                         help="Target width (default: %(default)s)")
 
     parser.add_argument("-e",

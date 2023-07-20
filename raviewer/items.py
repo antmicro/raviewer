@@ -76,6 +76,7 @@ __items = {
         "camera_framesize",
         "stream",
         "frame_rate",
+        "change_resolution",
     ],
     "groups": ["camera_ctrls", "palette", "raw_view"],
     "menu_bar": [

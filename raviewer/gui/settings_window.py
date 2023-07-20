@@ -39,7 +39,7 @@ class SettingsWindow():
 
                 dpg.add_combo(tag=items.buttons.combo,
                               default_value=self.events.color_format,
-                              items=list(option_list),
+                              items=self.events.list_of_formats,
                               indent=5,
                               callback=self.events.format_color,
                               height_mode=dpg.mvComboHeight_Regular,
@@ -52,6 +52,7 @@ class SettingsWindow():
                 option_endianness = ["LITTLE_ENDIAN", "BIG_ENDIAN"]
 
                 dpg.add_combo(tag=items.buttons.endianness,
+                              default_value=self.events.endianness,
                               items=list(option_endianness),
                               indent=5,
                               callback=self.events.change_endianness,
@@ -99,6 +100,11 @@ class SettingsWindow():
                                       indent=5,
                                       step=0,
                                       step_fast=0)
+                    dpg.add_button(label="Find resolution",
+                                   width=170,
+                                   indent=5,
+                                   tag=items.buttons.change_resolution,
+                                   callback=self.events.change_resolution)
                 dpg.add_separator()
                 dpg.add_text("Selected pixel values",
                              indent=5,
