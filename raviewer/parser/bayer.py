@@ -96,7 +96,9 @@ class ParserBayer(AbstractParser, metaclass=ABCMeta):
 
     def _bayer_raw_coloring(self, image, filter):
         im = self._preprocess(image)
-        cmap = self._get_cmap(image.color_format, filter)
+        if (cmap := self._get_cmap(image.color_format, filter)) is None:
+            return None
+
         return self._non_debayerized_display(im, cmap).astype('uint8')
 
     def _bayer_get_displayable(self, image, channels, code):
