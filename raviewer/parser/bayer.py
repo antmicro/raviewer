@@ -1,4 +1,5 @@
 """Parser implementation for Bayer pixel format"""
+from abc import ABCMeta
 
 from ..image.image import Image
 from ..image.color_format import Endianness, Platform
@@ -9,8 +10,7 @@ import numpy
 import cv2 as cv
 
 
-class ParserBayerRG(AbstractParser):
-    """A Bayer RGGB implementation of a parser"""
+class ParserBayer(AbstractParser, metaclass=ABCMeta):
 
     def parse(self, raw_data, color_format, width, reverse_bytes=0):
         """Parses provided raw data to an image, calculating height from provided width.
@@ -94,23 +94,18 @@ class ParserBayerRG(AbstractParser):
 
         return cmap
 
-    def get_displayable(self, image: Image, channels):
-        """Provides displayable image data (RGB formatted)
+    def _bayer_raw_coloring(self, image, filter):
+        im = self._preprocess(image)
+        cmap = self._get_cmap(image.color_format, filter)
+        return self._non_debayerized_display(im, cmap).astype('uint8')
 
-        Returns: Numpy array containing displayable data.
-        """
+    def _bayer_get_displayable(self, image, channels, code):
         im = self._preprocess(image)
         im = self._channel_mask(im, channels)
 
         # Converting from Bayer BG (but data is Bayer RG) to RGB -> THIS IS A BUG IN OPENCV
 
-        return cv.cvtColor(im.astype('uint8'), cv.COLOR_BAYER_BG2RGB)
-
-    def raw_coloring(self, image: Image):
-        im = self._preprocess(image)
-        cmap = self._get_cmap(image.color_format, ['R', 'G', 'G', 'B'])
-
-        return self._non_debayerized_display(im, cmap).astype('uint8')
+        return cv.cvtColor(im.astype('uint8'), code)
 
     @staticmethod
     def _non_debayerized_display(im, cmap):
@@ -156,3 +151,44 @@ class ParserBayerRG(AbstractParser):
         truncated_image = reshaped_image[up_row:down_row,
                                          left_column:right_column]
         return truncated_image
+
+
+class ParserBayerRG(ParserBayer):
+
+    def get_displayable(self, image: Image, channels):
+        # Converting from Bayer BG (but data is Bayer RG) to RGB -> THIS IS A BUG IN OPENCV
+        return self._bayer_get_displayable(image, channels,
+                                           cv.COLOR_BAYER_BG2RGB)
+
+    def raw_coloring(self, image: Image):
+        return self._bayer_raw_coloring(image, ['R', 'G', 'G', 'B'])
+
+
+class ParserBayerBG(ParserBayer):
+
+    def get_displayable(self, image: Image, channels):
+        return self._bayer_get_displayable(image, channels,
+                                           cv.COLOR_BAYER_RG2RGB)
+
+    def raw_coloring(self, image: Image):
+        return self._bayer_raw_coloring(image, ['B', 'G', 'G', 'R'])
+
+
+class ParserBayerGB(ParserBayer):
+
+    def get_displayable(self, image: Image, channels):
+        return self._bayer_get_displayable(image, channels,
+                                           cv.COLOR_BAYER_GR2RGB)
+
+    def raw_coloring(self, image: Image):
+        return self._bayer_raw_coloring(image, ['G', 'B', 'R', 'G'])
+
+
+class ParserBayerGR(ParserBayer):
+
+    def get_displayable(self, image: Image, channels):
+        return self._bayer_get_displayable(image, channels,
+                                           cv.COLOR_BAYER_GB2RGB)
+
+    def raw_coloring(self, image: Image):
+        return self._bayer_raw_coloring(image, ['G', 'R', 'B', 'G'])

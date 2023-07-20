@@ -21,6 +21,9 @@ class PixelFormat(Enum):
     YVU = 12
     MONO = 13
     BAYER_RG = 14
+    BAYER_BG = 15
+    BAYER_GB = 16
+    BAYER_GR = 17
     CUSTOM = 0
 
 
@@ -112,6 +115,10 @@ class SubsampledColorFormat(ColorFormat):
                          bpc3, bpc4, name, fourcc)
         self.subsampling_horizontal = subsampling_horizontal
         self.subsampling_vertical = subsampling_vertical
+
+
+def rgb_palette():
+    return {"R": (1., 0., 0.), "G": (0., 1., 0.), "B": (0., 0., 1.)}
 
 
 AVAILABLE_FORMATS = {
@@ -399,6 +406,36 @@ AVAILABLE_FORMATS = {
                 0,
                 name="GRAY12",
                 fourcc=V4L2_PIX_FMT_Y12),
+    'BGGR':
+    ColorFormat(PixelFormat.BAYER_BG,
+                Endianness.BIG_ENDIAN,
+                PixelPlane.PACKED,
+                8,
+                8,
+                8,
+                name="BGGR",
+                fourcc=V4L2_PIX_FMT_SBGGR8,
+                palette=rgb_palette()),
+    'GBRG':
+    ColorFormat(PixelFormat.BAYER_GB,
+                Endianness.BIG_ENDIAN,
+                PixelPlane.PACKED,
+                8,
+                8,
+                8,
+                name="GBRG",
+                fourcc=V4L2_PIX_FMT_SGBRG8,
+                palette=rgb_palette()),
+    'GRBG':
+    ColorFormat(PixelFormat.BAYER_GR,
+                Endianness.BIG_ENDIAN,
+                PixelPlane.PACKED,
+                8,
+                8,
+                8,
+                name="GRBG",
+                fourcc=V4L2_PIX_FMT_SGRBG8,
+                palette=rgb_palette()),
     'RGGB':
     ColorFormat(PixelFormat.BAYER_RG,
                 Endianness.BIG_ENDIAN,
@@ -408,11 +445,7 @@ AVAILABLE_FORMATS = {
                 8,
                 name="RGGB",
                 fourcc=V4L2_PIX_FMT_SRGGB8,
-                palette={
-                    "R": (1., 0., 0.),
-                    "G": (0., 1., 0.),
-                    "B": (0., 0., 1.)
-                }),
+                palette=rgb_palette()),
     'RG10':
     ColorFormat(PixelFormat.BAYER_RG,
                 Endianness.BIG_ENDIAN,
