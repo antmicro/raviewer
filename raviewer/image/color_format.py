@@ -58,7 +58,8 @@ class ColorFormat():
                  bpc4=0,
                  name="unnamed",
                  fourcc=None,
-                 platform=None):
+                 platform=None,
+                 palette=None):
         self.name = name
         self.platform = platform
         self.pixel_format = pixel_format
@@ -66,6 +67,7 @@ class ColorFormat():
         self.endianness = endianness
         self.pixel_plane = pixel_plane
         self._bpcs = (bpc1, bpc2, bpc3, bpc4)
+        self.palette = palette
 
     @property
     def bits_per_components(self):
@@ -405,7 +407,12 @@ AVAILABLE_FORMATS = {
                 8,
                 8,
                 name="RGGB",
-                fourcc=V4L2_PIX_FMT_SRGGB8),
+                fourcc=V4L2_PIX_FMT_SRGGB8,
+                palette={
+                    "R": (1., 0., 0.),
+                    "G": (0., 1., 0.),
+                    "B": (0., 0., 1.)
+                }),
     'RG10':
     ColorFormat(PixelFormat.BAYER_RG,
                 Endianness.BIG_ENDIAN,

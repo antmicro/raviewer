@@ -12,7 +12,7 @@ class AbstractParser(metaclass=ABCMeta):
     """An abstract data parser"""
 
     @abstractmethod
-    def get_displayable(self, image):
+    def get_displayable(self, image: Image):
         """Provides displayable image data (RGB formatted)
         
         Keyword arguments:
@@ -23,12 +23,8 @@ class AbstractParser(metaclass=ABCMeta):
         """
         pass
 
-    def raw_coloring(self, image, palette):
-        raise NotImplementedError
-
-    @property
-    def supports_raw(self):
-        return False
+    def raw_coloring(self, image):
+        return None
 
     def get_dtype(self, max_value, endianness):
         if max_value <= 8:

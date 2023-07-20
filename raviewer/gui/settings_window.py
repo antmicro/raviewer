@@ -195,30 +195,5 @@ class SettingsWindow():
                                  callback=self.events.display_raw,
                                  tag=items.buttons.raw_display)
 
-                with dpg.group(label="Palette group"):
-                    dpg.add_color_edit(default_value=(255, 0, 0),
-                                       label='R',
-                                       no_alpha=True,
-                                       alpha_bar=False,
-                                       callback=self.events.update_palette,
-                                       tag=items.color_edit.rchannel,
-                                       user_data='R',
-                                       indent=5)
-                    dpg.add_color_edit(default_value=(0, 255, 0),
-                                       label='G',
-                                       no_alpha=True,
-                                       alpha_bar=False,
-                                       callback=self.events.update_palette,
-                                       tag=items.color_edit.gchannel,
-                                       user_data='G',
-                                       indent=5)
-                    dpg.add_color_edit(default_value=(0, 0, 255),
-                                       label='B',
-                                       no_alpha=True,
-                                       alpha_bar=False,
-                                       callback=self.events.update_palette,
-                                       tag=items.color_edit.bchannel,
-                                       user_data='B',
-                                       indent=5)
-
+                dpg.add_group(label="Palette group", tag=items.groups.palette)
                 dpg.add_separator()

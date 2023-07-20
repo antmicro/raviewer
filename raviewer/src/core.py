@@ -49,14 +49,13 @@ def get_displayable(image,
                         "b_v": True,
                         "a_v": True
                     },
-                    raw=False,
-                    palette=None):
+                    raw=False):
     if image.color_format is None:
         raise Exception("Image should be already parsed!")
     parser = ParserFactory.create_object(image.color_format)
 
-    if raw and parser.supports_raw:
-        return parser.raw_coloring(image, palette)
+    if raw and (out := parser.raw_coloring(image)) is not None:
+        return out
 
     if image.color_format.pixel_format == PixelFormat.MONO:
         return parser.get_displayable(image)

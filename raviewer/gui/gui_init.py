@@ -21,6 +21,7 @@ class AppInit():
         self.vp_color = (201, 201, 201)
         self.events = Events(args)
         self.create_gui_widgets(args)
+        self.events._set_color_format(args['color_format'])
 
     def init_viewport_spec(self):
         dpg.set_viewport_title(title='Raviewer')

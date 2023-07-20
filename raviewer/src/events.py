@@ -50,7 +50,6 @@ class Base_img():
         raw_data: image raw data in texture float format
         image_series: image series associated with plot
         display_raw: whether image should be displayed raw (e.g. non-debayerized)
-        palette: dictionary containing color mappings for raw display
     """
 
     img = None
@@ -72,7 +71,6 @@ class Base_img():
     nnumber, nvalues = 0, 0
     image_mutex = threading.Lock()
     display_raw = False
-    palette = {"R": (1., 0., 0.), "G": (0., 1., 0.), "B": (0., 0., 1.)}
 
     def __init__(self):
         pass
@@ -143,10 +141,44 @@ class Plot_events(Base_img):
                 self.update_image(False)
 
     def update_palette(self, sender, app_data, user_data):
+        if max(app_data) > 1. or min(app_data) < 0.:
+            app_data = tuple((max(min(x, 1.), 0.) for x in app_data))
+            dpg.set_value(sender, tuple((int(x * 255) for x in app_data)))
+
         with Base_img.image_mutex:
-            Base_img.palette[user_data] = tuple(app_data[:3])
+            cf = determine_color_format(Base_img.color_format)
+            if cf.palette is not None:
+                cf.palette[user_data] = tuple(app_data[:3])
+
             if Base_img.img != None:
                 self.update_image(False)
+
+    def _set_color_format(self, color_format):
+        Base_img.color_format = color_format
+        cf = determine_color_format(color_format)
+        self._update_color_edits(cf.palette)
+
+    def _update_color_edits(self, palette):
+        pg = items.groups.palette
+        try:
+            dpg.configure_item(pg, show=False)
+            dpg.delete_item(pg, children_only=True)
+
+            if palette is not None:
+                for l, v in palette.items():
+                    dval = tuple([int(x * 255) for x in v])
+                    dpg.add_color_edit(default_value=dval,
+                                       label=l,
+                                       no_alpha=True,
+                                       alpha_bar=False,
+                                       callback=self.update_palette,
+                                       user_data=l,
+                                       indent=5,
+                                       parent=pg)
+
+                dpg.configure_item(pg, show=True)
+        except SystemError:
+            pass
 
     def update_color_info(self):
         color_format = determine_color_format(Base_img.color_format)
@@ -213,9 +245,7 @@ class Plot_events(Base_img):
         self.change_channel_labels()
         if Base_img.img.color_format.pixel_format == PixelFormat.MONO:
             Base_img.img_postchanneled = get_displayable(
-                Base_img.img,
-                raw=Base_img.display_raw,
-                palette=Base_img.palette)
+                Base_img.img, raw=Base_img.display_raw)
         else:
             Base_img.img_postchanneled = get_displayable(
                 Base_img.img,
@@ -225,8 +255,7 @@ class Plot_events(Base_img):
                     "b_v": dpg.get_value(items.buttons.b_vchannel),
                     "a_v": dpg.get_value(items.buttons.a_vchannel)
                 },
-                raw=Base_img.display_raw,
-                palette=Base_img.palette)
+                raw=Base_img.display_raw)
         Base_img.raw_data = np.frombuffer(
             Base_img.img_postchanneled.tobytes(),
             dtype=np.uint8).astype("float32") / 255.0
@@ -539,10 +568,11 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
         option_list = list(AVAILABLE_FORMATS.keys())
         for index in range(0, len(option_list)):
             if args["color_format"] == option_list[index]:
-                Base_img.color_format = option_list[index]
+                self._set_color_format(option_list[index])
+
         if Base_img.path_to_File != None:
             Base_img.width = args["width"]
-            Base_img.color_format = args["color_format"]
+            self._set_color_format(args["color_format"])
             Base_img.height = args["height"]
             Base_img.img = load_image(Base_img.path_to_File)
             Base_img.data_buffer = Base_img.img.data_buffer
@@ -722,7 +752,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
     def _format_color(self, color_format):
         with Base_img.image_mutex:
-            Base_img.color_format = color_format
+            self._set_color_format(color_format)
             Plot_events.update_color_info(self)
             if Base_img.img != None:
                 Plot_events.update_image(self, fit_image=True)

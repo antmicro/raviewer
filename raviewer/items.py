@@ -77,9 +77,7 @@ __items = {
         "stream",
         "frame_rate",
     ],
-    "groups": [
-        "camera_ctrls",
-    ],
+    "groups": ["camera_ctrls", "palette"],
     "menu_bar": [
         "export_tab",
         "file",
@@ -121,8 +119,7 @@ __items = {
     ],
     "theme": [
         "general",
-    ],
-    "color_edit": ["rchannel", "gchannel", "bchannel"]
+    ]
 }
 
 
