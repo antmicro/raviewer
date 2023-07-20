@@ -63,7 +63,7 @@ class ParserBayerRG(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // width)
 
-    def __preprocess(self, image):
+    def _preprocess(self, image):
         return_data = numpy.reshape(numpy.copy(image.processed_data),
                                     (image.height, image.width))
         coeff = 255 / (2**image.color_format.bits_per_components[0] - 1)
@@ -71,38 +71,44 @@ class ParserBayerRG(AbstractParser):
 
         return return_data
 
+    def _channel_mask(self, im, channels):
+        if not channels["r_y"]:
+            im[0::2, 0::2] = 0
+        if not channels["g_u"]:
+            im[1::2, 0::2] = 0
+            im[0::2, 1::2] = 0
+        if not channels["b_v"]:
+            im[1::2, 1::2] = 0
+
+        return im
+
+    def _get_cmap(self, color_format, filter):
+        assert len(filter) == 4
+        assert set(filter).issubset(['R', 'G', 'B'])
+
+        if color_format is None or color_format.palette is None:
+            return None
+
+        cmap = numpy.array([color_format.palette[x] for x in filter]).reshape(
+            (1, 4, 3))
+
+        return cmap
+
     def get_displayable(self, image: Image, channels):
         """Provides displayable image data (RGB formatted)
 
         Returns: Numpy array containing displayable data.
         """
-        return_data = self.__preprocess(image)
-
-        #Set RGGB channels
-        if not channels["r_y"]:
-            return_data[0::2, 0::2] = 0
-        if not channels["g_u"]:
-            return_data[1::2, 0::2] = 0
-            return_data[0::2, 1::2] = 0
-        if not channels["b_v"]:
-            return_data[1::2, 1::2] = 0
+        im = self._preprocess(image)
+        im = self._channel_mask(im, channels)
 
         # Converting from Bayer BG (but data is Bayer RG) to RGB -> THIS IS A BUG IN OPENCV
 
-        return cv.cvtColor(return_data.astype('uint8'), cv.COLOR_BAYER_BG2RGB)
+        return cv.cvtColor(im.astype('uint8'), cv.COLOR_BAYER_BG2RGB)
 
     def raw_coloring(self, image: Image):
-        if image.color_format is None:
-            return None
-
-        palette = image.color_format.palette
-        if palette is None:
-            return None
-
-        im = self.__preprocess(image)
-        cmap = numpy.array([[palette[x]
-                             for x in ['R', 'G', 'G', 'B']]]).reshape(
-                                 (1, 4, 3))
+        im = self._preprocess(image)
+        cmap = self._get_cmap(image.color_format, ['R', 'G', 'G', 'B'])
 
         return self._non_debayerized_display(im, cmap).astype('uint8')
 
