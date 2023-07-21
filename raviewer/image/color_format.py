@@ -110,11 +110,13 @@ class SubsampledColorFormat(ColorFormat):
                  name="unnamed",
                  subsampling_horizontal=1,
                  subsampling_vertical=1,
-                 fourcc=None):
+                 fourcc=None,
+                 palette=None):
         super().__init__(pixel_format, endianness, pixel_plane, bpc1, bpc2,
                          bpc3, bpc4, name, fourcc)
         self.subsampling_horizontal = subsampling_horizontal
         self.subsampling_vertical = subsampling_vertical
+        self.palette = palette
 
 
 def rgb_palette():
@@ -336,7 +338,12 @@ AVAILABLE_FORMATS = {
                           name="NV12",
                           subsampling_horizontal=2,
                           subsampling_vertical=2,
-                          fourcc=V4L2_PIX_FMT_NV12),
+                          fourcc=V4L2_PIX_FMT_NV12,
+                          palette={
+                              "Y": (1., 1., 1.),
+                              "U": (1., 0., 1.),
+                              "V": (0., 1., 1.)
+                          }),
     'NV21':
     SubsampledColorFormat(PixelFormat.YVU,
                           Endianness.BIG_ENDIAN,
@@ -347,7 +354,12 @@ AVAILABLE_FORMATS = {
                           name="NV21",
                           subsampling_horizontal=2,
                           subsampling_vertical=2,
-                          fourcc=V4L2_PIX_FMT_NV21),
+                          fourcc=V4L2_PIX_FMT_NV21,
+                          palette={
+                              "Y": (1., 1., 1.),
+                              "U": (1., 0., 1.),
+                              "V": (0., 1., 1.)
+                          }),
     'I420':
     SubsampledColorFormat(PixelFormat.YUV,
                           Endianness.BIG_ENDIAN,
@@ -357,7 +369,12 @@ AVAILABLE_FORMATS = {
                           8,
                           name="I420",
                           subsampling_horizontal=2,
-                          subsampling_vertical=2),
+                          subsampling_vertical=2,
+                          palette={
+                              "Y": (1., 1., 1.),
+                              "U": (1., 0., 1.),
+                              "V": (0., 1., 1.)
+                          }),
     'YV12':
     SubsampledColorFormat(PixelFormat.YVU,
                           Endianness.BIG_ENDIAN,
@@ -368,7 +385,12 @@ AVAILABLE_FORMATS = {
                           name="YV12",
                           subsampling_horizontal=2,
                           subsampling_vertical=2,
-                          fourcc=V4L2_PIX_FMT_YVU420),
+                          fourcc=V4L2_PIX_FMT_YVU420,
+                          palette={
+                              "Y": (1., 1., 1.),
+                              "U": (1., 0., 1.),
+                              "V": (0., 1., 1.)
+                          }),
     'I422':
     SubsampledColorFormat(PixelFormat.YUV,
                           Endianness.BIG_ENDIAN,

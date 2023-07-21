@@ -85,6 +85,21 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
     def _channel_mask(self, channels, image, im, height):
         pass
 
+    def _raw_channel_color(self, image, im):
+        p = (image.color_format.palette[x] for x in self._order)
+        p = [numpy.array(x).reshape((1, 1, 3)).astype('float64') for x in p]
+
+        im = im.astype('float64')
+
+        im[:image.height, :] *= p[0]
+
+        cmap = numpy.array(p[1:]).reshape((1, 2, 3))
+
+        uv = im[image.height:, :].reshape((-1, 2, 3))
+        uv *= cmap
+
+        return im
+
     def _preprocess(self, image, i, height):
         return image.processed_data[i * image.width *
                                     int(height * 1.5):(1 + i) * image.width *
@@ -115,6 +130,11 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
     def _conversion_const(self):
         pass
 
+    @property
+    @abstractmethod
+    def _order(self):
+        pass
+
     def _get_nframes(self, image, height):
         return 0 if image.height == 0 else math.ceil(image.height / height)
 
@@ -143,6 +163,30 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
             processed_data = self._pad(image, return_data)
 
             return_data = cv.cvtColor(processed_data, self._conversion_const)
+            tmp.append(return_data)
+
+        return concatenate_frames(tmp)
+
+    def raw_coloring(self, image):
+        tmp = []
+
+        height = image.height
+
+        n_frames = self._get_nframes(image, height)
+
+        for i in range(n_frames):
+            return_data = self._preprocess(image, i, height)
+
+            processed_data = self._pad(image, return_data)
+
+            processed_data = numpy.expand_dims(processed_data, 2)
+
+            return_data = processed_data * numpy.array([1, 1, 1]).reshape(
+                (1, 1, 3))
+
+            return_data = self._raw_channel_color(image, return_data)
+
+            return_data = return_data.astype('uint8')
             tmp.append(return_data)
 
         return concatenate_frames(tmp)
@@ -190,6 +234,10 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
 
 class ParserYUVSP(ParserYUV420):
 
+    @property
+    def _order(self):
+        return ['Y', 'U', 'V']
+
     def _channel_mask(self, channels, image, im, height):
         if not channels["r_y"]:
             im[0:image.width * height] = 0
@@ -207,6 +255,10 @@ class ParserYUVSP(ParserYUV420):
 
 class ParserYVUSP(ParserYUV420):
 
+    @property
+    def _order(self):
+        return ['Y', 'V', 'U']
+
     def _channel_mask(self, channels, image, im, height):
         if not channels["r_y"]:
             im[0:image.width * height] = 0
@@ -222,12 +274,23 @@ class ParserYVUSP(ParserYUV420):
         return cv.COLOR_YUV2RGB_NV21
 
 
-class ParserYUV420Planar(ParserYUV420):
+class ParserYUV420Planar(ParserYUV420, metaclass=ABCMeta):
     """A planar YUV420 implementation of a parser"""
 
     def _get_nframes(self, image, height):
         return 0 if image.height == 0 else math.ceil(
             len(image.processed_data) / image.width / height / 1.5)
+
+    def _raw_channel_color(self, image, im):
+        p = (image.color_format.palette[x] for x in self._order)
+        p = [numpy.array(x).reshape((1, 1, 3)).astype('float64') for x in p]
+
+        im = im.astype('float64')
+        im[:image.height, :] *= p[0]
+        im[image.height:image.height + image.height // 4, :] *= p[1]
+        im[image.height + image.height // 4:, :] *= p[2]
+
+        return im
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
@@ -287,6 +350,10 @@ class ParserYUVP(ParserYUV420Planar):
     def _conversion_const(self):
         return cv.COLOR_YUV2RGB_I420
 
+    @property
+    def _order(self):
+        return ['Y', 'U', 'V']
+
 
 class ParserYVUP(ParserYUV420Planar):
 
@@ -304,6 +371,10 @@ class ParserYVUP(ParserYUV420Planar):
     @property
     def _conversion_const(self):
         return cv.COLOR_YUV2RGB_YV12
+
+    @property
+    def _order(self):
+        return ['Y', 'V', 'U']
 
 
 class ParserYUV422(AbstractParser):

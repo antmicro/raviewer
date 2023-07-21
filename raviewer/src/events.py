@@ -231,8 +231,13 @@ class Plot_events(Base_img):
             if (items.texture.raw):
                 dpg.delete_item(Base_img.image_series)
 
-            self.add_texture(Base_img.img.width, Base_img.img.height,
-                             Base_img.raw_data)
+            if not Base_img.display_raw:
+                self.add_texture(Base_img.img.width, Base_img.img.height,
+                                 Base_img.raw_data)
+            else:
+                self.add_texture(Base_img.img_postchanneled.shape[1],
+                                 Base_img.img_postchanneled.shape[0],
+                                 Base_img.raw_data)
 
             Base_img.image_series = dpg.add_image_series(
                 texture_tag=items.texture.raw,
