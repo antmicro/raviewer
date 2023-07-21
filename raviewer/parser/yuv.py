@@ -1,4 +1,5 @@
 """Parser implementation for YUV pixel format"""
+from abc import abstractmethod, ABCMeta
 
 from ..image.color_format import PixelFormat, Endianness
 from ..image.image import Image
@@ -40,7 +41,7 @@ def concatenate_frames(frames):
         numpy.concatenate(frames, axis=0)
 
 
-class ParserYUV420(AbstractParser):
+class ParserYUV420(AbstractParser, metaclass=ABCMeta):
     """A semi-planar YUV420 implementation of a parser"""
 
     def parse(self, raw_data, color_format, width, reverse_bytes=0):
@@ -80,6 +81,43 @@ class ParserYUV420(AbstractParser):
         new_height = math.ceil(math.ceil(processed_data.size / width) / 1.5)
         return Image(raw_data, color_format, processed_data, width, new_height)
 
+    @abstractmethod
+    def _channel_mask(self, channels, image, im, height):
+        pass
+
+    def _preprocess(self, image, i, height):
+        return image.processed_data[i * image.width *
+                                    int(height * 1.5):(1 + i) * image.width *
+                                    int(height * 1.5)]
+
+    def _pad(self, image, im):
+        processed_data = numpy.reshape(
+            im, (int(im.size / image.width), image.width)).astype('uint8')
+
+        if processed_data.shape[0] % 3 != 0:
+            processed_data = numpy.concatenate(
+                (processed_data,
+                 numpy.zeros(
+                     (3 -
+                      (processed_data.shape[0] % 3), processed_data.shape[1]),
+                     dtype=numpy.uint8)))
+
+        if processed_data.shape[1] % 2 != 0:
+            processed_data = numpy.concatenate(
+                (processed_data,
+                 numpy.zeros((processed_data.shape[0], 1), dtype=numpy.uint8)),
+                axis=1)
+
+        return processed_data
+
+    @property
+    @abstractmethod
+    def _conversion_const(self):
+        pass
+
+    def _get_nframes(self, image, height):
+        return 0 if image.height == 0 else math.ceil(image.height / height)
+
     def get_displayable(self,
                         image,
                         height=0,
@@ -93,57 +131,18 @@ class ParserYUV420(AbstractParser):
         Returns: Numpy array containing displayable data.
         """
         tmp = []
-        return_data = image.processed_data
-        conversion_const = None
-        if height < 1: height = image.height
-        n_frames = 0 if image.height == 0 else math.ceil(image.height / height)
+        if height < 1:
+            height = image.height
+
+        n_frames = self._get_nframes(image, height)
+
         for i in range(n_frames):
-            return_data = image.processed_data[i * image.width *
-                                               int(height * 1.5):(1 + i) *
-                                               image.width * int(height * 1.5)]
-            if image.color_format.pixel_format == PixelFormat.YUV:
-                conversion_const = cv.COLOR_YUV2RGB_NV12
-                if not channels["r_y"]:
-                    return_data[0:image.width * height] = 0
-                if not channels["g_u"]:
-                    return_data[image.width * height::2] = 0
-                if not channels["b_v"]:
-                    return_data[image.width * height + 1::2] = 0
-                if not channels["b_v"] and not channels["g_u"] and channels[
-                        "r_y"]:
-                    return_data = return_data[0:image.width * height]
-                    conversion_const = cv.COLOR_GRAY2RGB
-            elif image.color_format.pixel_format == PixelFormat.YVU:
-                conversion_const = cv.COLOR_YUV2RGB_NV21
-                if not channels["r_y"]:
-                    return_data[0:image.width * height] = 0
-                if not channels["g_u"]:
-                    return_data[image.width * height + 1::2] = 0
-                if not channels["b_v"]:
-                    return_data[image.width * height::2] = 0
-                if not channels["b_v"] and not channels["g_u"] and channels[
-                        "r_y"]:
-                    return_data = return_data[0:image.width * height]
-                    conversion_const = cv.COLOR_GRAY2RGB
+            return_data = self._preprocess(image, i, height)
+            return_data = self._channel_mask(channels, image, return_data,
+                                             height)
+            processed_data = self._pad(image, return_data)
 
-            processed_data = numpy.reshape(return_data, (int(
-                return_data.size / image.width), image.width)).astype('uint8')
-
-            if conversion_const != cv.COLOR_GRAY2RGB:
-                if (processed_data.shape[0] % 3 != 0):
-                    processed_data = numpy.concatenate(
-                        (processed_data,
-                         numpy.zeros((3 - (processed_data.shape[0] % 3),
-                                      processed_data.shape[1]),
-                                     dtype=numpy.uint8)))
-                if (processed_data.shape[1] % 2 != 0):
-                    processed_data = numpy.concatenate(
-                        (processed_data,
-                         numpy.zeros(
-                             (processed_data.shape[0], 1), dtype=numpy.uint8)),
-                        axis=1)
-
-            return_data = cv.cvtColor(processed_data, conversion_const)
+            return_data = cv.cvtColor(processed_data, self._conversion_const)
             tmp.append(return_data)
 
         return concatenate_frames(tmp)
@@ -189,79 +188,46 @@ class ParserYUV420(AbstractParser):
         return yuv
 
 
+class ParserYUVSP(ParserYUV420):
+
+    def _channel_mask(self, channels, image, im, height):
+        if not channels["r_y"]:
+            im[0:image.width * height] = 0
+        if not channels["g_u"]:
+            im[image.width * height::2] = 0
+        if not channels["b_v"]:
+            im[image.width * height + 1::2] = 0
+
+        return im
+
+    @property
+    def _conversion_const(self):
+        return cv.COLOR_YUV2RGB_NV12
+
+
+class ParserYVUSP(ParserYUV420):
+
+    def _channel_mask(self, channels, image, im, height):
+        if not channels["r_y"]:
+            im[0:image.width * height] = 0
+        if not channels["g_u"]:
+            im[image.width * height + 1::2] = 0
+        if not channels["b_v"]:
+            im[image.width * height::2] = 0
+
+        return im
+
+    @property
+    def _conversion_const(self):
+        return cv.COLOR_YUV2RGB_NV21
+
+
 class ParserYUV420Planar(ParserYUV420):
     """A planar YUV420 implementation of a parser"""
 
-    def get_displayable(self,
-                        image,
-                        height,
-                        channels={
-                            "r_y": True,
-                            "g_u": True,
-                            "b_v": True
-                        }):
-        """Provides displayable image data (RGB formatted)
-
-        Returns: Numpy array containing displayable data.
-        """
-        tmp = []
-        if height < 1: height = image.height
-        n_frames = 0 if image.height == 0 else math.ceil(
+    def _get_nframes(self, image, height):
+        return 0 if image.height == 0 else math.ceil(
             len(image.processed_data) / image.width / height / 1.5)
-        for i in range(n_frames):
-            return_data = image.processed_data[int(height * 1.5) *
-                                               image.width * i:(1 + i) *
-                                               image.width * int(height * 1.5)]
-
-            conversion_const = None
-            if image.color_format.pixel_format == PixelFormat.YUV:
-                conversion_const = cv.COLOR_YUV2RGB_I420
-                if not channels["r_y"]:
-                    return_data[0:image.width * height] = 0
-                if not channels["g_u"]:
-                    return_data[image.width * height + 1:image.width * height +
-                                image.width * height // 4] = 0
-                if not channels["b_v"]:
-                    return_data[image.width * height +
-                                image.width * height // 4:] = 0
-                if not channels["b_v"] and not channels["g_u"] and channels[
-                        "r_y"]:
-                    return_data = return_data[0:height * image.width]
-                    conversion_const = cv.COLOR_GRAY2RGB
-
-            elif image.color_format.pixel_format == PixelFormat.YVU:
-                conversion_const = cv.COLOR_YUV2RGB_YV12
-                if not channels["r_y"]:
-                    return_data[0:image.width * height] = 0
-                if not channels["g_u"]:
-                    return_data[image.width * height +
-                                image.width * height // 4:] = 0
-                if not channels["b_v"]:
-                    return_data[image.width * height + 1:image.width * height +
-                                image.width * height // 4] = 0
-                if not channels["b_v"] and not channels["g_u"] and channels[
-                        "r_y"]:
-                    return_data = return_data[0:height * image.width]
-                    conversion_const = cv.COLOR_GRAY2RGB
-
-            processed_data = numpy.reshape(return_data, (int(
-                return_data.size / image.width), image.width)).astype('uint8')
-            if conversion_const != cv.COLOR_GRAY2RGB:
-                if (processed_data.shape[0] % 3 != 0):
-                    processed_data = numpy.concatenate(
-                        (processed_data,
-                         numpy.zeros((3 - (processed_data.shape[0] % 3),
-                                      processed_data.shape[1]),
-                                     dtype=numpy.uint8)))
-                if (processed_data.shape[1] % 2 != 0):
-                    processed_data = numpy.concatenate(
-                        (processed_data,
-                         numpy.zeros(
-                             (processed_data.shape[0], 1), dtype=numpy.uint8)),
-                        axis=1)
-            tmp.append(cv.cvtColor(processed_data, conversion_const))
-
-        return concatenate_frames(tmp)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
@@ -302,6 +268,42 @@ class ParserYUV420Planar(ParserYUV420):
                                     left_column:right_column]).flatten(), u, v
         ])
         return yuv
+
+
+class ParserYUVP(ParserYUV420Planar):
+
+    def _channel_mask(self, channels, image, im, height):
+        if not channels["r_y"]:
+            im[0:image.width * height] = 0
+        if not channels["g_u"]:
+            im[image.width * height + 1:image.width * height +
+               image.width * height // 4] = 0
+        if not channels["b_v"]:
+            im[image.width * height + image.width * height // 4:] = 0
+
+        return im
+
+    @property
+    def _conversion_const(self):
+        return cv.COLOR_YUV2RGB_I420
+
+
+class ParserYVUP(ParserYUV420Planar):
+
+    def _channel_mask(self, channels, image, im, height):
+        if not channels["r_y"]:
+            im[0:image.width * height] = 0
+        if not channels["g_u"]:
+            im[image.width * height + image.width * height // 4:] = 0
+        if not channels["b_v"]:
+            im[image.width * height + 1:image.width * height +
+               image.width * height // 4] = 0
+
+        return im
+
+    @property
+    def _conversion_const(self):
+        return cv.COLOR_YUV2RGB_YV12
 
 
 class ParserYUV422(AbstractParser):
