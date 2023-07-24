@@ -2,8 +2,8 @@ import unittest
 import numpy
 import os
 from unittest.mock import (Mock, patch)
-from raviewer.parser.yuv import ParserYUV420, ParserYUV422, ParserYUV420Planar, ParserYUV422Planar, ParserYUVSP, \
-    ParserYUVP
+from raviewer.parser.yuv import ParserYUV422Planar, ParserYUVSP, \
+    ParserYUVP, ParserUYVY
 from enum import Enum
 
 
@@ -58,7 +58,7 @@ class TestYUVParserClass(unittest.TestCase):
         self.raw_data_Y422 = bytes((255, 255, 0, 255, 0, 0, 255, 0))
         self.Y422_IMAGE.data_buffer = self.raw_data_Y422
 
-        self.parserY422 = ParserYUV422()
+        self.parserY422 = ParserUYVY()
 
     @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
@@ -99,25 +99,11 @@ class TestYUVParserClass(unittest.TestCase):
                                                       [0, 54, 255]]])).all())
 
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
-    @patch(
-        "raviewer.parser.yuv.ParserYUV422.yuv_442_offsets", {
-            DummyPixelFormat.UYVY: {
-                "Y": 1,
-                "U": 0,
-                "V": 2,
-            },
-            DummyPixelFormat.YUYV: {
-                "Y": 0,
-                "U": 1,
-                "V": 3,
-            },
-        })
     def test_get_displayable_Y422(self):
 
         displayable = self.parserY422.get_displayable(self.Y422_IMAGE)
         self.assertEqual(displayable.shape,
                          (self.Y422_IMAGE.height, self.Y422_IMAGE.width, 3))
-        print(displayable)
         self.assertTrue((displayable == numpy.array([[[74, 255, 255],
                                                       [74, 255, 255]],
                                                      [[203, 0, 0],
