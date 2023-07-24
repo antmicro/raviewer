@@ -23,7 +23,7 @@ class AbstractParser(metaclass=ABCMeta):
         """
         pass
 
-    def raw_coloring(self, image):
+    def raw_coloring(self, image, height=0):
         return None
 
     def get_dtype(self, max_value, endianness):

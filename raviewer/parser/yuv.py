@@ -167,10 +167,11 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
 
         return concatenate_frames(tmp)
 
-    def raw_coloring(self, image):
+    def raw_coloring(self, image, height=0):
         tmp = []
 
-        height = image.height
+        if height < 1:
+            height = image.height
 
         n_frames = self._get_nframes(image, height)
 
@@ -460,9 +461,11 @@ class ParserYUV422Packed(ParserYUV422, metaclass=ABCMeta):
 
         return im.reshape((-1, image.width, 3))
 
-    def raw_coloring(self, image):
+    def raw_coloring(self, image, height=0):
         tmp = []
-        height = image.height
+        if height < 1:
+            height = image.height
+
         n_frames = 0 if image.height == 0 else math.ceil(image.height / height)
 
         for i in range(n_frames):

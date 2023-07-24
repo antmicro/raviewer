@@ -162,7 +162,7 @@ class ParserBayerRG(ParserBayer):
         return self._bayer_get_displayable(image, channels,
                                            cv.COLOR_BAYER_BG2RGB)
 
-    def raw_coloring(self, image: Image):
+    def raw_coloring(self, image: Image, height=0):
         return self._bayer_raw_coloring(image, ['R', 'G', 'G', 'B'])
 
 
@@ -172,7 +172,7 @@ class ParserBayerBG(ParserBayer):
         return self._bayer_get_displayable(image, channels,
                                            cv.COLOR_BAYER_RG2RGB)
 
-    def raw_coloring(self, image: Image):
+    def raw_coloring(self, image: Image, height=0):
         return self._bayer_raw_coloring(image, ['B', 'G', 'G', 'R'])
 
 
@@ -182,7 +182,7 @@ class ParserBayerGB(ParserBayer):
         return self._bayer_get_displayable(image, channels,
                                            cv.COLOR_BAYER_GR2RGB)
 
-    def raw_coloring(self, image: Image):
+    def raw_coloring(self, image: Image, height=0):
         return self._bayer_raw_coloring(image, ['G', 'B', 'R', 'G'])
 
 
@@ -192,5 +192,5 @@ class ParserBayerGR(ParserBayer):
         return self._bayer_get_displayable(image, channels,
                                            cv.COLOR_BAYER_GB2RGB)
 
-    def raw_coloring(self, image: Image):
+    def raw_coloring(self, image: Image, height=0):
         return self._bayer_raw_coloring(image, ['G', 'R', 'B', 'G'])
