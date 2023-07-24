@@ -291,7 +291,12 @@ AVAILABLE_FORMATS = {
                           "YUY2",
                           2,
                           1,
-                          fourcc=V4L2_PIX_FMT_YUYV),
+                          fourcc=V4L2_PIX_FMT_YUYV,
+                          palette={
+                              "Y": (1., 1., 1.),
+                              "U": (1., 0., 1.),
+                              "V": (0., 1., 1.)
+                          }),
     'UYVY':
     SubsampledColorFormat(PixelFormat.UYVY,
                           Endianness.BIG_ENDIAN,
@@ -303,7 +308,12 @@ AVAILABLE_FORMATS = {
                           "UYVY",
                           2,
                           1,
-                          fourcc=V4L2_PIX_FMT_UYVY),
+                          fourcc=V4L2_PIX_FMT_UYVY,
+                          palette={
+                              "Y": (1., 1., 1.),
+                              "U": (1., 0., 1.),
+                              "V": (0., 1., 1.)
+                          }),
     'YVYU':
     SubsampledColorFormat(PixelFormat.YVYU,
                           Endianness.BIG_ENDIAN,
@@ -315,7 +325,12 @@ AVAILABLE_FORMATS = {
                           "YVYU",
                           2,
                           1,
-                          fourcc=V4L2_PIX_FMT_YVYU),
+                          fourcc=V4L2_PIX_FMT_YVYU,
+                          palette={
+                              "Y": (1., 1., 1.),
+                              "U": (1., 0., 1.),
+                              "V": (0., 1., 1.)
+                          }),
     'VYUY':
     SubsampledColorFormat(PixelFormat.VYUY,
                           Endianness.BIG_ENDIAN,
@@ -327,7 +342,12 @@ AVAILABLE_FORMATS = {
                           "VYUY",
                           2,
                           1,
-                          fourcc=V4L2_PIX_FMT_VYUY),
+                          fourcc=V4L2_PIX_FMT_VYUY,
+                          palette={
+                              "Y": (1., 1., 1.),
+                              "U": (1., 0., 1.),
+                              "V": (0., 1., 1.)
+                          }),
     'NV12':
     SubsampledColorFormat(PixelFormat.YUV,
                           Endianness.BIG_ENDIAN,

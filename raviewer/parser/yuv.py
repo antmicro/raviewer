@@ -449,6 +449,36 @@ class ParserYUV422Packed(ParserYUV422, metaclass=ABCMeta):
 
         return concatenate_frames(tmp)
 
+    def _raw_channel_color(self, image, im):
+        p = [image.color_format.palette[x] for x in self._order]
+        p = numpy.array(p).astype('float64').reshape((1, 4, 3))
+
+        im = im.astype('float64')
+
+        im = im.reshape((-1, 4, 1))
+        im = im * p
+
+        return im.reshape((-1, image.width, 3))
+
+    def raw_coloring(self, image):
+        tmp = []
+        height = image.height
+        n_frames = 0 if image.height == 0 else math.ceil(image.height / height)
+
+        for i in range(n_frames):
+            temp_processed_data = image.processed_data[i * (
+                image.width * height * 2):(1 + i) * (image.width * height * 2)]
+            height = math.ceil(len(temp_processed_data) / image.width / 2)
+
+            return_data = self._raw_channel_color(image, temp_processed_data)
+
+            return_data = return_data.astype('uint8')
+            return_data = return_data.reshape((-1, image.width, 3))
+
+            tmp.append(return_data)
+
+        return concatenate_frames(tmp)
+
     def get_pixel_raw_components(self, image, row, column, index):
         return image.processed_data[(index // 2) * 4:(index // 2) * 4 + 4]
 
@@ -465,8 +495,12 @@ class ParserYUV422Packed(ParserYUV422, metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def _offset(self):
+    def _order(self):
         pass
+
+    @property
+    def _offset(self):
+        return {c: self._order.find(c) for c in "YUV"}
 
     def _color_mask(self, im, channels):
         if not channels["r_y"]:
@@ -482,12 +516,8 @@ class ParserYUV422Packed(ParserYUV422, metaclass=ABCMeta):
 class ParserYUYV(ParserYUV422Packed):
 
     @property
-    def _offset(self):
-        return {
-            "Y": 0,
-            "U": 1,
-            "V": 3,
-        }
+    def _order(self):
+        return "YUYV"
 
     def _conversion_func(self, im, height, width):
         return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_YUYV)
@@ -496,12 +526,8 @@ class ParserYUYV(ParserYUV422Packed):
 class ParserUYVY(ParserYUV422Packed):
 
     @property
-    def _offset(self):
-        return {
-            "Y": 1,
-            "U": 0,
-            "V": 2,
-        }
+    def _order(self):
+        return "UYVY"
 
     def _conversion_func(self, im, height, width):
         return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_UYVY)
@@ -510,12 +536,8 @@ class ParserUYVY(ParserYUV422Packed):
 class ParserVYUY(ParserYUV422Packed):
 
     @property
-    def _offset(self):
-        return {
-            "Y": 1,
-            "U": 2,
-            "V": 0,
-        }
+    def _order(self):
+        return "VYUY"
 
     def _conversion_func(self, im, height, width):
         im = im.reshape((-1, 4))[:, [2, 1, 0, 3]]
@@ -525,12 +547,8 @@ class ParserVYUY(ParserYUV422Packed):
 class ParserYVYU(ParserYUV422Packed):
 
     @property
-    def _offset(self):
-        return {
-            "Y": 0,
-            "U": 3,
-            "V": 1,
-        }
+    def _order(self):
+        return "YVYU"
 
     def _conversion_func(self, im, height, width):
         return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_YVYU)
