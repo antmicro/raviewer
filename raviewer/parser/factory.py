@@ -5,7 +5,7 @@ from ..image.color_format import (PixelPlane, PixelFormat)
 from .rgb import ParserARGB, ParserRGBA
 from .yuv import (ParserYUV420, ParserYUV420Planar, ParserYUV422,
                   ParserYUV422Planar, ParserYUVSP, ParserYVUSP, ParserYUVP,
-                  ParserYVUP)
+                  ParserYVUP, ParserYUYV, ParserUYVY, ParserVYUY, ParserYVYU)
 from .grayscale import ParserGrayscale
 
 
@@ -35,10 +35,10 @@ class ParserFactory:
                 PixelFormat.ABGR: ParserARGB,
                 PixelFormat.RGB: ParserRGBA,
                 PixelFormat.BGR: ParserRGBA,
-                PixelFormat.YUYV: ParserYUV422,
-                PixelFormat.UYVY: ParserYUV422,
-                PixelFormat.VYUY: ParserYUV422,
-                PixelFormat.YVYU: ParserYUV422
+                PixelFormat.YUYV: ParserYUYV,
+                PixelFormat.UYVY: ParserUYVY,
+                PixelFormat.VYUY: ParserVYUY,
+                PixelFormat.YVYU: ParserYVYU
             }
         elif color_format.pixel_plane == PixelPlane.SEMIPLANAR:
             mapping = {

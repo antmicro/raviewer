@@ -377,30 +377,7 @@ class ParserYVUP(ParserYUV420Planar):
         return ['Y', 'V', 'U']
 
 
-class ParserYUV422(AbstractParser):
-    """Respresenation defining YUV component offsets of packed YUV422"""
-    yuv_442_offsets = {
-        PixelFormat.YUYV: {
-            "Y": 0,
-            "U": 1,
-            "V": 3,
-        },
-        PixelFormat.UYVY: {
-            "Y": 1,
-            "U": 0,
-            "V": 2,
-        },
-        PixelFormat.VYUY: {
-            "Y": 1,
-            "U": 2,
-            "V": 0,
-        },
-        PixelFormat.YVYU: {
-            "Y": 0,
-            "U": 3,
-            "V": 1,
-        },
-    }
+class ParserYUV422(AbstractParser, metaclass=ABCMeta):
     """A packed YUV422 implementation of a parser"""
 
     def parse(self, raw_data, color_format, width, reverse_bytes=0):
@@ -440,6 +417,9 @@ class ParserYUV422(AbstractParser):
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // (width * 2))
 
+
+class ParserYUV422Packed(ParserYUV422, metaclass=ABCMeta):
+
     def get_displayable(self,
                         image,
                         height=0,
@@ -460,47 +440,14 @@ class ParserYUV422(AbstractParser):
             temp_processed_data = image.processed_data[i * (
                 image.width * height * 2):(1 + i) * (image.width * height * 2)]
             height = math.ceil(len(temp_processed_data) / image.width / 2)
-            if not channels["r_y"]:
-                temp_processed_data[self.yuv_442_offsets[
-                    image.color_format.pixel_format]["Y"]::2] = 0
-            if not channels["g_u"]:
-                temp_processed_data[self.yuv_442_offsets[
-                    image.color_format.pixel_format]["U"]::4] = 0
-            if not channels["b_v"]:
-                temp_processed_data[self.yuv_442_offsets[
-                    image.color_format.pixel_format]["V"]::4] = 0
 
-            return_data = numpy.reshape(
-                temp_processed_data.copy(),
-                (height, image.width, 2)).astype('uint8')
-            conversion_const = None
-            if image.color_format.pixel_format == PixelFormat.YUYV:
-                conversion_const = cv.COLOR_YUV2RGB_YUYV
-            elif image.color_format.pixel_format == PixelFormat.UYVY:
-                conversion_const = cv.COLOR_YUV2RGB_UYVY
-            elif image.color_format.pixel_format == PixelFormat.YVYU:
-                conversion_const = cv.COLOR_YUV2RGB_YVYU
-            elif image.color_format.pixel_format == PixelFormat.VYUY:
-                temp_processed_data = temp_processed_data.reshape(
-                    (-1, 4))[:, [2, 1, 0, 3]]
-                temp_processed_data = temp_processed_data.reshape(
-                    (height, image.width, 2))
-                conversion_const = cv.COLOR_YUV2RGB_UYVY
-
-            if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
-                return_data = cv.cvtColor(return_data[:, :, 0],
-                                          cv.COLOR_GRAY2RGB)
-            else:
-                return_data = self.convert2RGB(temp_processed_data,
-                                               image.width, height,
-                                               conversion_const, image)
+            temp_processed_data = self._color_mask(temp_processed_data,
+                                                   channels)
+            return_data = self._conversion_func(temp_processed_data, height,
+                                                image.width)
             tmp.append(return_data)
 
         return concatenate_frames(tmp)
-
-    def convert2RGB(self, processed_data, width, height, conversion, image):
-        return cv.cvtColor(processed_data.reshape(height, width, 2),
-                           conversion)
 
     def get_pixel_raw_components(self, image, row, column, index):
         return image.processed_data[(index // 2) * 4:(index // 2) * 4 + 4]
@@ -511,6 +458,82 @@ class ParserYUV422(AbstractParser):
             image.processed_data.astype(numpy.byte),
             (image.height, len(image.processed_data) // image.height))
         return return_data[up_row:down_row, left_column * 2:right_column * 2]
+
+    @abstractmethod
+    def _conversion_func(self, im, height, width):
+        pass
+
+    @property
+    @abstractmethod
+    def _offset(self):
+        pass
+
+    def _color_mask(self, im, channels):
+        if not channels["r_y"]:
+            im[self._offset["Y"]::2] = 0
+        if not channels["g_u"]:
+            im[self._offset["U"]::4] = 0
+        if not channels["b_v"]:
+            im[self._offset["V"]::4] = 0
+
+        return im
+
+
+class ParserYUYV(ParserYUV422Packed):
+
+    @property
+    def _offset(self):
+        return {
+            "Y": 0,
+            "U": 1,
+            "V": 3,
+        }
+
+    def _conversion_func(self, im, height, width):
+        return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_YUYV)
+
+
+class ParserUYVY(ParserYUV422Packed):
+
+    @property
+    def _offset(self):
+        return {
+            "Y": 1,
+            "U": 0,
+            "V": 2,
+        }
+
+    def _conversion_func(self, im, height, width):
+        return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_UYVY)
+
+
+class ParserVYUY(ParserYUV422Packed):
+
+    @property
+    def _offset(self):
+        return {
+            "Y": 1,
+            "U": 2,
+            "V": 0,
+        }
+
+    def _conversion_func(self, im, height, width):
+        im = im.reshape((-1, 4))[:, [2, 1, 0, 3]]
+        return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_UYVY)
+
+
+class ParserYVYU(ParserYUV422Packed):
+
+    @property
+    def _offset(self):
+        return {
+            "Y": 0,
+            "U": 3,
+            "V": 1,
+        }
+
+    def _conversion_func(self, im, height, width):
+        return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_YVYU)
 
 
 class ParserYUV422Planar(ParserYUV422):
