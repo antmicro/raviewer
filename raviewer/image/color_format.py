@@ -420,7 +420,12 @@ AVAILABLE_FORMATS = {
                           8,
                           name="I422",
                           subsampling_horizontal=2,
-                          subsampling_vertical=1),
+                          subsampling_vertical=1,
+                          palette={
+                              "Y": (1., 1., 1.),
+                              "U": (1., 0., 1.),
+                              "V": (0., 1., 1.)
+                          }),
     'GRAY':
     ColorFormat(PixelFormat.MONO,
                 Endianness.BIG_ENDIAN,

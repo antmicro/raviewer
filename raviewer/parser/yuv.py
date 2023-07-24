@@ -559,6 +559,15 @@ class ParserYVYU(ParserYUV422Packed):
 
 class ParserYUV422Planar(ParserYUV422):
 
+    def _get_nframes(self, image, height):
+        return 0 if image.height == 0 else math.ceil(
+            len(image.processed_data) / image.width / height / 2)
+
+    def _preprocess(self, image, height, i):
+        return image.processed_data[int(i * (image.width * height) *
+                                        2):int((1 + i) *
+                                               (image.width * height) * 2)]
+
     def get_displayable(self,
                         image,
                         height,
@@ -576,12 +585,9 @@ class ParserYUV422Planar(ParserYUV422):
             conversion_const = cv.COLOR_YUV2RGB_YUYV
         if height < 1: height = image.height
         tmp = []
-        n_frames = 0 if image.height == 0 else math.ceil(
-            len(image.processed_data) / image.width / height / 2)
+        n_frames = self._get_nframes(image, height)
         for i in range(n_frames):
-            temp_processed_data = image.processed_data[int(i * (
-                image.width * height) * 2):int((1 + i) *
-                                               (image.width * height) * 2)]
+            temp_processed_data = self._preprocess(image, height, i)
             height = math.ceil(len(temp_processed_data) / image.width / 2)
             return_data = numpy.zeros((height, image.width, 2),
                                       dtype=numpy.uint8)
@@ -619,6 +625,40 @@ class ParserYUV422Planar(ParserYUV422):
             tmp.append(return_data)
 
         return concatenate_frames(tmp)
+
+    def raw_coloring(self, image, height=0):
+        tmp = []
+
+        if height < 1:
+            height = image.height
+
+        n_frames = self._get_nframes(image, height)
+
+        for i in range(n_frames):
+            processed_data = self._preprocess(image, height, i)
+
+            processed_data = processed_data.reshape((-1, image.width, 1))
+
+            return_data = processed_data * numpy.array([1, 1, 1]).reshape(
+                (1, 1, 3))
+
+            return_data = self._raw_channel_color(image, return_data)
+
+            return_data = return_data.astype('uint8')
+            tmp.append(return_data)
+
+        return concatenate_frames(tmp)
+
+    def _raw_channel_color(self, image, im):
+        p = (image.color_format.palette[x] for x in "YUV")
+        p = [numpy.array(x).reshape((1, 1, 3)).astype('float64') for x in p]
+
+        im = im.astype('float64')
+        im[:image.height, :] *= p[0]
+        im[image.height:image.height + image.height // 2, :] *= p[1]
+        im[image.height + image.height // 2:, :] *= p[2]
+
+        return im
 
     def convert2RGB(self, processed_data, width, height, conversion):
         y = processed_data[0:height * width:]
