@@ -77,7 +77,7 @@ __items = {
         "stream",
         "frame_rate",
     ],
-    "groups": ["camera_ctrls", "palette"],
+    "groups": ["camera_ctrls", "palette", "raw_view"],
     "menu_bar": [
         "export_tab",
         "file",

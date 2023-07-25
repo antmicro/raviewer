@@ -188,12 +188,23 @@ class SettingsWindow():
                              indent=5,
                              show=True,
                              tag=items.static_text.image_resolution)
-                dpg.add_separator()
 
-                dpg.add_checkbox(label="Raw view",
-                                 indent=5,
-                                 callback=self.events.display_raw,
-                                 tag=items.buttons.raw_display)
+                with dpg.theme() as palette_theme:
+                    with dpg.theme_component(dpg.mvColorEdit,
+                                             enabled_state=False):
+                        dpg.add_theme_color(dpg.mvThemeCol_Text,
+                                            (128, 128, 128))
 
-                dpg.add_group(label="Palette group", tag=items.groups.palette)
+                with dpg.group(label="Raw view group",
+                               tag=items.groups.raw_view):
+                    dpg.add_separator()
+                    dpg.add_checkbox(label="Raw view",
+                                     indent=5,
+                                     callback=self.events.display_raw,
+                                     tag=items.buttons.raw_display)
+
+                    dpg.add_group(label="Palette group",
+                                  tag=items.groups.palette)
+
+                dpg.bind_item_theme(items.groups.palette, palette_theme)
                 dpg.add_separator()

@@ -137,6 +137,10 @@ class Plot_events(Base_img):
     def display_raw(self, sender, app_data):
         with Base_img.image_mutex:
             Base_img.display_raw = app_data
+
+            cf = determine_color_format(Base_img.color_format)
+            self._update_color_edits(cf.palette)
+
             if Base_img.img != None:
                 self.update_image(False)
 
@@ -156,6 +160,15 @@ class Plot_events(Base_img):
     def _set_color_format(self, color_format):
         Base_img.color_format = color_format
         cf = determine_color_format(color_format)
+
+        if not dpg.does_item_exist(items.groups.raw_view):
+            return
+
+        if cf.palette is None:
+            dpg.configure_item(items.groups.raw_view, show=False)
+            return
+
+        dpg.configure_item(items.groups.raw_view, show=True)
         self._update_color_edits(cf.palette)
 
     def _update_color_edits(self, palette):
@@ -174,7 +187,9 @@ class Plot_events(Base_img):
                                        callback=self.update_palette,
                                        user_data=l,
                                        indent=5,
-                                       parent=pg)
+                                       parent=pg,
+                                       enabled=Base_img.display_raw,
+                                       no_picker=not Base_img.display_raw)
 
                 dpg.configure_item(pg, show=True)
         except SystemError:
