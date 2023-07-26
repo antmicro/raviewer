@@ -86,6 +86,7 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
         pass
 
     def _raw_channel_color(self, image, im):
+        im = numpy.copy(im)
         p = (image.color_format.palette[x] for x in self._order)
         p = [numpy.array(x).reshape((1, 1, 3)).astype('float64') for x in p]
 
@@ -101,11 +102,12 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
         return im
 
     def _preprocess(self, image, i, height):
-        return image.processed_data[i * image.width *
-                                    int(height * 1.5):(1 + i) * image.width *
-                                    int(height * 1.5)]
+        return numpy.copy(
+            image.processed_data[i * image.width * int(height * 1.5):(1 + i) *
+                                 image.width * int(height * 1.5)])
 
     def _pad(self, image, im):
+        im = numpy.copy(im)
         processed_data = numpy.reshape(
             im, (int(im.size / image.width), image.width)).astype('uint8')
 
@@ -240,6 +242,7 @@ class ParserYUVSP(ParserYUV420):
         return ['Y', 'U', 'V']
 
     def _channel_mask(self, channels, image, im, height):
+        im = numpy.copy(im)
         if not channels["r_y"]:
             im[0:image.width * height] = 0
         if not channels["g_u"]:
@@ -261,6 +264,7 @@ class ParserYVUSP(ParserYUV420):
         return ['Y', 'V', 'U']
 
     def _channel_mask(self, channels, image, im, height):
+        im = numpy.copy(im)
         if not channels["r_y"]:
             im[0:image.width * height] = 0
         if not channels["g_u"]:
@@ -283,6 +287,7 @@ class ParserYUV420Planar(ParserYUV420, metaclass=ABCMeta):
             len(image.processed_data) / image.width / height / 1.5)
 
     def _raw_channel_color(self, image, im):
+        im = numpy.copy(im)
         p = (image.color_format.palette[x] for x in self._order)
         p = [numpy.array(x).reshape((1, 1, 3)).astype('float64') for x in p]
 
@@ -337,6 +342,7 @@ class ParserYUV420Planar(ParserYUV420, metaclass=ABCMeta):
 class ParserYUVP(ParserYUV420Planar):
 
     def _channel_mask(self, channels, image, im, height):
+        im = numpy.copy(im)
         if not channels["r_y"]:
             im[0:image.width * height] = 0
         if not channels["g_u"]:
@@ -359,6 +365,7 @@ class ParserYUVP(ParserYUV420Planar):
 class ParserYVUP(ParserYUV420Planar):
 
     def _channel_mask(self, channels, image, im, height):
+        im = numpy.copy(im)
         if not channels["r_y"]:
             im[0:image.width * height] = 0
         if not channels["g_u"]:
@@ -451,6 +458,7 @@ class ParserYUV422Packed(ParserYUV422, metaclass=ABCMeta):
         return concatenate_frames(tmp)
 
     def _raw_channel_color(self, image, im):
+        im = numpy.copy(im)
         p = [image.color_format.palette[x] for x in self._order]
         p = numpy.array(p).astype('float64').reshape((1, 4, 3))
 
@@ -506,6 +514,7 @@ class ParserYUV422Packed(ParserYUV422, metaclass=ABCMeta):
         return {c: self._order.find(c) for c in "YUV"}
 
     def _color_mask(self, im, channels):
+        im = numpy.copy(im)
         if not channels["r_y"]:
             im[self._offset["Y"]::2] = 0
         if not channels["g_u"]:
@@ -564,9 +573,10 @@ class ParserYUV422Planar(ParserYUV422):
             len(image.processed_data) / image.width / height / 2)
 
     def _preprocess(self, image, height, i):
-        return image.processed_data[int(i * (image.width * height) *
-                                        2):int((1 + i) *
-                                               (image.width * height) * 2)]
+        return numpy.copy(
+            image.processed_data[int(i * (image.width * height) *
+                                     2):int((1 + i) * (image.width * height) *
+                                            2)])
 
     def get_displayable(self,
                         image,
@@ -650,6 +660,8 @@ class ParserYUV422Planar(ParserYUV422):
         return concatenate_frames(tmp)
 
     def _raw_channel_color(self, image, im):
+        im = numpy.copy(im)
+
         p = (image.color_format.palette[x] for x in "YUV")
         p = [numpy.array(x).reshape((1, 1, 3)).astype('float64') for x in p]
 
