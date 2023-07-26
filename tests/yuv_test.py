@@ -2,8 +2,8 @@ import unittest
 import numpy
 import os
 from unittest.mock import (Mock, patch)
-from raviewer.parser.yuv import ParserYUV422Planar, ParserYUVSP, \
-    ParserYUVP, ParserUYVY
+from raviewer.parser.yuv import ParserYUV422P, ParserYUV420SP, \
+    ParserYUV420P, ParserUYVY422PA
 from enum import Enum
 
 
@@ -42,7 +42,7 @@ class TestYUVParserClass(unittest.TestCase):
         self.raw_data_Y420 = bytes((255, 255, 0, 0, 255, 0))
         self.Y420_IMAGE.data_buffer = self.raw_data_Y420
 
-        self.parserY420 = ParserYUVSP()
+        self.parserY420 = ParserYUV420SP()
 
         #YUV422 Parser
         self.Y422_FORMAT = Mock(pixel_format=DummyPixelFormat.UYVY,
@@ -58,7 +58,7 @@ class TestYUVParserClass(unittest.TestCase):
         self.raw_data_Y422 = bytes((255, 255, 0, 255, 0, 0, 255, 0))
         self.Y422_IMAGE.data_buffer = self.raw_data_Y422
 
-        self.parserY422 = ParserUYVY()
+        self.parserY422 = ParserUYVY422PA()
 
     @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)
@@ -127,7 +127,7 @@ class TestYUVPlanarParserClass(unittest.TestCase):
         self.raw_data_Y420 = bytes((255, 255, 0, 0, 255, 0))
         self.Y420_IMAGE.data_buffer = self.raw_data_Y420
 
-        self.parserY420 = ParserYUVP()
+        self.parserY420 = ParserYUV420P()
 
         #YUV422 Parser
         self.Y422_FORMAT = Mock(pixel_format=DummyPixelFormat.YUV,
@@ -142,7 +142,7 @@ class TestYUVPlanarParserClass(unittest.TestCase):
             [255, 255, 0, 0, 255, 0, 0, 255], dtype=numpy.uint8)
         self.raw_data_Y422 = bytes((255, 255, 0, 0, 255, 0, 0, 255))
         self.Y422_IMAGE.data_buffer = self.raw_data_Y422
-        self.parserY422 = ParserYUV422Planar()
+        self.parserY422 = ParserYUV422P()
 
     @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.yuv.PixelFormat", DummyPixelFormat)

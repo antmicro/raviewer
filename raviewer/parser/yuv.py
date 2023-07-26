@@ -41,8 +41,8 @@ def concatenate_frames(frames):
         numpy.concatenate(frames, axis=0)
 
 
-class ParserYUV420(AbstractParser, metaclass=ABCMeta):
-    """A semi-planar YUV420 implementation of a parser"""
+class AbstractParserYUV420(AbstractParser, metaclass=ABCMeta):
+    """An abstract YUV420 parser"""
 
     def parse(self, raw_data, color_format, width, reverse_bytes=0):
         """Parses provided raw data to an image, calculating height from provided width.
@@ -85,21 +85,23 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
     def _channel_mask(self, channels, image, im, height):
         pass
 
+    @property
+    @abstractmethod
+    def _conversion_const(self):
+        pass
+
+    @property
+    @abstractmethod
+    def _order(self):
+        pass
+
+    @abstractmethod
     def _raw_channel_color(self, image, im):
-        im = numpy.copy(im)
-        p = (image.color_format.palette[x] for x in self._order)
-        p = [numpy.array(x).reshape((1, 1, 3)).astype('float64') for x in p]
+        pass
 
-        im = im.astype('float64')
-
-        im[:image.height, :] *= p[0]
-
-        cmap = numpy.array(p[1:]).reshape((1, 2, 3))
-
-        uv = im[image.height:, :].reshape((-1, 2, 3))
-        uv *= cmap
-
-        return im
+    @abstractmethod
+    def _get_nframes(self, image, height):
+        pass
 
     def _preprocess(self, image, i, height):
         return numpy.copy(
@@ -126,19 +128,6 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
                 axis=1)
 
         return processed_data
-
-    @property
-    @abstractmethod
-    def _conversion_const(self):
-        pass
-
-    @property
-    @abstractmethod
-    def _order(self):
-        pass
-
-    def _get_nframes(self, image, height):
-        return 0 if image.height == 0 else math.ceil(image.height / height)
 
     def get_displayable(self,
                         image,
@@ -194,6 +183,29 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
 
         return concatenate_frames(tmp)
 
+
+class AbstractParserYUV420SP(AbstractParserYUV420, metaclass=ABCMeta):
+    """An abstract semi-planar YUV420 parser"""
+
+    def _raw_channel_color(self, image, im):
+        im = numpy.copy(im)
+        p = (image.color_format.palette[x] for x in self._order)
+        p = [numpy.array(x).reshape((1, 1, 3)).astype('float64') for x in p]
+
+        im = im.astype('float64')
+
+        im[:image.height, :] *= p[0]
+
+        cmap = numpy.array(p[1:]).reshape((1, 2, 3))
+
+        uv = im[image.height:, :].reshape((-1, 2, 3))
+        uv *= cmap
+
+        return im
+
+    def _get_nframes(self, image, height):
+        return 0 if image.height == 0 else math.ceil(image.height / height)
+
     def get_pixel_raw_components(self, image, row, column, index):
         return_data = [
             image.processed_data[index],
@@ -235,11 +247,12 @@ class ParserYUV420(AbstractParser, metaclass=ABCMeta):
         return yuv
 
 
-class ParserYUVSP(ParserYUV420):
+class ParserYUV420SP(AbstractParserYUV420SP):
+    """A semi-planar YUV420 (NV12) parser"""
 
     @property
     def _order(self):
-        return ['Y', 'U', 'V']
+        return "YUV"
 
     def _channel_mask(self, channels, image, im, height):
         im = numpy.copy(im)
@@ -257,11 +270,12 @@ class ParserYUVSP(ParserYUV420):
         return cv.COLOR_YUV2RGB_NV12
 
 
-class ParserYVUSP(ParserYUV420):
+class ParserYVU420SP(AbstractParserYUV420SP):
+    """A semi-planar YVU420 (NV21) parser"""
 
     @property
     def _order(self):
-        return ['Y', 'V', 'U']
+        return "YVU"
 
     def _channel_mask(self, channels, image, im, height):
         im = numpy.copy(im)
@@ -279,8 +293,8 @@ class ParserYVUSP(ParserYUV420):
         return cv.COLOR_YUV2RGB_NV21
 
 
-class ParserYUV420Planar(ParserYUV420, metaclass=ABCMeta):
-    """A planar YUV420 implementation of a parser"""
+class AbstractParserYUV420P(AbstractParserYUV420SP, metaclass=ABCMeta):
+    """An abstract planar YUV420 parser"""
 
     def _get_nframes(self, image, height):
         return 0 if image.height == 0 else math.ceil(
@@ -339,7 +353,8 @@ class ParserYUV420Planar(ParserYUV420, metaclass=ABCMeta):
         return yuv
 
 
-class ParserYUVP(ParserYUV420Planar):
+class ParserYUV420P(AbstractParserYUV420P):
+    """A planar YUV420 (I420) parser"""
 
     def _channel_mask(self, channels, image, im, height):
         im = numpy.copy(im)
@@ -359,10 +374,11 @@ class ParserYUVP(ParserYUV420Planar):
 
     @property
     def _order(self):
-        return ['Y', 'U', 'V']
+        return "YUV"
 
 
-class ParserYVUP(ParserYUV420Planar):
+class ParserYVU420P(AbstractParserYUV420P):
+    """A planar YVU420 (YV12) parser"""
 
     def _channel_mask(self, channels, image, im, height):
         im = numpy.copy(im)
@@ -382,11 +398,11 @@ class ParserYVUP(ParserYUV420Planar):
 
     @property
     def _order(self):
-        return ['Y', 'V', 'U']
+        return "YVU"
 
 
-class ParserYUV422(AbstractParser, metaclass=ABCMeta):
-    """A packed YUV422 implementation of a parser"""
+class AbstractParserYUV422(AbstractParser, metaclass=ABCMeta):
+    """An abstract YUV422 parserr"""
 
     def parse(self, raw_data, color_format, width, reverse_bytes=0):
         """Parses provided raw data to an image, calculating height from provided width.
@@ -426,7 +442,8 @@ class ParserYUV422(AbstractParser, metaclass=ABCMeta):
                      processed_data.size // (width * 2))
 
 
-class ParserYUV422Packed(ParserYUV422, metaclass=ABCMeta):
+class AbstractParserYUV422PA(AbstractParserYUV422, metaclass=ABCMeta):
+    """An abstract packed YUV422 parser"""
 
     def get_displayable(self,
                         image,
@@ -525,7 +542,8 @@ class ParserYUV422Packed(ParserYUV422, metaclass=ABCMeta):
         return im
 
 
-class ParserYUYV(ParserYUV422Packed):
+class ParserYUYV422PA(AbstractParserYUV422PA):
+    """A packed YUYV422 (YUY2) parser"""
 
     @property
     def _order(self):
@@ -535,7 +553,8 @@ class ParserYUYV(ParserYUV422Packed):
         return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_YUYV)
 
 
-class ParserUYVY(ParserYUV422Packed):
+class ParserUYVY422PA(AbstractParserYUV422PA):
+    """A packed UYVY422 (UYVY) parser"""
 
     @property
     def _order(self):
@@ -545,7 +564,8 @@ class ParserUYVY(ParserYUV422Packed):
         return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_UYVY)
 
 
-class ParserVYUY(ParserYUV422Packed):
+class ParserVYUY422PA(AbstractParserYUV422PA):
+    """A packed VYUY422 (VYUY) parser"""
 
     @property
     def _order(self):
@@ -556,7 +576,8 @@ class ParserVYUY(ParserYUV422Packed):
         return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_UYVY)
 
 
-class ParserYVYU(ParserYUV422Packed):
+class ParserYVYU422PA(AbstractParserYUV422PA):
+    """A packed YVYU422 (YVYU) parser"""
 
     @property
     def _order(self):
@@ -566,7 +587,8 @@ class ParserYVYU(ParserYUV422Packed):
         return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_YVYU)
 
 
-class ParserYUV422Planar(ParserYUV422):
+class ParserYUV422P(AbstractParserYUV422):
+    """A planar YUV422 (I422) parser"""
 
     def _get_nframes(self, image, height):
         return 0 if image.height == 0 else math.ceil(
