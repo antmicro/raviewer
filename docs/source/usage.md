@@ -159,3 +159,22 @@ The last three lines modify the background color to red, make the window frames 
 ![Theme manager](./img/theme-change.png "Theme manager")
 
 You can find a complete list of modifiable elements [here](https://dearpygui.readthedocs.io/en/latest/documentation/themes.html#plot-markers).
+
+## Raw view
+
+Raw view is used for displaying images before conversion.
+The displayed image is rendered by assigning a channel to every pixel and giving it an appropriate color.
+
+To enable raw view, check **Raw view** checkbox and select colors for presented channels.
+
+Raw view simplify the process of understanding the image format delivered by the device.
+Therefore, it can be used for determining the correct color format.
+
+Here is an image with incorrectly chosen color format:
+![Rawview_01](./img/rawview_01.png "Raw view 01")
+
+Raw view shows that channels are misaligned with the image:
+![Rawview_02](./img/rawview_02.png "Raw view 02")
+
+The correct color format's channels are aligned with the image:
+![Rawview_03](./img/rawview_03.png "Raw view 03")
