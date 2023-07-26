@@ -10,7 +10,7 @@ DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
 
 cd $(dirname $0)/../../docs
 
-pip3 install --user -r requirements.txt
+pip3 install -r requirements.txt
 
 cd build/latex
 LATEXMKOPTS='-interaction=nonstopmode' make
