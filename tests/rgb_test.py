@@ -2,7 +2,7 @@ import unittest
 import numpy
 import os
 from unittest.mock import (Mock, patch)
-from raviewer.parser.rgb import ParserARGB, ParserRGBA
+from raviewer.parser.rgb import ParserARGB, ParserRGBA, ParserBGRA, ParserABGR
 from enum import Enum
 
 
@@ -55,13 +55,15 @@ class TestRGBParserClass(unittest.TestCase):
             [0, 0, 255, 255, 255, 0, 0, 255])
         self.BGR24_IMAGE.data_buffer = self.raw_data
 
-        self.parser = ParserRGBA()
+        self.parserRGBA = ParserRGBA()
+        self.parserBGRA = ParserBGRA()
 
     @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_parse(self):
 
-        parsed_img = self.parser.parse(self.raw_data, self.RGB565_FORMAT, 2)
+        parsed_img = self.parserRGBA.parse(self.raw_data, self.RGB565_FORMAT,
+                                           2)
 
         self.assertEqual(parsed_img.data_buffer, self.RGB565_IMAGE.data_buffer)
         self.assertEqual(parsed_img.width, self.RGB565_IMAGE.width)
@@ -72,7 +74,7 @@ class TestRGBParserClass(unittest.TestCase):
             (parsed_img.processed_data == self.RGB565_IMAGE.processed_data
              ).all())
 
-        parsed_img = self.parser.parse(self.raw_data, self.BGR24_FORMAT, 2)
+        parsed_img = self.parserRGBA.parse(self.raw_data, self.BGR24_FORMAT, 2)
 
         self.assertEqual(parsed_img.data_buffer, self.BGR24_IMAGE.data_buffer)
         self.assertEqual(parsed_img.width, self.BGR24_IMAGE.width)
@@ -87,7 +89,7 @@ class TestRGBParserClass(unittest.TestCase):
     @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_get_displayable(self):
 
-        displayable = self.parser.get_displayable(self.RGB565_IMAGE)
+        displayable = self.parserRGBA.get_displayable(self.RGB565_IMAGE)
         self.assertEqual(
             displayable.shape,
             (self.RGB565_IMAGE.height, self.RGB565_IMAGE.width, 4))
@@ -96,7 +98,7 @@ class TestRGBParserClass(unittest.TestCase):
                                                       [255, 255, 255,
                                                        255]]])).all())
 
-        displayable = self.parser.get_displayable(self.BGR24_IMAGE)
+        displayable = self.parserBGRA.get_displayable(self.BGR24_IMAGE)
         self.assertEqual(displayable.shape,
                          (self.BGR24_IMAGE.height, self.BGR24_IMAGE.width, 4))
 
@@ -136,13 +138,15 @@ class TestARGBParserClass(unittest.TestCase):
         self.ABGR32_IMAGE.processed_data = numpy.array([0, 0, 255, 255])
         self.ABGR32_IMAGE.data_buffer = self.raw_data
 
-        self.parser = ParserARGB()
+        self.parserARGB = ParserARGB()
+        self.parserABGR = ParserABGR()
 
     @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_parse(self):
 
-        parsed_img = self.parser.parse(self.raw_data, self.ARGB444_FORMAT, 2)
+        parsed_img = self.parserARGB.parse(self.raw_data, self.ARGB444_FORMAT,
+                                           2)
 
         self.assertEqual(parsed_img.data_buffer,
                          self.ARGB444_IMAGE.data_buffer)
@@ -154,7 +158,8 @@ class TestARGBParserClass(unittest.TestCase):
             (parsed_img.processed_data == self.ARGB444_IMAGE.processed_data
              ).all())
 
-        parsed_img = self.parser.parse(self.raw_data, self.ABGR32_FORMAT, 1)
+        parsed_img = self.parserARGB.parse(self.raw_data, self.ABGR32_FORMAT,
+                                           1)
 
         self.assertEqual(parsed_img.data_buffer, self.ABGR32_IMAGE.data_buffer)
         self.assertEqual(parsed_img.width, self.ABGR32_IMAGE.width)
@@ -169,7 +174,7 @@ class TestARGBParserClass(unittest.TestCase):
     @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_get_displayable(self):
 
-        displayable = self.parser.get_displayable(self.ARGB444_IMAGE)
+        displayable = self.parserARGB.get_displayable(self.ARGB444_IMAGE)
         self.assertEqual(
             displayable.shape,
             (self.ARGB444_IMAGE.height, self.ARGB444_IMAGE.width, 4))
@@ -178,11 +183,11 @@ class TestARGBParserClass(unittest.TestCase):
                                                       [255, 255, 255,
                                                        255]]])).all())
 
-        displayable = self.parser.get_displayable(self.ABGR32_IMAGE)
+        displayable = self.parserABGR.get_displayable(self.ABGR32_IMAGE)
         self.assertEqual(
             displayable.shape,
             (self.ABGR32_IMAGE.height, self.ABGR32_IMAGE.width, 4))
-
+        print(displayable)
         self.assertTrue((displayable == numpy.array([[[255, 255, 0,
                                                        0]]])).all())
 

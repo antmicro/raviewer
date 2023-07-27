@@ -2,7 +2,7 @@
 
 from .bayer import ParserBayerRG, ParserBayerBG, ParserBayerGB, ParserBayerGR
 from ..image.color_format import (PixelPlane, PixelFormat)
-from .rgb import ParserARGB, ParserRGBA
+from .rgb import ParserRGBA, ParserBGRA, ParserARGB, ParserABGR
 from .yuv import (ParserYUV422P, ParserYUV420SP, ParserYVU420SP, ParserYUV420P,
                   ParserYVU420P, ParserYUYV422PA, ParserUYVY422PA,
                   ParserVYUY422PA, ParserYVYU422PA)
@@ -30,11 +30,11 @@ class ParserFactory:
                 PixelFormat.BAYER_GR: ParserBayerGR,
                 PixelFormat.MONO: ParserGrayscale,
                 PixelFormat.RGBA: ParserRGBA,
-                PixelFormat.BGRA: ParserRGBA,
+                PixelFormat.BGRA: ParserBGRA,
                 PixelFormat.ARGB: ParserARGB,
-                PixelFormat.ABGR: ParserARGB,
+                PixelFormat.ABGR: ParserABGR,
                 PixelFormat.RGB: ParserRGBA,
-                PixelFormat.BGR: ParserRGBA,
+                PixelFormat.BGR: ParserBGRA,
                 PixelFormat.YUYV: ParserYUYV422PA,
                 PixelFormat.UYVY: ParserUYVY422PA,
                 PixelFormat.VYUY: ParserVYUY422PA,
