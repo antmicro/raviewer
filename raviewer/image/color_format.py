@@ -123,6 +123,15 @@ def rgb_palette():
     return {"R": (1., 0., 0.), "G": (0., 1., 0.), "B": (0., 0., 1.)}
 
 
+def rgba_palette():
+    return {
+        "R": (1., 0., 0.),
+        "G": (0., 1., 0.),
+        "B": (0., 0., 1.),
+        "A": (1., 1., 1.)
+    }
+
+
 def yuv_palette():
     return {"Y": (1., 1., 1.), "U": (1., 0., 1.), "V": (0., 1., 1.)}
 
@@ -136,7 +145,8 @@ AVAILABLE_FORMATS = {
                 8,
                 8,
                 name="RGB24",
-                fourcc=V4L2_PIX_FMT_RGB24),
+                fourcc=V4L2_PIX_FMT_RGB24,
+                palette=rgb_palette()),
     'BGR24':
     ColorFormat(PixelFormat.BGR,
                 Endianness.BIG_ENDIAN,
@@ -145,7 +155,8 @@ AVAILABLE_FORMATS = {
                 8,
                 8,
                 name="BGR24",
-                fourcc=V4L2_PIX_FMT_BGR24),
+                fourcc=V4L2_PIX_FMT_BGR24,
+                palette=rgb_palette()),
     'RGBA32':
     ColorFormat(PixelFormat.RGBA,
                 Endianness.BIG_ENDIAN,
@@ -155,7 +166,8 @@ AVAILABLE_FORMATS = {
                 8,
                 8,
                 name="RGBA32",
-                fourcc=V4L2_PIX_FMT_RGBA32),
+                fourcc=V4L2_PIX_FMT_RGBA32,
+                palette=rgba_palette()),
     'BGRA32':
     ColorFormat(PixelFormat.BGRA,
                 Endianness.BIG_ENDIAN,
@@ -165,7 +177,8 @@ AVAILABLE_FORMATS = {
                 8,
                 8,
                 name="BGRA32",
-                fourcc=V4L2_PIX_FMT_BGRA32),
+                fourcc=V4L2_PIX_FMT_BGRA32,
+                palette=rgba_palette()),
     'ARGB32':
     ColorFormat(PixelFormat.ARGB,
                 Endianness.BIG_ENDIAN,
@@ -175,7 +188,8 @@ AVAILABLE_FORMATS = {
                 8,
                 8,
                 name="ARGB32",
-                fourcc=V4L2_PIX_FMT_ARGB32),
+                fourcc=V4L2_PIX_FMT_ARGB32,
+                palette=rgba_palette()),
     'ABGR32':
     ColorFormat(PixelFormat.ABGR,
                 Endianness.BIG_ENDIAN,
@@ -185,7 +199,8 @@ AVAILABLE_FORMATS = {
                 8,
                 8,
                 name="ABGR32",
-                fourcc=V4L2_PIX_FMT_ABGR32),
+                fourcc=V4L2_PIX_FMT_ABGR32,
+                palette=rgba_palette()),
     'RGB332':
     ColorFormat(PixelFormat.RGB,
                 Endianness.LITTLE_ENDIAN,
@@ -194,7 +209,8 @@ AVAILABLE_FORMATS = {
                 3,
                 2,
                 name="RGB332",
-                fourcc=V4L2_PIX_FMT_RGB332),
+                fourcc=V4L2_PIX_FMT_RGB332,
+                palette=rgb_palette()),
     'RGB565':
     ColorFormat(PixelFormat.RGB,
                 Endianness.LITTLE_ENDIAN,
@@ -203,7 +219,8 @@ AVAILABLE_FORMATS = {
                 6,
                 5,
                 name="RGB565",
-                fourcc=V4L2_PIX_FMT_RGB565),
+                fourcc=V4L2_PIX_FMT_RGB565,
+                palette=rgb_palette()),
     'RGBA444':
     ColorFormat(PixelFormat.RGBA,
                 Endianness.LITTLE_ENDIAN,
@@ -213,7 +230,8 @@ AVAILABLE_FORMATS = {
                 4,
                 bpc4=4,
                 name="RGBA444",
-                fourcc=V4L2_PIX_FMT_RGBA444),
+                fourcc=V4L2_PIX_FMT_RGBA444,
+                palette=rgba_palette()),
     'BGRA444':
     ColorFormat(PixelFormat.BGRA,
                 Endianness.LITTLE_ENDIAN,
@@ -223,7 +241,8 @@ AVAILABLE_FORMATS = {
                 4,
                 bpc4=4,
                 name="BGRA444",
-                fourcc=V4L2_PIX_FMT_BGRA444),
+                fourcc=V4L2_PIX_FMT_BGRA444,
+                palette=rgba_palette()),
     'ARGB444':
     ColorFormat(PixelFormat.ARGB,
                 Endianness.LITTLE_ENDIAN,
@@ -233,7 +252,8 @@ AVAILABLE_FORMATS = {
                 4,
                 bpc4=4,
                 name="ARGB444",
-                fourcc=V4L2_PIX_FMT_ARGB444),
+                fourcc=V4L2_PIX_FMT_ARGB444,
+                palette=rgba_palette()),
     'ABGR444':
     ColorFormat(PixelFormat.ABGR,
                 Endianness.LITTLE_ENDIAN,
@@ -243,7 +263,8 @@ AVAILABLE_FORMATS = {
                 4,
                 bpc4=4,
                 name="ABGR444",
-                fourcc=V4L2_PIX_FMT_ABGR444),
+                fourcc=V4L2_PIX_FMT_ABGR444,
+                palette=rgba_palette()),
     'RGBA555':
     ColorFormat(PixelFormat.RGBA,
                 Endianness.LITTLE_ENDIAN,
@@ -253,7 +274,8 @@ AVAILABLE_FORMATS = {
                 5,
                 bpc4=1,
                 name="RGBA555",
-                fourcc=V4L2_PIX_FMT_RGBA555),
+                fourcc=V4L2_PIX_FMT_RGBA555,
+                palette=rgba_palette()),
     'BGRA555':
     ColorFormat(PixelFormat.BGRA,
                 Endianness.LITTLE_ENDIAN,
@@ -263,7 +285,8 @@ AVAILABLE_FORMATS = {
                 5,
                 bpc4=1,
                 name="BGRA555",
-                fourcc=V4L2_PIX_FMT_BGRA555),
+                fourcc=V4L2_PIX_FMT_BGRA555,
+                palette=rgba_palette()),
     'ARGB555':
     ColorFormat(PixelFormat.ARGB,
                 Endianness.LITTLE_ENDIAN,
@@ -273,7 +296,8 @@ AVAILABLE_FORMATS = {
                 5,
                 bpc4=5,
                 name="ARGB555",
-                fourcc=V4L2_PIX_FMT_ARGB555),
+                fourcc=V4L2_PIX_FMT_ARGB555,
+                palette=rgba_palette()),
     'ABGR555':
     ColorFormat(PixelFormat.ABGR,
                 Endianness.LITTLE_ENDIAN,
@@ -283,7 +307,8 @@ AVAILABLE_FORMATS = {
                 5,
                 bpc4=5,
                 name="ABGR555",
-                fourcc=V4L2_PIX_FMT_ABGR555),
+                fourcc=V4L2_PIX_FMT_ABGR555,
+                palette=rgba_palette()),
     'YUY2':
     SubsampledColorFormat(PixelFormat.YUYV,
                           Endianness.BIG_ENDIAN,

@@ -28,6 +28,7 @@ def fix_alpha(data, cbits):
 
 class AbstractParserRGBA(AbstractParser, metaclass=ABCMeta):
     """An abstract parser for RGBA and its variants (e.g. ARGB, ABGR)"""
+
     def _parse_not_bytefilled(self, raw_data, color_format):
         """Parses provided raw data to an image - bits per component are not multiple of 8.
 
@@ -105,6 +106,18 @@ class AbstractParserRGBA(AbstractParser, metaclass=ABCMeta):
 
         return im
 
+    def _raw_channel_color(self, image, im):
+        im = numpy.copy(im)
+        p = [image.color_format.palette[x] for x in self._order]
+        p = numpy.array(p).astype('float64').reshape((1, -1, 3))
+
+        im = im.astype('float64')
+
+        im = im.reshape((-1, p.shape[1], 1))
+        im = im * p
+
+        return im.reshape((-1, image.width, 3))
+
     def get_displayable(self,
                         image,
                         channels={
@@ -131,6 +144,17 @@ class AbstractParserRGBA(AbstractParser, metaclass=ABCMeta):
                                 image.color_format.bits_per_components)
 
         return self._color_mask(return_data, channels)
+
+    def raw_coloring(self, image, height=0):
+        return_data = numpy.reshape(
+            image.processed_data.astype('uint8'),
+            (image.height, image.width, len(self._order)))
+
+        return_data = rescale_to_8bit(return_data,
+                                      image.color_format.bits_per_components)
+
+        out = self._raw_channel_color(image, return_data).astype('uint8')
+        return out.reshape(-1, image.width * len(self._order), 3)
 
     def parse(self, raw_data, color_format, width, reverse_bytes=0):
         max_val = max(color_format.bits_per_components)
@@ -169,6 +193,7 @@ class AbstractParserRGBA(AbstractParser, metaclass=ABCMeta):
 
 class AbstractParserRGB(AbstractParserRGBA, metaclass=ABCMeta):
     """An abstract parser for RGB and its variants"""
+
     def _convert(self, color_format, im):
         im = im[:, :, [self._order.find(x) for x in "RGB"]]
         return numpy.pad(im, ((0, 0), (0, 0), (0, 1)),
@@ -187,6 +212,7 @@ class AbstractParserRGB(AbstractParserRGBA, metaclass=ABCMeta):
 
 class ParserRGB(AbstractParserRGB):
     """RGB parser (RGB24, RGB565, RGB332)"""
+
     @property
     def _order(self):
         return "RGB"
@@ -194,6 +220,7 @@ class ParserRGB(AbstractParserRGB):
 
 class ParserBGR(AbstractParserRGB):
     """BGR parser (BGR24)"""
+
     @property
     def _order(self):
         return "BGR"
@@ -201,6 +228,7 @@ class ParserBGR(AbstractParserRGB):
 
 class ParserRGBA(AbstractParserRGBA):
     """RGBA parser (RGBA32, RGBA444, RGBA555)"""
+
     @property
     def _order(self):
         return "RGBA"
@@ -208,6 +236,7 @@ class ParserRGBA(AbstractParserRGBA):
 
 class ParserBGRA(AbstractParserRGBA):
     """BGRA parser (BGRA32, BGRA444, BGRA555)"""
+
     @property
     def _order(self):
         return "BGRA"
@@ -215,6 +244,7 @@ class ParserBGRA(AbstractParserRGBA):
 
 class ParserARGB(AbstractParserRGBA):
     """ARGB parser (ARGB32, ARGB444, ARGB555)"""
+
     @property
     def _order(self):
         return "ARGB"
@@ -222,6 +252,7 @@ class ParserARGB(AbstractParserRGBA):
 
 class ParserABGR(AbstractParserRGBA):
     """ABGR parser (ABGR32, ABGR444, ABGR555)"""
+
     @property
     def _order(self):
         return "ABGR"

@@ -292,13 +292,12 @@ class Plot_events(Base_img):
 
         with dpg.texture_registry():
             Base_img.texture_format = None
-            if Base_img.img.color_format.pixel_format in [
-                    PixelFormat.RGBA, PixelFormat.BGRA, PixelFormat.ARGB,
-                    PixelFormat.ABGR, PixelFormat.RGB, PixelFormat.BGR
-            ]:
+
+            if Base_img.img_postchanneled.shape[2] == 4:
                 Base_img.texture_format = dpg.mvFormat_Float_rgba
             else:
                 Base_img.texture_format = dpg.mvFormat_Float_rgb
+
             items.texture.raw = dpg.add_raw_texture(
                 width=width,
                 height=height,
