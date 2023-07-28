@@ -2,7 +2,7 @@ import unittest
 import numpy
 import os
 from unittest.mock import (Mock, patch)
-from raviewer.parser.rgb import ParserARGB, ParserRGBA, ParserBGRA, ParserABGR
+from raviewer.parser.rgb import ParserARGB, ParserRGBA, ParserBGRA, ParserABGR, ParserRGB, ParserBGR
 from enum import Enum
 
 
@@ -41,8 +41,7 @@ class TestRGBParserClass(unittest.TestCase):
         self.RGB565_IMAGE = Mock(color_format=self.RGB565_FORMAT,
                                  width=2,
                                  height=1)
-        self.RGB565_IMAGE.processed_data = numpy.array(
-            [0, 0, 0, 0, 31, 63, 31, 0])
+        self.RGB565_IMAGE.processed_data = numpy.array([0, 0, 0, 31, 63, 31])
 
         self.raw_data = bytes((0, 0, 255, 255))
 
@@ -51,19 +50,17 @@ class TestRGBParserClass(unittest.TestCase):
         self.BGR24_IMAGE = Mock(color_format=self.BGR24_FORMAT,
                                 width=2,
                                 height=1)
-        self.BGR24_IMAGE.processed_data = numpy.array(
-            [0, 0, 255, 255, 255, 0, 0, 255])
+        self.BGR24_IMAGE.processed_data = numpy.array([0, 0, 255, 255, 0, 0])
         self.BGR24_IMAGE.data_buffer = self.raw_data
 
-        self.parserRGBA = ParserRGBA()
-        self.parserBGRA = ParserBGRA()
+        self.parserRGB = ParserRGB()
+        self.parserBGR = ParserBGR()
 
     @patch("raviewer.parser.common.Endianness", DummyEndianness)
     @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_parse(self):
 
-        parsed_img = self.parserRGBA.parse(self.raw_data, self.RGB565_FORMAT,
-                                           2)
+        parsed_img = self.parserRGB.parse(self.raw_data, self.RGB565_FORMAT, 2)
 
         self.assertEqual(parsed_img.data_buffer, self.RGB565_IMAGE.data_buffer)
         self.assertEqual(parsed_img.width, self.RGB565_IMAGE.width)
@@ -74,7 +71,7 @@ class TestRGBParserClass(unittest.TestCase):
             (parsed_img.processed_data == self.RGB565_IMAGE.processed_data
              ).all())
 
-        parsed_img = self.parserRGBA.parse(self.raw_data, self.BGR24_FORMAT, 2)
+        parsed_img = self.parserRGB.parse(self.raw_data, self.BGR24_FORMAT, 2)
 
         self.assertEqual(parsed_img.data_buffer, self.BGR24_IMAGE.data_buffer)
         self.assertEqual(parsed_img.width, self.BGR24_IMAGE.width)
@@ -88,8 +85,7 @@ class TestRGBParserClass(unittest.TestCase):
 
     @patch("raviewer.parser.rgb.PixelFormat", DummyPixelFormat)
     def test_get_displayable(self):
-
-        displayable = self.parserRGBA.get_displayable(self.RGB565_IMAGE)
+        displayable = self.parserRGB.get_displayable(self.RGB565_IMAGE)
         self.assertEqual(
             displayable.shape,
             (self.RGB565_IMAGE.height, self.RGB565_IMAGE.width, 4))
@@ -98,7 +94,7 @@ class TestRGBParserClass(unittest.TestCase):
                                                       [255, 255, 255,
                                                        255]]])).all())
 
-        displayable = self.parserBGRA.get_displayable(self.BGR24_IMAGE)
+        displayable = self.parserBGR.get_displayable(self.BGR24_IMAGE)
         self.assertEqual(displayable.shape,
                          (self.BGR24_IMAGE.height, self.BGR24_IMAGE.width, 4))
 

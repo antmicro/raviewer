@@ -1,12 +1,9 @@
-"""Parser implementation for RGBA pixel format"""
 from abc import ABCMeta, abstractmethod
-
-from ..image.color_format import PixelFormat, Endianness
 from ..image.image import Image
+from ..image.color_format import PixelFormat
 from .common import AbstractParser
 
 import numpy
-import cv2 as cv
 
 
 def rescale_to_8bit(data, cbits):
@@ -20,13 +17,17 @@ def rescale_to_8bit(data, cbits):
                            coeff,
                            out=data[:, :, i],
                            casting="unsafe")
+    return data
+
+
+def fix_alpha(data, cbits):
     if cbits[3] == 0:
         data[:, :, 3] = numpy.uint8(255)
     return data
 
 
-class AbstractParserRGB(AbstractParser, metaclass=ABCMeta):
-
+class AbstractParserRGBA(AbstractParser, metaclass=ABCMeta):
+    """An abstract parser for RGBA and its variants (e.g. ARGB, ABGR)"""
     def _parse_not_bytefilled(self, raw_data, color_format):
         """Parses provided raw data to an image - bits per component are not multiple of 8.
 
@@ -63,7 +64,11 @@ class AbstractParserRGB(AbstractParser, metaclass=ABCMeta):
                 channel = numpy.bitwise_and(processed_data, mask)
                 numpy.right_shift(channel, temp, out=res[j::4])
         if all_equal:
-            return numpy.bitwise_and(res, mask, out=res)
+            res = numpy.bitwise_and(res, mask, out=res)
+
+        if min(color_format.bits_per_components) == 0:
+            return numpy.delete(res.reshape(-1, 4), 3, 1).flatten()
+
         return res
 
     def _color_mask(self, im, channels):
@@ -78,7 +83,7 @@ class AbstractParserRGB(AbstractParser, metaclass=ABCMeta):
             im[:, :, 3] = 255
         return im
 
-    def _reorder(self, im):
+    def _convert(self, color_format, im):
         return im[:, :, [self._order.find(x) for x in "RGBA"]]
 
     @property
@@ -86,24 +91,67 @@ class AbstractParserRGB(AbstractParser, metaclass=ABCMeta):
     def _order(self):
         pass
 
+    def _fix_alignment(self, raw_data, curr_dtype):
+        if len(raw_data) % numpy.dtype(curr_dtype).alignment != 0:
+            raw_data += (0).to_bytes(len(raw_data) %
+                                     numpy.dtype(curr_dtype).alignment,
+                                     byteorder="little")
+        return raw_data
+
+    def _pad(self, im, width, curr_dtype):
+        if im.size % (width * 4) != 0:
+            im = numpy.concatenate(
+                (im, numpy.zeros((width * 4) - (im.size % (width * 4)))))
+
+        return im
+
     def get_displayable(self,
-                        image: Image,
+                        image,
                         channels={
                             "r_y": True,
                             "g_u": True,
                             "b_v": True,
                             "a_v": True
                         }):
+        """Provides displayable image data (RGB formatted)
 
-        return_data = numpy.reshape(image.processed_data.astype('uint8'),
-                                    (image.height, image.width, 4))
+        Returns: Numpy array containing displayable data.
+        """
+
+        return_data = numpy.reshape(
+            image.processed_data.astype('uint8'),
+            (image.height, image.width, len(self._order)))
 
         return_data = rescale_to_8bit(return_data,
                                       image.color_format.bits_per_components)
 
-        return_data = self._reorder(return_data)
+        return_data = self._convert(image.color_format, return_data)
+
+        return_data = fix_alpha(return_data,
+                                image.color_format.bits_per_components)
 
         return self._color_mask(return_data, channels)
+
+    def parse(self, raw_data, color_format, width, reverse_bytes=0):
+        max_val = max(color_format.bits_per_components)
+
+        curr_dtype = self.get_dtype(max_val, color_format.endianness)
+
+        if max_val % 8 == 0:
+            raw_data = self._fix_alignment(raw_data, curr_dtype)
+            reversed_raw_data = self.reverse(raw_data, reverse_bytes)
+            processed_data = numpy.frombuffer(reversed_raw_data, curr_dtype)
+        else:
+            reversed_raw_data = self.reverse(raw_data, reverse_bytes)
+            processed_data = self._parse_not_bytefilled(
+                reversed_raw_data, color_format)
+
+            print(processed_data.shape)
+
+        processed_data = self._pad(processed_data, width, curr_dtype)
+
+        return Image(raw_data, color_format, processed_data, width,
+                     processed_data.size // (width * len(self._order)))
 
     def get_pixel_raw_components(self, image, row, column, index):
         step_bytes = len(image.color_format._bpcs)
@@ -119,154 +167,61 @@ class AbstractParserRGB(AbstractParser, metaclass=ABCMeta):
         return truncated_image
 
 
-class AbstractParserRGBA(AbstractParserRGB, metaclass=ABCMeta):
-    """An RGB/BGR implementation of a parser - ALPHA LAST"""
+class AbstractParserRGB(AbstractParserRGBA, metaclass=ABCMeta):
+    """An abstract parser for RGB and its variants"""
+    def _convert(self, color_format, im):
+        im = im[:, :, [self._order.find(x) for x in "RGB"]]
+        return numpy.pad(im, ((0, 0), (0, 0), (0, 1)),
+                         'constant',
+                         constant_values=(0, 255))
 
-    def parse(self, raw_data, color_format, width, reverse_bytes=0):
-        max_value = max(color_format.bits_per_components)
-        curr_dtype = self.get_dtype(max_value, color_format.endianness)
+    def _pad(self, im, width, curr_dtype):
+        if im.size % (width * 3) != 0:
+            im = numpy.concatenate((im,
+                                    numpy.zeros(
+                                        (width * 3) - (im.size % (width * 3)),
+                                        dtype=curr_dtype)))
 
-        # temp_set is used to differentiate between RGB24 and RGBA32
-        # RGB24  - (8, 8, 8, 0)   temp_set = {8, 0}   len = 2
-        # RGBA32 - (8, 8, 8, 8)   temp_set = {8}      len = 1
-        #
-        # for some inexplicable reason 0 is added to temp_set of length 2
-        # even though, in implemented color formats it doesn't change anything
-        #
-        # I don't know whether this method generalizes to other color formats
-        temp_set = set(color_format.bits_per_components)
+        return im
 
-        raw_data = bytearray(raw_data)
-        if ((len(temp_set) == 1 or
-             (len(temp_set) == 2
-              and not temp_set.add(0)))) and max_value % 8 == 0:
 
-            # alignment fixing padding
-            if len(raw_data) % numpy.dtype(curr_dtype).alignment != 0:
-                raw_data += (0).to_bytes(len(raw_data) %
-                                         numpy.dtype(curr_dtype).alignment,
-                                         byteorder="little")
+class ParserRGB(AbstractParserRGB):
+    """RGB parser (RGB24, RGB565, RGB332)"""
+    @property
+    def _order(self):
+        return "RGB"
 
-            temp_raw_data = self.reverse(raw_data, reverse_bytes)
-            temp = numpy.frombuffer(temp_raw_data, curr_dtype)
-            processed_data = temp
 
-            # this applies to RGB24 and its variants
-            if len(temp_set) == 2:
-
-                # this will be moved to _pad
-                if (temp.size % (width * 3) != 0):
-                    temp = numpy.concatenate(
-                        (temp,
-                         numpy.zeros((width * 3) - (temp.size % (width * 3)),
-                                     dtype=curr_dtype)))
-
-                # this part should be moved to get_displayable
-                # because converting image into a displayable format should not be handled by parse
-                temp = cv.cvtColor(
-                    numpy.reshape(temp,
-                                  (int(temp.size / (3 * width)), width, 3)),
-                    cv.COLOR_RGB2RGBA)
-                processed_data = numpy.reshape(temp, temp.size)
-        else:
-            # this is used for color formats with components not divisible by 8 (e.g. RGB565, RGB332)
-            temp_raw_data = self.reverse(raw_data, reverse_bytes)
-            processed_data = self._parse_not_bytefilled(
-                temp_raw_data, color_format)
-
-        # this applies to RGBA32 and its variants and will be moved to _pad
-        if (processed_data.size % (width * 4) != 0):
-            processed_data = numpy.concatenate(
-                (processed_data,
-                 numpy.zeros((width * 4) - (processed_data.size %
-                                            (width * 4)))))
-        return Image(raw_data, color_format, processed_data, width,
-                     processed_data.size // (width * 4))
+class ParserBGR(AbstractParserRGB):
+    """BGR parser (BGR24)"""
+    @property
+    def _order(self):
+        return "BGR"
 
 
 class ParserRGBA(AbstractParserRGBA):
-
+    """RGBA parser (RGBA32, RGBA444, RGBA555)"""
     @property
     def _order(self):
         return "RGBA"
 
 
 class ParserBGRA(AbstractParserRGBA):
-
+    """BGRA parser (BGRA32, BGRA444, BGRA555)"""
     @property
     def _order(self):
         return "BGRA"
 
 
-class AbstractParserARGB(AbstractParserRGB, metaclass=ABCMeta):
-    """An RGB/BGR implementation of a parser - ALPHA FIRST"""
-
-    def parse(self, raw_data, color_format, width, reverse_bytes=0):
-        """Parses provided raw data to an image, calculating height from provided width.
-
-        Keyword arguments:
-
-            raw_data: bytes object
-            color_format: target instance of ColorFormat
-            width: target width to interpret
-
-        Returns: instance of Image processed to chosen format
-        """
-        max_value = max(color_format.bits_per_components)
-        curr_dtype = self.get_dtype(max_value, color_format.endianness)
-
-        temp_set = set(color_format.bits_per_components)
-
-        raw_data = bytearray(raw_data)
-        if (len(temp_set) == 1 or len(temp_set) == 2
-                and not temp_set.add(0)) and max_value % 8 == 0:
-            if len(raw_data) % numpy.dtype(curr_dtype).alignment != 0:
-                raw_data += (0).to_bytes(len(raw_data) %
-                                         numpy.dtype(curr_dtype).alignment,
-                                         byteorder="little")
-            temp_raw_data = self.reverse(raw_data, reverse_bytes)
-            temp = numpy.frombuffer(temp_raw_data, curr_dtype)
-            processed_data = temp
-            if len(temp_set) == 2:
-                if (temp.size % (width * 3) != 0):
-                    temp = numpy.concatenate(
-                        (temp,
-                         numpy.zeros((width * 3) - (temp.size % (width * 3)))))
-
-                # this is the only place where parse methods differ
-                # this is a conversion from RGB24 to ARGB32
-                # A blank array (height, width, 1) is generated and attached to image array along the color axis
-                temp = numpy.concatenate(
-                    (numpy.full((int(temp.size / (width * 3)), width, 1),
-                                (2**color_format.bits_per_components[0] - 1),
-                                dtype=curr_dtype),
-                     numpy.reshape(temp,
-                                   (int(temp.size / (width * 3)), width, 3))),
-                    axis=2)
-                processed_data = numpy.reshape(temp, temp.size)
-        else:
-            temp_raw_data = self.reverse(raw_data, reverse_bytes)
-            processed_data = self._parse_not_bytefilled(
-                temp_raw_data, color_format)
-
-        if (processed_data.size % (width * 4) != 0):
-            processed_data = numpy.concatenate(
-                (processed_data,
-                 numpy.zeros((width * 4) - (processed_data.size %
-                                            (width * 4)))))
-        return Image(raw_data, color_format, processed_data, width,
-                     processed_data.size // (width * 4))
-
-
 class ParserARGB(AbstractParserRGBA):
-
+    """ARGB parser (ARGB32, ARGB444, ARGB555)"""
     @property
     def _order(self):
         return "ARGB"
 
 
 class ParserABGR(AbstractParserRGBA):
-
+    """ABGR parser (ABGR32, ABGR444, ABGR555)"""
     @property
     def _order(self):
         return "ABGR"
