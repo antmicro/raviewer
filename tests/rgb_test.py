@@ -98,7 +98,6 @@ class TestRGBParserClass(unittest.TestCase):
         self.assertEqual(displayable.shape,
                          (self.BGR24_IMAGE.height, self.BGR24_IMAGE.width, 4))
 
-        print(displayable)
         self.assertTrue((displayable == numpy.array([[[255, 0, 0, 255],
                                                       [0, 0, 255,
                                                        255]]])).all())
