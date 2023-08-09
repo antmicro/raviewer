@@ -61,6 +61,7 @@ class AppInit():
                              callback=self.events.open_file,
                              cancel_callback=cancel_callback,
                              file_count=1,
+                             min_size=(400, 200),
                              tag=items.file_selector.read):
             dpg.add_file_extension(".*", color=(255, 255, 255, 255))
         with dpg.file_dialog(directory_selector=False,
@@ -70,6 +71,7 @@ class AppInit():
                              callback=self.events.file_save,
                              cancel_callback=cancel_callback,
                              file_count=1,
+                             min_size=(400, 200),
                              tag=items.file_selector.export):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
         with dpg.file_dialog(directory_selector=False,
@@ -79,6 +81,7 @@ class AppInit():
                              callback=self.events.export_raw_buffer,
                              cancel_callback=cancel_callback,
                              file_count=1,
+                             min_size=(400, 200),
                              tag=items.file_selector.export_raw_buffer):
             pass
         with dpg.file_dialog(directory_selector=False,
@@ -88,6 +91,7 @@ class AppInit():
                              callback=self.events.export_as_image,
                              cancel_callback=cancel_callback,
                              file_count=1,
+                             min_size=(400, 200),
                              tag=items.file_selector.export_image):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
         with dpg.file_dialog(directory_selector=False,
@@ -97,6 +101,7 @@ class AppInit():
                              callback=self.events.export_raw_selection,
                              cancel_callback=cancel_callback,
                              file_count=1,
+                             min_size=(400, 200),
                              tag=items.file_selector.export_raw_selection):
             pass
 
