@@ -59,6 +59,7 @@ class AppInit():
                              modal=True,
                              label="Open file",
                              callback=self.events.open_file,
+                             cancel_callback=cancel_callback,
                              file_count=1,
                              tag=items.file_selector.read):
             dpg.add_file_extension(".*", color=(255, 255, 255, 255))
@@ -67,6 +68,7 @@ class AppInit():
                              modal=True,
                              label="Export image",
                              callback=self.events.file_save,
+                             cancel_callback=cancel_callback,
                              file_count=1,
                              tag=items.file_selector.export):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
@@ -75,6 +77,7 @@ class AppInit():
                              modal=True,
                              label="Export raw frame",
                              callback=self.events.export_raw_buffer,
+                             cancel_callback=cancel_callback,
                              file_count=1,
                              tag=items.file_selector.export_raw_buffer):
             pass
@@ -83,6 +86,7 @@ class AppInit():
                              modal=True,
                              label="Export selection as png",
                              callback=self.events.export_as_image,
+                             cancel_callback=cancel_callback,
                              file_count=1,
                              tag=items.file_selector.export_image):
             dpg.add_file_extension(".png", color=(255, 255, 0, 255))
@@ -91,6 +95,7 @@ class AppInit():
                              modal=True,
                              label="Export raw selection",
                              callback=self.events.export_raw_selection,
+                             cancel_callback=cancel_callback,
                              file_count=1,
                              tag=items.file_selector.export_raw_selection):
             pass
@@ -155,3 +160,7 @@ class AppInit():
 
         if args["FILE_PATH"] != None:
             self.events.update_image(fit_image=True)
+
+
+def cancel_callback():
+    pass
