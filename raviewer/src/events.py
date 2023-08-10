@@ -541,8 +541,9 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     @Plot_events.update_hexdump
     @Plot_events.indicate_loading
     def open_file(self, callback_id, data):
-        path = list(data["selections"].values())[0]
-        if path:
+        list_of_paths = list(data["selections"].values())
+        if len(list_of_paths) > 0:
+            path = list_of_paths[0]
             Base_img.path_to_File = path
             Base_img.img = load_image(Base_img.path_to_File)
             Base_img.data_buffer = Base_img.img.data_buffer
