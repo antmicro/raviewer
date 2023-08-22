@@ -1,11 +1,8 @@
 import numpy as np
-from raviewer.image.color_format import PixelFormat, SubsampledColorFormat, AVAILABLE_FORMATS, Endianness
+from raviewer.image.color_format import PixelFormat, SubsampledColorFormat
 from raviewer.src.utils import determine_color_format
-from raviewer.src.core import load_image, parse_image, get_displayable
-import matplotlib.pyplot as plt
+from raviewer.src.core import parse_image, get_displayable
 import cv2
-import re
-import os
 
 # constants used for differentiating formats based on the rolling standard deviation of the data
 # the value of the constant is the maximal median of the rolling standar deviation for one of the formats
@@ -436,7 +433,6 @@ def find_resolution(img, fmt_name):
         resolutions.append([evaluation[i][1], final_len // 2])
     return resolutions
 
-
 def predict_resolution(img, fmt_name):
     """Predicts resolution of image in given format
     Keyword arguments:
@@ -447,112 +443,3 @@ def predict_resolution(img, fmt_name):
     """
     resolutions = find_resolution(img, fmt_name)
     return [[resolutions[0][0] * 2, resolutions[0][1] // 2], resolutions[0]]
-
-
-if __name__ == "__main__":
-    filename_regex = re.compile(
-        "([a-zA-Z0-9]+)(_\([0-9]+\))?_([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)")
-    directory = "./test_images/"
-    files = sorted(os.listdir(directory))
-    files = filter(lambda x: x is not None, map(filename_regex.match, files))
-    acc = 0
-    acc2 = 0
-    tests = 0
-    acc_res = 0
-    acc_res3 = 0
-    acc_res_cond = 0
-    acc_res_cond3 = 0
-    acc_res_common = 0
-    acc_end = 0
-    acc_end_cond = 0
-    confussion = np.zeros((len(list_of_groups), len(list_of_groups)))
-    deviations1 = []
-    deviations2 = []
-    for f in files:
-        img = load_image(os.path.join(directory, f.group(0)))
-        name = f.group(1)
-        fmt = f.group(3)
-        width = int(f.group(4))
-        l, end = classify(img)
-        if Endianness[end] == AVAILABLE_FORMATS[fmt].endianness:
-            acc_end += 1
-        if Endianness[end] == AVAILABLE_FORMATS[l[0]].endianness:
-            acc_end_cond += 1
-        r = find_resolution(img, l[0])
-        tests += 1
-        if fmt in l:
-            acc += 1
-        else:
-            p2 = top2_dict.get(l[0])
-            if p2 is not None:
-                if fmt in p2:
-                    acc2 += 1
-        if width == 2 * r[0][0]:
-            acc_res += 1
-        if width in [wh[0] for wh in r]:
-            acc_res3 += 1
-        if width == r[0][0] or r[0][0] * 2 == width:
-            acc_res_common += 1
-        dev = width / r[0][0]
-        if dev > 1:
-            deviations1.append(dev)
-        elif dev < 1:
-            deviations2.append(1 / dev)
-        r = find_resolution(img, fmt)
-        if width == 2 * r[0][0]:
-            acc_res_cond += 1
-        if width in [wh[0] for wh in r]:
-            acc_res_cond3 += 1
-        a = find_in_formats(fmt)
-        b = find_in_formats(l[0])
-        confussion[a, b] += 1
-        if tests % 50 == 0:
-            print("Format accuracy", acc, "/", tests, " ~ ", acc / tests * 100)
-            print("Format top 2 accuracy", acc + acc2, "/", tests, " ~ ",
-                  (acc + acc2) / tests * 100)
-            print("Resolution accuracy", acc_res, "/", tests, " ~ ",
-                  acc_res / tests * 100)
-            print("Resolution top 3 accuracy", acc_res3, "/", tests, " ~ ",
-                  acc_res3 / tests * 100)
-            print("Resolution accuracy given correct format", acc_res3, "/",
-                  tests, " ~ ", acc_res_cond / tests * 100)
-            print("Resolution top 3 accuracy given correct format",
-                  acc_res_cond3, "/", tests, " ~ ",
-                  acc_res_cond3 / tests * 100)
-            print("Resolution matches prediction or doubled prediction",
-                  acc_res_common, "/", tests, " ~ ",
-                  acc_res_common / tests * 100)
-            print("Endianness accuracy", acc_end, "/", tests, " ~ ",
-                  acc_end / tests * 100)
-            print("Endianness accuracy given correct format", acc_end_cond,
-                  "/", tests, " ~ ", acc_end_cond / tests * 100)
-            print()
-    print("Format accuracy", acc, "/", tests, " ~ ", acc / tests * 100)
-    print("Format top 2 accuracy", acc + acc2, "/", tests, " ~ ",
-          (acc + acc2) / tests * 100)
-    print("Resolution accuracy", acc_res, "/", tests, " ~ ",
-          acc_res / tests * 100)
-    print("Resolution top 3 accuracy", acc_res3, "/", tests, " ~ ",
-          acc_res3 / tests * 100)
-    print("Resolution accuracy given correct format", acc_res3, "/", tests,
-          " ~ ", acc_res_cond / tests * 100)
-    print("Resolution top 3 accuracy given correct format", acc_res_cond3, "/",
-          tests, " ~ ", acc_res_cond3 / tests * 100)
-    print("Resolution matches prediction or doubled prediction",
-          acc_res_common, "/", tests, " ~ ", acc_res_common / tests * 100)
-    print("Endianness accuracy", acc_end, "/", tests, " ~ ",
-          acc_end / tests * 100)
-    print("Endianness accuracy given correct format", acc_end_cond, "/", tests,
-          " ~ ", acc_end_cond / tests * 100)
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    cax = ax.matshow(confussion, interpolation='nearest')
-    fig.colorbar(cax)
-    alpha = list(map(str, list_of_groups))
-    xaxis = np.arange(len(alpha))
-    ax.set_xticks(xaxis)
-    ax.set_yticks(xaxis)
-    ax.set_xticklabels(alpha, rotation=90)
-    ax.set_yticklabels(alpha)
-    plt.show()

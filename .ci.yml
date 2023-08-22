@@ -48,3 +48,8 @@ Test-performance:
     stage: test
     script:
         - ./.github/performance.sh
+
+Test-prediction:
+    stage: test
+    script:
+        - ./.github/prediction_test.sh
