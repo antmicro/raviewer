@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
+import numpy.typing as npt
 import re
 import os
 import subprocess
 
 
-def convert_RGBA32_to_RGBA4444(img):
+def convert_RGBA32_to_RGBA4444(img: npt.NDArray) -> npt.NDArray:
     img = img.astype('uint16')
     rgba4444 = np.empty(img.shape[0:2], dtype=np.uint16)
     rgba4444 = ((img[:, :, 0] >> 4) << 12) | ((img[:, :, 1] >> 4) << 8) | (
@@ -13,7 +14,7 @@ def convert_RGBA32_to_RGBA4444(img):
     return rgba4444
 
 
-def convert_RGBA32_to_RGBA555(img):
+def convert_RGBA32_to_RGBA555(img: npt.NDArray) -> npt.NDArray:
     img = img.astype('uint16')
     rgba555 = np.empty(img.shape[0:2], dtype=np.uint16)
 
@@ -22,7 +23,7 @@ def convert_RGBA32_to_RGBA555(img):
     return rgba555
 
 
-def convert_RGBA32_to_ARGB555(img):
+def convert_RGBA32_to_ARGB555(img: npt.NDArray) -> npt.NDArray:
     img = img.astype('uint16')
     rgba555 = np.empty(img.shape[0:2], dtype=np.uint16)
 
@@ -31,7 +32,7 @@ def convert_RGBA32_to_ARGB555(img):
     return rgba555
 
 
-def convert_RGBA32_to_RGGB(img):
+def convert_RGBA32_to_RGGB(img: npt.NDArray) -> npt.NDArray:
     rggb = np.empty(img.shape[0:2], dtype=img.dtype)
     rggb[::2, ::2] = img[::2, ::2, 0]
     rggb[::2, 1::2] = img[::2, 1::2, 1]
@@ -40,7 +41,12 @@ def convert_RGBA32_to_RGGB(img):
     return rggb
 
 
-def convert(img, name, dir, impath, swap_br=False, swap_uv=False):
+def convert(img: npt.NDArray,
+            name: str,
+            dir: str,
+            impath: str,
+            swap_br: bool = False,
+            swap_uv: bool = False) -> None:
     """Converts given RGB image to all formats supported by Raviewer.
     Uses ffmpeg for some conversions.
     Keyword arguments:

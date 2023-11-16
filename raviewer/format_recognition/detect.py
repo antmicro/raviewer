@@ -1,7 +1,10 @@
+from collections.abc import Callable
 import numpy as np
-from raviewer.image.color_format import PixelFormat, SubsampledColorFormat
+import numpy.typing as npt
+from raviewer.image.color_format import PixelFormat, SubsampledColorFormat, AVAILABLE_FORMATS, Endianness
 from raviewer.src.utils import determine_color_format
-from raviewer.src.core import parse_image, get_displayable
+from raviewer.src.core import load_image, parse_image, get_displayable
+from raviewer.image.image import Image
 import cv2
 
 # constants used for differentiating formats based on the rolling standard deviation of the data
@@ -41,13 +44,13 @@ top2_dict = {
 }
 
 
-def check_channel_number(img, num_channels):
+def check_channel_number(img: Image, num_channels: int) -> bool:
     """Checks if the image is guaranteed to have 3 or 4 channels"""
     supported_num_channels = [3, 4]
     if num_channels not in supported_num_channels:
         return False
     buffer_length = len(img.data_buffer)
-    if buffer_length % num_channels!= 0:
+    if buffer_length % num_channels != 0:
         return False
     num_divs = sum(
         map((lambda x: 1 if buffer_length % x == 0 else 0),
@@ -57,15 +60,15 @@ def check_channel_number(img, num_channels):
     return False
 
 
-def is_four_channel(img):
+def is_four_channel(img: Image) -> bool:
     return check_channel_number(img, 4)
 
 
-def is_three_channel(img):
+def is_three_channel(img: Image) -> bool:
     return check_channel_number(img, 3)
 
 
-def is_every_fourth_max(img, start=3):
+def is_every_fourth_max(img: Image, start: int = 3) -> bool:
     """Checks if every fourth pixel value is set to 255"""
     data = np.frombuffer(img.data_buffer, dtype=np.uint8)
     if np.all(data[start::4] == 255):
@@ -74,7 +77,10 @@ def is_every_fourth_max(img, start=3):
         return False
 
 
-def are_bits_set(img, num_bits, start, dtype='<u2'):
+def are_bits_set(img: Image,
+                 num_bits: int = 1,
+                 start: bool = True,
+                 dtype: str = '<u2') -> bool:
     """Checks if every two bytes have have their prefix/suffix set to ones"""
     #0x8000, 0x0001, 0xF000, 0x000F
     if num_bits not in [1, 4]:
@@ -98,7 +104,9 @@ def are_bits_set(img, num_bits, start, dtype='<u2'):
         return False
 
 
-def check_bits_per_channel(img, num_bits, dtype='>u2'):
+def check_bits_per_channel(img: Image,
+                           num_bits: int,
+                           dtype: str = '>u2') -> bool:
     """Checks if the image uses 10 or 12 bits per pixel channel"""
     try:
         interpreted = np.frombuffer(img.data_buffer, dtype=np.dtype(dtype))
@@ -123,15 +131,15 @@ def check_bits_per_channel(img, num_bits, dtype='>u2'):
         return False
 
 
-def check_12bits_per_channel(img, dtype=">u2"):
-    return check_bits_per_channel(img, 12)
+def check_12bits_per_channel(img: Image, dtype: str = ">u2") -> bool:
+    return check_bits_per_channel(img, 12, dtype)
 
 
-def check_10bits_per_channel(img, dtype=">u2"):
-    return check_bits_per_channel(img, 10)
+def check_10bits_per_channel(img: Image, dtype: str = ">u2") -> bool:
+    return check_bits_per_channel(img, 10, dtype)
 
 
-def rolling_window(array, window):
+def rolling_window(array: npt.NDArray, window: int) -> npt.NDArray:
     """Prepares view of array for fast calculation of rolling statistics like variance
     Keyword arguments:
         array: Numpy array
@@ -142,7 +150,7 @@ def rolling_window(array, window):
     return np.lib.stride_tricks.sliding_window_view(array, window)
 
 
-def is_yuv(img):
+def is_yuv(img: Image) -> bool:
     """Checks if image is in YUV format based on used pixel range"""
     data = np.frombuffer(img.data_buffer, dtype=np.uint8)
     buffer_length = len(data)
@@ -155,7 +163,7 @@ def is_yuv(img):
     return False
 
 
-def yuv_type(img):
+def yuv_type(img: Image) -> list[str]:
     """For given YUV image determines its specific format"""
     data = np.frombuffer(img.data_buffer, dtype=np.uint8)
     buffer_length = len(data)
@@ -216,13 +224,13 @@ def yuv_type(img):
             return ["UYVY", "VYUY"]
 
 
-def dtype_to_endianness(dtype):
+def dtype_to_endianness(dtype: str) -> str:
     if dtype[0] == '<':
         return "LITTLE_ENDIAN"
     return "BIG_ENDIAN"
 
 
-def try_endianness(img, f, **kwargs):
+def try_endianness(img: Image, f: Callable[..., bool], **kwargs) -> str | None:
     dtype = None
     if f(img, dtype='<u2', **kwargs):
         dtype = '<u2'
@@ -231,7 +239,7 @@ def try_endianness(img, f, **kwargs):
     return dtype
 
 
-def classify(img):
+def classify(img: Image) -> tuple[list[str], str]:
     """Predicts image format and its endianness"""
     if is_yuv(img):
         return yuv_type(img), "BIG_ENDIAN"
@@ -343,7 +351,7 @@ def classify(img):
         return ["RGB24", "BGR24"], "BIG_ENDIAN"
 
 
-def find_in_formats(fmt):
+def find_in_formats(fmt: str) -> int:
     """Finds index of the format group in list_of_groups for given format. If format was not found return -1"""
     for i, l in enumerate(list_of_groups):
         if fmt in l:
@@ -351,7 +359,7 @@ def find_in_formats(fmt):
     return -1
 
 
-def classify_top1(img):
+def classify_top1(img: Image) -> tuple[str, str]:
     """Predicts format of the image and its endianness
     Keyword arguments:
         img: Image instance
@@ -362,7 +370,7 @@ def classify_top1(img):
     return fmts[0], endianness
 
 
-def classify_all(img):
+def classify_all(img: Image) -> tuple[list[str], str]:
     """Predicts format of the image and its endianness
     Keyword arguments:
         img: Image instance
@@ -376,7 +384,7 @@ def classify_all(img):
     return fmts, endianness
 
 
-def possible_resolutions(length, ratio_limit=4):
+def possible_resolutions(length: int, ratio_limit: int = 4) -> list[int]:
     """Finds every possible image width, limited to 1:4 height to width ratio"""
     widths = []
     for i in range(int((length / ratio_limit)**0.5), int((length)**0.5) + 1):
@@ -385,7 +393,7 @@ def possible_resolutions(length, ratio_limit=4):
     return widths
 
 
-def find_resolution(img, fmt_name):
+def find_resolution(img: Image, fmt_name: str) -> list[list[int]]:
     """Predicts resolution of image in given format
     Keyword arguments:
         img: Image instance
@@ -433,7 +441,8 @@ def find_resolution(img, fmt_name):
         resolutions.append([evaluation[i][1], final_len // 2])
     return resolutions
 
-def predict_resolution(img, fmt_name):
+
+def predict_resolution(img: Image, fmt_name: str) -> list[list[int]]:
     """Predicts resolution of image in given format
     Keyword arguments:
         img: Image instance
