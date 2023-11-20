@@ -239,28 +239,108 @@ def try_endianness(img: Image, f: Callable[..., bool], **kwargs) -> str | None:
     return dtype
 
 
+def classify_using_color_distribution(img: Image) -> tuple[list[str], str]:
+    """Predicts image format and its endianness by inspecting color distribution"""
+    data = np.frombuffer(img.data_buffer, dtype=np.uint8)
+    hists = []
+    divisible = True
+    try:
+        for i in range(2, -1, -1):
+            hist, _ = np.histogram(data.reshape(-1, 3)[:, i],
+                                   bins=256,
+                                   range=(0, 256))
+            hists.append(hist)
+    except ValueError:
+        divisible = False
+        data = np.pad(data, (0, 3 - len(data) % 3), 'constant')
+        for i in range(2, -1, -1):
+            hist, _ = np.histogram(data.reshape(-1, 3)[:, i],
+                                   bins=256,
+                                   range=(0, 256))
+            hists.append(hist)
+
+    channel_length = len(data) // 3
+    roll_std = np.std(rolling_window(hists[0] / channel_length,
+                                     len(hists[0]) // 10),
+                      axis=-1)
+
+    if np.median(roll_std) >= BAYER_AND_GRAY_CUTOFF:
+        parsed = parse_image(img.data_buffer.copy(), 'RGB565', len(data) // 2)
+        hists = []
+        for i in range(2, -1, -1):
+            hist, _ = np.histogram(parsed.processed_data[i::4],
+                                   bins=64,
+                                   range=(0, 64))
+            hists.append(hist)
+        roll_std = np.std(rolling_window(hists[0][:32] / channel_length,
+                                         len(hists[0]) // 10),
+                          axis=-1)
+        if np.median(roll_std) >= RGB565_CUTOFF:
+            return ["RGB332"], "LITTLE_ENDIAN"
+        else:
+            try:
+                endianness = "LITTLE_ENDIAN"
+                big_endian = np.frombuffer(img.data_buffer,
+                                           dtype=np.dtype('>u2'))
+                little_endian = np.frombuffer(img.data_buffer,
+                                              dtype=np.dtype('<u2'))
+                big_endian_variance = np.median(
+                    np.std(rolling_window(big_endian, 10), axis=-1))
+                little_endian_variance = np.median(
+                    np.std(rolling_window(little_endian, 10), axis=-1))
+                if big_endian_variance < little_endian_variance:
+                    endianness = "BIG_ENDIAN"
+            except ValueError:
+                endianness = "LITTLE_ENDIAN"
+            return ["RGB565"], endianness
+    corr = np.corrcoef(hists[0], hists[1])[0, 1]
+    #if the image does not have 3 channels then the correlation between 3 arbitrary channels is higher
+    if corr >= 0.95 or not divisible:
+        roll_std = np.std(rolling_window(data, 5), axis=-1)
+        if np.median(roll_std) <= GRAY_CUTOFF:
+            return ["GRAY"], "BIG_ENDIAN"
+        try:
+            data = np.frombuffer(img.data_buffer, dtype=np.dtype('>u2'))
+            roll_std = np.std(rolling_window(data, 5), axis=-1)
+            if np.median(roll_std) <= RGGB_CUTOFF:
+                return ["RGGB"], "BIG_ENDIAN"
+            else:
+                return ["RG16"], "BIG_ENDIAN"  #TODO: add test for endianness
+        except ValueError:
+            return ["RGGB"], "BIG_ENDIAN"
+    return ["RGB24", "BGR24"], "BIG_ENDIAN"
+
+
+def classify_2byte(img: Image) -> tuple[list[str], str]:
+    """Predicts image format given that it uses 2 bytes per channel value"""
+    dtype = try_endianness(img, check_12bits_per_channel)
+    if dtype is not None:
+        deviation = np.std(
+            np.frombuffer(img.data_buffer, dtype=np.dtype(dtype)))
+        if GRAY_CUTOFF_12BIT < deviation:
+            return ["RG12"], dtype_to_endianness(dtype)
+        else:
+            return ["GRAY12"], dtype_to_endianness(dtype)
+
+    dtype = try_endianness(img, check_10bits_per_channel)
+    if dtype is not None:
+        deviation = np.std(
+            np.frombuffer(img.data_buffer, dtype=np.dtype(dtype)))
+        if GRAY_CUTOFF_10BIT < deviation:
+            return ["RG10"], dtype_to_endianness(dtype)
+        else:
+            return ["GRAY10"], dtype_to_endianness(dtype)
+
+
 def classify(img: Image) -> tuple[list[str], str]:
     """Predicts image format and its endianness"""
     if is_yuv(img):
         return yuv_type(img), "BIG_ENDIAN"
     else:
-        dtype = try_endianness(img, check_12bits_per_channel)
-        if dtype is not None:
-            deviation = np.std(
-                np.frombuffer(img.data_buffer, dtype=np.dtype(dtype)))
-            if GRAY_CUTOFF_12BIT < deviation:
-                return ["RG12"], dtype_to_endianness(dtype)
-            else:
-                return ["GRAY12"], dtype_to_endianness(dtype)
-
-        dtype = try_endianness(img, check_10bits_per_channel)
-        if dtype is not None:
-            deviation = np.std(
-                np.frombuffer(img.data_buffer, dtype=np.dtype(dtype)))
-            if GRAY_CUTOFF_10BIT < deviation:
-                return ["RG10"], dtype_to_endianness(dtype)
-            else:
-                return ["GRAY10"], dtype_to_endianness(dtype)
+        if try_endianness(
+                img, check_12bits_per_channel) is not None or try_endianness(
+                    img, check_10bits_per_channel) is not None:
+            return classify_2byte(img)
 
         if is_every_fourth_max(img, start=3):
             return ["RGBA32", "BGRA32"], "BIG_ENDIAN"
@@ -280,75 +360,7 @@ def classify(img: Image) -> tuple[list[str], str]:
         if dtype is not None:
             return ["ARGB555", "ABGR555"], dtype_to_endianness(dtype)
 
-        data = np.frombuffer(img.data_buffer, dtype=np.uint8)
-        hists = []
-        divisible = True
-        try:
-            for i in range(2, -1, -1):
-                hist, _ = np.histogram(data.reshape(-1, 3)[:, i],
-                                       bins=256,
-                                       range=(0, 256))
-                hists.append(hist)
-        except ValueError:
-            divisible = False
-            data = np.pad(data, (0, 3 - len(data) % 3), 'constant')
-            for i in range(2, -1, -1):
-                hist, _ = np.histogram(data.reshape(-1, 3)[:, i],
-                                       bins=256,
-                                       range=(0, 256))
-                hists.append(hist)
-
-        channel_length = len(data) // 3
-        roll_std = np.std(rolling_window(hists[0] / channel_length,
-                                         len(hists[0]) // 10),
-                          axis=-1)
-        if np.median(roll_std) >= BAYER_AND_GRAY_CUTOFF:
-            parsed = parse_image(img.data_buffer.copy(), 'RGB565',
-                                 len(data) // 2)
-            hists = []
-            for i in range(2, -1, -1):
-                hist, _ = np.histogram(parsed.processed_data[i::4],
-                                       bins=64,
-                                       range=(0, 64))
-                hists.append(hist)
-            roll_std = np.std(rolling_window(hists[0][:32] / channel_length,
-                                             len(hists[0]) // 10),
-                              axis=-1)
-            if np.median(roll_std) >= RGB565_CUTOFF:
-                return ["RGB332"], "LITTLE_ENDIAN"
-            else:
-                try:
-                    endianness = "LITTLE_ENDIAN"
-                    big_endian = np.frombuffer(img.data_buffer,
-                                               dtype=np.dtype('>u2'))
-                    little_endian = np.frombuffer(img.data_buffer,
-                                                  dtype=np.dtype('<u2'))
-                    big_endian_variance = np.median(
-                        np.std(rolling_window(big_endian, 10), axis=-1))
-                    little_endian_variance = np.median(
-                        np.std(rolling_window(little_endian, 10), axis=-1))
-                    if big_endian_variance < little_endian_variance:
-                        endianness = "BIG_ENDIAN"
-                except ValueError:
-                    endianness = "LITTLE_ENDIAN"
-                return ["RGB565"], endianness
-        corr = np.corrcoef(hists[0], hists[1])[0, 1]
-        #if the image does not have 3 channels then the correlation between 3 arbitrary channels is higher
-        if corr >= 0.95 or not divisible:
-            roll_std = np.std(rolling_window(data, 5), axis=-1)
-            if np.median(roll_std) <= GRAY_CUTOFF:
-                return ["GRAY"], "BIG_ENDIAN"
-            try:
-                data = np.frombuffer(img.data_buffer, dtype=np.dtype('>u2'))
-                roll_std = np.std(rolling_window(data, 5), axis=-1)
-                if np.median(roll_std) <= RGGB_CUTOFF:
-                    return ["RGGB"], "BIG_ENDIAN"
-                else:
-                    return ["RG16"
-                            ], "BIG_ENDIAN"  #TODO: add test for endianness
-            except ValueError:
-                return ["RGGB"], "BIG_ENDIAN"
-        return ["RGB24", "BGR24"], "BIG_ENDIAN"
+        return classify_using_color_distribution(img)
 
 
 def find_in_formats(fmt: str) -> int:
