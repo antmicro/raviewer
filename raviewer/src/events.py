@@ -594,7 +594,8 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
         if Base_img.path_to_File != None:
             Base_img.width = args["width"]
-            self._set_color_format(args["color_format"])
+            if args["color_format"] != "unknown":
+                self._set_color_format(args["color_format"])
             Base_img.height = args["height"]
             Base_img.img = load_image(Base_img.path_to_File)
             if args["color_format"] == "unknown":
