@@ -1,6 +1,7 @@
 from collections.abc import Callable
 import numpy as np
 import numpy.typing as npt
+from typing import Optional, List, Tuple
 from raviewer.image.color_format import PixelFormat, SubsampledColorFormat, AVAILABLE_FORMATS, Endianness
 from raviewer.src.utils import determine_color_format
 from raviewer.src.core import load_image, parse_image, get_displayable
@@ -163,7 +164,7 @@ def is_yuv(img: Image) -> bool:
     return False
 
 
-def yuv_type(img: Image) -> list[str]:
+def yuv_type(img: Image) -> List[str]:
     """For given YUV image determines its specific format"""
     data = np.frombuffer(img.data_buffer, dtype=np.uint8)
     buffer_length = len(data)
@@ -230,7 +231,8 @@ def dtype_to_endianness(dtype: str) -> str:
     return "BIG_ENDIAN"
 
 
-def try_endianness(img: Image, f: Callable[..., bool], **kwargs) -> str | None:
+def try_endianness(img: Image, f: Callable[..., bool],
+                   **kwargs) -> Optional[str]:
     dtype = None
     if f(img, dtype='<u2', **kwargs):
         dtype = '<u2'
@@ -239,7 +241,7 @@ def try_endianness(img: Image, f: Callable[..., bool], **kwargs) -> str | None:
     return dtype
 
 
-def classify_using_color_distribution(img: Image) -> tuple[list[str], str]:
+def classify_using_color_distribution(img: Image) -> Tuple[List[str], str]:
     """Predicts image format and its endianness by inspecting color distribution"""
     data = np.frombuffer(img.data_buffer, dtype=np.uint8)
     hists = []
@@ -311,7 +313,7 @@ def classify_using_color_distribution(img: Image) -> tuple[list[str], str]:
     return ["RGB24", "BGR24"], "BIG_ENDIAN"
 
 
-def classify_2byte(img: Image) -> tuple[list[str], str]:
+def classify_2byte(img: Image) -> Tuple[List[str], str]:
     """Predicts image format given that it uses 2 bytes per channel value"""
     dtype = try_endianness(img, check_12bits_per_channel)
     if dtype is not None:
@@ -332,7 +334,7 @@ def classify_2byte(img: Image) -> tuple[list[str], str]:
             return ["GRAY10"], dtype_to_endianness(dtype)
 
 
-def classify(img: Image) -> tuple[list[str], str]:
+def classify(img: Image) -> Tuple[List[str], str]:
     """Predicts image format and its endianness"""
     if is_yuv(img):
         return yuv_type(img), "BIG_ENDIAN"
@@ -371,7 +373,7 @@ def find_in_formats(fmt: str) -> int:
     return -1
 
 
-def classify_top1(img: Image) -> tuple[str, str]:
+def classify_top1(img: Image) -> Tuple[str, str]:
     """Predicts format of the image and its endianness
     Keyword arguments:
         img: Image instance
@@ -382,7 +384,7 @@ def classify_top1(img: Image) -> tuple[str, str]:
     return fmts[0], endianness
 
 
-def classify_all(img: Image) -> tuple[list[str], str]:
+def classify_all(img: Image) -> Tuple[list[str], str]:
     """Predicts format of the image and its endianness
     Keyword arguments:
         img: Image instance
@@ -396,7 +398,7 @@ def classify_all(img: Image) -> tuple[list[str], str]:
     return fmts, endianness
 
 
-def possible_resolutions(length: int, ratio_limit: int = 4) -> list[int]:
+def possible_resolutions(length: int, ratio_limit: int = 4) -> List[int]:
     """Finds every possible image width, limited to 1:4 height to width ratio"""
     widths = []
     for i in range(int((length / ratio_limit)**0.5), int((length)**0.5) + 1):
@@ -405,7 +407,7 @@ def possible_resolutions(length: int, ratio_limit: int = 4) -> list[int]:
     return widths
 
 
-def find_resolution(img: Image, fmt_name: str) -> list[list[int]]:
+def find_resolution(img: Image, fmt_name: str) -> List[List[int]]:
     """Predicts resolution of image in given format
     Keyword arguments:
         img: Image instance
@@ -454,7 +456,7 @@ def find_resolution(img: Image, fmt_name: str) -> list[list[int]]:
     return resolutions
 
 
-def predict_resolution(img: Image, fmt_name: str) -> list[list[int]]:
+def predict_resolution(img: Image, fmt_name: str) -> List[List[int]]:
     """Predicts resolution of image in given format
     Keyword arguments:
         img: Image instance
