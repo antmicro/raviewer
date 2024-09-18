@@ -153,7 +153,8 @@ def convert(img: npt.NDArray,
 if __name__ == "__main__":
     original_images = "original_images"
     test_images = "test_images"
-    filename_regex = re.compile('([a-zA-Z0-9]+)(_\([0-9]+\))?\.(jpg|jpeg|png)')
+    filename_regex = re.compile(
+        r'([a-zA-Z0-9]+)(_\([0-9]+\))?\.(jpg|jpeg|png)')
     files = sorted(os.listdir(original_images))
     files = filter(lambda x: x is not None, map(filename_regex.match, files))
 
