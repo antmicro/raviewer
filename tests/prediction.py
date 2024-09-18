@@ -19,7 +19,7 @@ minimal_thresholds = {
 def run_prediction(
     directory: str = "./test_images",
     filename_regex: Pattern[
-        str] = "([a-zA-Z0-9]+)(_\([0-9]+\))?_([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)"
+        str] = r"([a-zA-Z0-9]+)(_\([0-9]+\))?_([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)"
 ) -> None:
     """Predicts format, resolution and endianness of images in given directory, then summarizes and visualizes results.
     This function is meant for manual testing.
@@ -141,7 +141,8 @@ def run_prediction(
 def main():
     original_images = "./raviewer/format_recognition/original_images"
     test_images = "test_images"
-    filename_regex = re.compile('([a-zA-Z0-9]+)(_\([0-9]+\))?\.(jpg|jpeg|png)')
+    filename_regex = re.compile(
+        r'([a-zA-Z0-9]+)(_\([0-9]+\))?\.(jpg|jpeg|png)')
     try:
         files = sorted(os.listdir(os.path.abspath(original_images)))
     except:
@@ -164,7 +165,7 @@ def main():
             name = name + f.group(2)
         convert(img, name, test_images, impath)
         test_filename_regex = re.compile(
-            "([a-zA-Z0-9]+)(_\([0-9]+\))?_([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)")
+            r"([a-zA-Z0-9]+)(_\([0-9]+\))?_([a-zA-Z0-9]+)_([0-9]+)_([0-9]+)")
         test_files = sorted(os.listdir(test_images))
         test_files = filter(lambda x: x is not None,
                             map(test_filename_regex.match, test_files))
