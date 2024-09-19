@@ -31,14 +31,12 @@ __items = {
         "previewer",
         "settings",
         "hex_mode",
+        "error",
         ("hex_tab", None),
     ],
     "static_text": [
-        "color_format",
-        "endianness",
-        "color_description",
-        "image_resolution",
-        "selected_pixel",
+        "color_format", "endianness", "color_description", "image_resolution",
+        "selected_pixel", "error"
     ],
     "registries": [
         "texture_registry",
