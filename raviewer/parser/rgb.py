@@ -170,8 +170,6 @@ class AbstractParserRGBA(AbstractParser, metaclass=ABCMeta):
             processed_data = self._parse_not_bytefilled(
                 reversed_raw_data, color_format)
 
-            print(processed_data.shape)
-
         processed_data = self._pad(processed_data, width, curr_dtype)
 
         return Image(raw_data, color_format, processed_data, width,
