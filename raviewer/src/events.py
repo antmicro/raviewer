@@ -115,8 +115,19 @@ class Plot_events(Base_img):
                     i // 2 - 25
                     for i in dpg.get_item_rect_size(items.windows.viewport)
                 ])
-            callback(self, app_data, user_data)
-            dpg.hide_item(items.file_selector.loading_indicator)
+            try:
+                callback(self, app_data, user_data)
+            except Exception as e:
+                dpg.set_value(items.static_text.error, str(e))
+                dpg.set_item_pos(
+                    items.windows.error,
+                    pos=[
+                        i // 2 - 200
+                        for i in dpg.get_item_rect_size(items.windows.viewport)
+                    ])
+                dpg.show_item(items.windows.error)
+            finally:
+                dpg.hide_item(items.file_selector.loading_indicator)
 
         return _wrapper
 
