@@ -144,6 +144,18 @@ class AppInit():
                 button=Controls.remove_annotation_button,
                 callback=self.events.remove_annotation)
 
+    def init_error_modal(self):
+        with dpg.window(label="Error",
+                        tag=items.windows.error,
+                        modal=True,
+                        show=False,
+                        width=400,
+                        height=200,
+                        no_resize=True):
+            dpg.add_text(default_value="An error occurred",
+                         tag=items.static_text.error,
+                         wrap=350)
+
     def init_styles(self):
         dpg.bind_theme(items.theme.general)
         #INFO: Uncomment to bind font with the controls
@@ -162,6 +174,7 @@ class AppInit():
         self.init_styles()
         self.init_file_dialogs()
         self.init_mouse_handlers()
+        self.init_error_modal()
         self.init_loading_indicator()
 
         if args["FILE_PATH"] != None:
