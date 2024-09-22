@@ -38,7 +38,7 @@ def concatenate_frames(frames):
     elif len(frames) == 1:
         return frames[0]
     else:
-        numpy.concatenate(frames, axis=0)
+        return numpy.concatenate(frames, axis=0)
 
 
 class AbstractParserYUV420(AbstractParser, metaclass=ABCMeta):
