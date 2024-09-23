@@ -144,6 +144,21 @@ class AppInit():
                 button=Controls.remove_annotation_button,
                 callback=self.events.remove_annotation)
 
+    def init_item_handlers(self):
+        # Update text wrapping for error modal
+        with dpg.item_handler_registry(tag=items.registries.error_size):
+            dpg.add_item_resize_handler(callback=self.events.update_error_wrap)
+        dpg.bind_item_handler_registry(items.windows.error,
+                                       items.registries.error_size)
+
+        # Copy error text
+        with dpg.item_handler_registry(tag=items.registries.error_copy):
+            dpg.add_item_clicked_handler(callback=self.events.copy_error_text)
+            dpg.add_item_visible_handler(
+                callback=self.events.set_error_tooltip)
+        dpg.bind_item_handler_registry(items.static_text.error,
+                                       items.registries.error_copy)
+
     def init_error_modal(self):
         with dpg.window(label="Error",
                         tag=items.windows.error,
@@ -151,10 +166,14 @@ class AppInit():
                         show=False,
                         width=400,
                         height=200,
-                        no_resize=True):
-            dpg.add_text(default_value="An error occurred",
-                         tag=items.static_text.error,
-                         wrap=350)
+                        min_size=(400, 200),
+                        on_close=self.events.update_error_size):
+            dpg.add_text(default_value="An error has occurred",
+                         tag=items.static_text.error)
+            with dpg.tooltip(parent=items.static_text.error,
+                             tag=items.tooltips.error):
+                dpg.add_text(default_value="Click to copy",
+                             tag=items.static_text.error_tooltip)
 
     def init_styles(self):
         dpg.bind_theme(items.theme.general)
@@ -175,6 +194,7 @@ class AppInit():
         self.init_file_dialogs()
         self.init_mouse_handlers()
         self.init_error_modal()
+        self.init_item_handlers()
         self.init_loading_indicator()
 
         if args["FILE_PATH"] != None:
