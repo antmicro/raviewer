@@ -36,11 +36,13 @@ __items = {
     ],
     "static_text": [
         "color_format", "endianness", "color_description", "image_resolution",
-        "selected_pixel", "error"
+        "selected_pixel", "error", "error_tooltip"
     ],
     "registries": [
         "texture_registry",
         "add_mouse_click_handler",
+        "error_size",
+        "error_copy",
     ],
     "buttons": [
         "read_file",
@@ -76,6 +78,7 @@ __items = {
         "frame_rate",
         "change_resolution",
     ],
+    "tooltips": ["error"],
     "groups": ["camera_ctrls", "palette", "raw_view"],
     "menu_bar": [
         "export_tab",
