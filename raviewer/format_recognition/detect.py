@@ -435,7 +435,7 @@ def find_resolution(img: Image, fmt_name: str) -> List[List[int]]:
             parsed = parse_image(img.data_buffer, fmt_name, width, 0)
             displayable = get_displayable(parsed)
         except (ValueError, cv2.error):
-            return [[1000, final_len // 2]]
+            return [[1000, final_len // 1000]]
         if displayable.shape[2] == 3:
             gray = cv2.cvtColor(displayable, cv2.COLOR_RGB2GRAY)
         else:
@@ -452,7 +452,7 @@ def find_resolution(img: Image, fmt_name: str) -> List[List[int]]:
         return [[1000, final_len // 1000]]
     resolutions = []
     for i in range(0, min(3, len(evaluation))):
-        resolutions.append([evaluation[i][1], final_len // 2])
+        resolutions.append([evaluation[i][1], final_len // evaluation[i][1]])
     return resolutions
 
 
