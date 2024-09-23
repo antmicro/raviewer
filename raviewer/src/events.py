@@ -725,6 +725,23 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             return True
         return False
 
+    def update_error_wrap(self):
+        width = dpg.get_item_width(items.windows.error)
+        dpg.configure_item(items.static_text.error, wrap=width - 50)
+
+    def update_error_size(self):
+        dpg.set_item_width(items.windows.error, 400)
+        dpg.set_item_height(items.windows.error, 200)
+
+    def copy_error_text(self):
+        dpg.set_value(items.static_text.error_tooltip, "Copied")
+        dpg.set_clipboard_text(dpg.get_value(items.static_text.error))
+
+    def set_error_tooltip(self):
+        if dpg.is_item_visible(items.tooltips.error):
+            return
+        dpg.set_value(items.static_text.error_tooltip, "Click to copy")
+
     def start_stream(self, callback_id, data):
         if self._get_frame(1):
             selected_frame_rate = dpg.get_value(items.buttons.frame_rate)
