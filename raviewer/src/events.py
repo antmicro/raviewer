@@ -121,6 +121,16 @@ class Plot_events(Base_img):
                 ])
             try:
                 callback(self, app_data, user_data)
+            finally:
+                dpg.hide_item(items.file_selector.loading_indicator)
+
+        return _wrapper
+
+    def error_handling(callback):
+
+        def _wrapper(self, app_data, user_data):
+            try:
+                callback(self, app_data, user_data)
             except Exception as e:
                 dpg.set_value(items.static_text.error, str(e))
                 dpg.set_item_pos(
@@ -130,12 +140,12 @@ class Plot_events(Base_img):
                         for i in dpg.get_item_rect_size(items.windows.viewport)
                     ])
                 dpg.show_item(items.windows.error)
-            finally:
-                dpg.hide_item(items.file_selector.loading_indicator)
+                raise e
 
         return _wrapper
 
     @indicate_loading
+    @error_handling
     def align(self, app_data, user_data):
         with Base_img.image_mutex:
             nnumber = dpg.get_value(items.buttons.nnumber)
@@ -669,6 +679,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
 
     @Plot_events.update_hexdump
     @Plot_events.indicate_loading
+    @Plot_events.error_handling
     def open_file(self, callback_id, data):
         list_of_paths = list(data["selections"].values())
         if len(list_of_paths) > 0:
@@ -852,6 +863,7 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             with open(path, 'wb') as f:
                 f.write(Base_img.img.data_buffer)
 
+    @Plot_events.error_handling
     def update_width(self, callback_id, data):
         self._update_width(data)
 
