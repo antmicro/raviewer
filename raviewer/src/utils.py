@@ -50,3 +50,12 @@ def determine_color_format(format_string):
     else:
         raise NotImplementedError(
             "Provided string is not name of supported format.")
+
+
+def pad_modulo(im, dims):
+    """Pads the np.array and makes each dimension divisible by corresponding
+    factor."""
+    to_pad = [(0,
+               dim_mod - dim % dim_mod) if dim % dim_mod and dim_mod != -1 else
+              (0, 0) for dim_mod, dim in zip(dims, im.shape)]
+    return np.pad(im, pad_width=to_pad, constant_values=0)
