@@ -76,6 +76,10 @@ class Base_img():
     display_raw = False
     endianness = None
 
+    file_dialog_width = 0
+    file_dialog_height = 0
+    file_dialog_color_format = ""
+
     def __init__(self):
         pass
 
@@ -672,21 +676,35 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             Base_img.path_to_File = path
             Base_img.img = load_image(Base_img.path_to_File)
             predictions, endianness = classify_all(Base_img.img)
-            Base_img.color_format = predictions[0]
-            option_list = list(AVAILABLE_FORMATS.keys())
-            list_of_formats = predictions + [
-                fmt for fmt in option_list if fmt not in predictions
-            ]
-            dpg.configure_item(items.buttons.combo, items=list_of_formats)
+            if Base_img.file_dialog_color_format:
+                Base_img.color_format = Base_img.file_dialog_color_format
+            else:
+                Base_img.color_format = predictions[0]
+                option_list = list(AVAILABLE_FORMATS.keys())
+                list_of_formats = predictions + [
+                    fmt for fmt in option_list if fmt not in predictions
+                ]
+                dpg.configure_item(items.buttons.combo, items=list_of_formats)
+                Base_img.list_of_formats = list_of_formats
             self.change_endianness(0, endianness)
-            Base_img.list_of_formats = list_of_formats
-            Base_img.list_of_resolutions = predict_resolution(
-                Base_img.img, Base_img.color_format)
-            Base_img.width = Base_img.list_of_resolutions[0][0]
-            Base_img.height = 0
+            if Base_img.file_dialog_width:
+                Base_img.width = Base_img.file_dialog_width
+            else:
+                Base_img.list_of_resolutions = predict_resolution(
+                    Base_img.img, Base_img.color_format)
+                Base_img.width = Base_img.list_of_resolutions[0][0]
+            Base_img.height = Base_img.file_dialog_height or 0
             Base_img.data_buffer = Base_img.img.data_buffer
             Plot_events.update_image(self, fit_image=True)
             dpg.enable_item(items.menu_bar.export_tab)
+
+        # Reset file dialog input
+        Base_img.file_dialog_width = 0
+        Base_img.file_dialog_heigh = 0
+        Base_img.file_dialog_color_format = ""
+        dpg.set_value(items.buttons.file_dialog_width, 0)
+        dpg.set_value(items.buttons.file_dialog_height, 0)
+        dpg.set_value(items.buttons.file_dialog_color_format, "")
 
     @Plot_events.update_hexdump
     @Plot_events.indicate_loading
@@ -863,6 +881,15 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
     @Plot_events.indicate_loading
     def format_color(self, callback_id, data):
         self._format_color(data)
+
+    def set_file_dialog_format_color(self, callback_id, data):
+        Base_img.file_dialog_color_format = data
+
+    def set_file_dialog_width(self, callback_id, data):
+        Base_img.file_dialog_width = data
+
+    def set_file_dialog_height(self, callback_id, data):
+        Base_img.file_dialog_height = data
 
     def _format_color(self, color_format):
         with Base_img.image_mutex:

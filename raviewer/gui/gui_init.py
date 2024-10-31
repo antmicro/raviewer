@@ -62,9 +62,38 @@ class AppInit():
                              callback=self.events.open_file,
                              cancel_callback=cancel_callback,
                              file_count=1,
-                             min_size=(400, 200),
+                             min_size=(600, 200),
+                             width=800,
+                             height=300,
                              tag=items.file_selector.read):
             dpg.add_file_extension(".*", color=(255, 255, 255, 255))
+
+            dpg.add_combo(tag=items.buttons.file_dialog_color_format,
+                          default_value="",
+                          items=self.events.list_of_formats + [""],
+                          callback=self.events.set_file_dialog_format_color,
+                          height_mode=dpg.mvComboHeight_Regular,
+                          width=-1)
+
+            dpg.add_input_int(tag=items.buttons.file_dialog_width,
+                              label="Width",
+                              min_value=0,
+                              min_clamped=True,
+                              width=170,
+                              default_value=0,
+                              max_value=4000,
+                              max_clamped=True,
+                              step=0,
+                              callback=self.events.set_file_dialog_width)
+
+            dpg.add_input_int(tag=items.buttons.file_dialog_height,
+                              label="Height",
+                              min_value=0,
+                              width=170,
+                              default_value=0,
+                              step=0,
+                              callback=self.events.set_file_dialog_height)
+
         with dpg.file_dialog(directory_selector=False,
                              show=False,
                              modal=True,
