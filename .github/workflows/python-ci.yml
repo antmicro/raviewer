@@ -33,6 +33,9 @@ jobs:
       - name: Test with pytest
         run: |
           ./.github/run_tests.sh
+      - name: Test export
+        run: |
+          ./.github/export.sh
   installation-test:
     runs-on: ubuntu-latest
 
