@@ -44,6 +44,15 @@ Documentation:
             - $DOCS_DIR/build
             - $CI_DOCS_ARCHIVE
 
+Test-export:
+    stage: test
+    script:
+        - ./.github/export.sh
+    artifacts:
+        paths:
+            - export
+        when: always
+
 Test-performance:
     stage: test
     script:
