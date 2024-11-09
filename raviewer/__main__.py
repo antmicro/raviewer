@@ -12,9 +12,9 @@ import sys
 import logging
 from .src.core import (get_displayable, load_image, parse_image)
 from .src.utils import save_image_as_file
-from .image.color_format import AVAILABLE_FORMATS
+from .image.color_format import AVAILABLE_FORMATS, Endianness
 from .gui.gui_init import AppInit
-from .format_recognition.detect import classify_top1, predict_resolution
+from .format_recognition.detect import classify_top1, classify_all, predict_resolution
 from tests import test_formats
 
 
@@ -66,7 +66,17 @@ def run(file_path, width, height, color_format, export, args):
             color_format, _ = classify_top1(img)
         if width == 0:
             width, _ = predict_resolution(img, color_format)[0]
-        img = parse_image(img.data_buffer, color_format, width)
+
+        if args["endianness"] == 'auto':
+            predictions, endianness = classify_all(img)
+            endianness = Endianness[endianness]
+        elif args["endianness"] == 'little':
+            endianness = Endianness.LITTLE_ENDIAN
+        else:
+            endianness = Endianness.BIG_ENDIAN
+
+        img = parse_image(img.data_buffer, color_format, width,
+                          endianness.value)
         if height < 1: height = img.height
         save_image_as_file(get_displayable(img, height), export)
 
@@ -121,6 +131,14 @@ def main():
                         action=argparse.BooleanOptionalAction,
                         default=False,
                         help="Turn on/off debug mode")
+
+    parser.add_argument(
+        "--endianness",
+        choices=['little', 'big', 'auto'],
+        default='little',
+        help=
+        "Set endianness. little (default), big or auto (automatically calculated)"
+    ),
 
     args = vars(parser.parse_args())
 
