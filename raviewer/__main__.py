@@ -67,16 +67,18 @@ def run(file_path, width, height, color_format, export, args):
         if width == 0:
             width, _ = predict_resolution(img, color_format)[0]
 
-        if args["endianness"] == 'auto':
-            predictions, endianness = classify_all(img)
-            endianness = Endianness[endianness]
-        elif args["endianness"] == 'little':
-            endianness = Endianness.LITTLE_ENDIAN
-        else:
-            endianness = Endianness.BIG_ENDIAN
+        if "endianness" in args and args["endianness"]:
+            if args["endianness"] == 'auto':
+                predictions, endianness = classify_all(img)
+                endianness = Endianness[endianness]
+            elif args["endianness"] == 'little':
+                endianness = Endianness.LITTLE_ENDIAN
+            else:
+                endianness = Endianness.BIG_ENDIAN
 
-        img = parse_image(img.data_buffer, color_format, width,
-                          endianness.value)
+            AVAILABLE_FORMATS[color_format].endianness = endianness
+
+        img = parse_image(img.data_buffer, color_format, width)
         if height < 1: height = img.height
         save_image_as_file(get_displayable(img, height), export)
 
@@ -135,7 +137,6 @@ def main():
     parser.add_argument(
         "--endianness",
         choices=['little', 'big', 'auto'],
-        default='little',
         help=
         "Set endianness. little (default), big or auto (automatically calculated)"
     ),
