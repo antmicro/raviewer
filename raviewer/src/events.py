@@ -641,6 +641,12 @@ class Events(Plot_events, Hexviewer_events, metaclass=meta_events):
             list_of_formats = [args["color_format"]] + [
                 fmt for fmt in option_list if fmt != args["color_format"]
             ]
+        if "endianness" in args and args["endianness"]:
+            if args["endianness"] == "big":
+                Base_img.endianness = str(Endianness.BIG_ENDIAN).split('.')[1]
+            elif args["endianness"] == "little":
+                Base_img.endianness = str(
+                    Endianness.LITTLE_ENDIAN).split('.')[1]
         Base_img.color_format = args["color_format"]
         Base_img.list_of_formats = list_of_formats
         self.camera_ctrls = None
