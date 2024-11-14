@@ -81,8 +81,6 @@ class AppInit():
                               min_clamped=True,
                               width=170,
                               default_value=0,
-                              max_value=4000,
-                              max_clamped=True,
                               step=0,
                               callback=self.events.set_file_dialog_width)
 

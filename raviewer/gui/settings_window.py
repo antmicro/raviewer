@@ -75,8 +75,6 @@ class SettingsWindow():
                         width=170,
                         default_value=0,
                         enabled=False,
-                        max_value=4000,
-                        max_clamped=True,
                         indent=5,
                         callback=self.events.update_width,
                         on_enter=True)
