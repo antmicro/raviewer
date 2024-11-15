@@ -3,6 +3,7 @@
 from ..image.image import Image
 from ..image.color_format import Endianness
 from .common import AbstractParser
+from ..src.utils import pad_modulo
 
 import numpy
 import cv2 as cv
@@ -34,10 +35,7 @@ class ParserGrayscale(AbstractParser):
         processed_data = numpy.frombuffer(self.reverse(raw_data,
                                                        reverse_bytes),
                                           dtype=curr_dtype)
-        if (processed_data.size % width != 0):
-            processed_data = numpy.concatenate(
-                (processed_data,
-                 numpy.zeros(width - (processed_data.size % width))))
+        processed_data = pad_modulo(processed_data, (width, ))
 
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // width)

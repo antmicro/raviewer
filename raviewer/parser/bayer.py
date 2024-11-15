@@ -4,7 +4,7 @@ from abc import ABCMeta
 from ..image.image import Image
 from ..image.color_format import Endianness, Platform
 from .common import AbstractParser
-from ..src.utils import determine_color_format
+from ..src.utils import determine_color_format, pad_modulo
 
 import numpy
 import cv2 as cv
@@ -56,10 +56,7 @@ class ParserBayer(AbstractParser, metaclass=ABCMeta):
             processed_data = numpy.right_shift(
                 processed_data, 16 - color_format.bits_per_components[0])
 
-        if (processed_data.size % width != 0):
-            processed_data = numpy.concatenate(
-                (processed_data,
-                 numpy.zeros(width - (processed_data.size % width))))
+        processed_data = pad_modulo(processed_data, (width, ))
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // width)
 

@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from ..image.image import Image
 from ..image.color_format import PixelFormat
 from .common import AbstractParser
+from ..src.utils import pad_modulo
 
 import numpy
 
@@ -100,11 +101,7 @@ class AbstractParserRGBA(AbstractParser, metaclass=ABCMeta):
         return raw_data
 
     def _pad(self, im, width, curr_dtype):
-        if im.size % (width * 4) != 0:
-            im = numpy.concatenate(
-                (im, numpy.zeros((width * 4) - (im.size % (width * 4)))))
-
-        return im
+        return pad_modulo(im, (width * 4, ))
 
     def _raw_channel_color(self, image, im):
         im = numpy.copy(im)
@@ -199,13 +196,7 @@ class AbstractParserRGB(AbstractParserRGBA, metaclass=ABCMeta):
                          constant_values=(0, 255))
 
     def _pad(self, im, width, curr_dtype):
-        if im.size % (width * 3) != 0:
-            im = numpy.concatenate((im,
-                                    numpy.zeros(
-                                        (width * 3) - (im.size % (width * 3)),
-                                        dtype=curr_dtype)))
-
-        return im
+        return pad_modulo(im, (width * 3, ))
 
 
 class ParserRGB(AbstractParserRGB):
