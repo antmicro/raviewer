@@ -4,6 +4,7 @@ from abc import abstractmethod, ABCMeta
 from ..image.color_format import PixelFormat, Endianness
 from ..image.image import Image
 from .common import AbstractParser
+from ..src.utils import pad_modulo
 
 import numpy
 import cv2 as cv
@@ -22,6 +23,10 @@ def interleave_channels(u, v):
         combined for component in zip(cycle(u), v) for combined in component
     ]
     return data
+
+
+def is_luma_only(channels):
+    return not channels["b_v"] and not channels["g_u"] and channels["r_y"]
 
 
 def concatenate_frames(frames):
@@ -73,10 +78,7 @@ class AbstractParserYUV420(AbstractParser, metaclass=ABCMeta):
                                                        reverse_bytes),
                                           dtype=curr_dtype)
         processed_data = numpy.array(processed_data, dtype=curr_dtype)
-        if (processed_data.size % width != 0):
-            processed_data = numpy.concatenate(
-                (processed_data,
-                 numpy.zeros(width - (processed_data.size % width))))
+        processed_data = pad_modulo(processed_data, (width, ))
 
         new_height = math.ceil(math.ceil(processed_data.size / width) / 1.5)
         return Image(raw_data, color_format, processed_data, width, new_height)
@@ -113,21 +115,7 @@ class AbstractParserYUV420(AbstractParser, metaclass=ABCMeta):
         processed_data = numpy.reshape(
             im, (int(im.size / image.width), image.width)).astype('uint8')
 
-        if processed_data.shape[0] % 3 != 0:
-            processed_data = numpy.concatenate(
-                (processed_data,
-                 numpy.zeros(
-                     (3 -
-                      (processed_data.shape[0] % 3), processed_data.shape[1]),
-                     dtype=numpy.uint8)))
-
-        if processed_data.shape[1] % 2 != 0:
-            processed_data = numpy.concatenate(
-                (processed_data,
-                 numpy.zeros((processed_data.shape[0], 1), dtype=numpy.uint8)),
-                axis=1)
-
-        return processed_data
+        return pad_modulo(processed_data, (3, 2))
 
     def get_displayable(self,
                         image,
@@ -151,12 +139,17 @@ class AbstractParserYUV420(AbstractParser, metaclass=ABCMeta):
             return_data = self._preprocess(image, i, height)
             return_data = self._channel_mask(channels, image, return_data,
                                              height)
-            processed_data = self._pad(image, return_data)
-
-            return_data = cv.cvtColor(processed_data, self._conversion_const)
+            return_data = self._convert(return_data, image, height, channels)
             tmp.append(return_data)
 
         return concatenate_frames(tmp)
+
+    def _convert(self, im, image, height, channels):
+        if is_luma_only(channels):
+            return cv.cvtColor(im[0:image.width * height], cv.COLOR_GRAY2RGB)
+        else:
+            im = self._pad(image, im)
+            return cv.cvtColor(im, self._conversion_const)
 
     def raw_coloring(self, image, height=0):
         tmp = []
@@ -432,11 +425,7 @@ class AbstractParserYUV422(AbstractParser, metaclass=ABCMeta):
                                                        reverse_bytes),
                                           dtype=curr_dtype)
         processed_data = numpy.array(processed_data, dtype=curr_dtype)
-        if (processed_data.size % (width * 2) != 0):
-            processed_data = numpy.concatenate(
-                (processed_data,
-                 numpy.zeros((width * 2) - (processed_data.size %
-                                            (width * 2)))))
+        processed_data = pad_modulo(processed_data, (width * 2, ))
 
         return Image(raw_data, color_format, processed_data, width,
                      processed_data.size // (width * 2))
@@ -468,13 +457,27 @@ class AbstractParserYUV422PA(AbstractParserYUV422, metaclass=ABCMeta):
 
             temp_processed_data = self._color_mask(temp_processed_data,
                                                    channels)
-            return_data = self._conversion_func(temp_processed_data, height,
-                                                image.width)
-            tmp.append(return_data)
+            temp_processed_data = self._convert(temp_processed_data,
+                                                image.width, channels)
+            tmp.append(temp_processed_data)
 
         return concatenate_frames(tmp)
 
-    def _raw_channel_color(self, image, im):
+    def _pad(self, im, width):
+        even_width = width + width % 2
+        return pad_modulo(im, (even_width * 2, )), even_width
+
+    def _convert(self, im, width, channels):
+        if is_luma_only(channels):
+            return self._convert2GRAY(im)
+        else:
+            im, width = self._pad(im, width)
+            return self._convert2RGB(im, width)
+
+    def _convert2GRAY(self, im):
+        return cv.cvtColor(im[self._offset["Y"]::2], cv.COLOR_GRAY2RGB)
+
+    def _raw_channel_color(self, image, im, width):
         im = numpy.copy(im)
         p = [image.color_format.palette[x] for x in self._order]
         p = numpy.array(p).astype('float64').reshape((1, 4, 3))
@@ -484,7 +487,7 @@ class AbstractParserYUV422PA(AbstractParserYUV422, metaclass=ABCMeta):
         im = im.reshape((-1, 4, 1))
         im = im * p
 
-        return im.reshape((-1, image.width, 3))
+        return im.reshape((-1, width, 3))
 
     def raw_coloring(self, image, height=0):
         tmp = []
@@ -498,10 +501,10 @@ class AbstractParserYUV422PA(AbstractParserYUV422, metaclass=ABCMeta):
                 image.width * height * 2):(1 + i) * (image.width * height * 2)]
             height = math.ceil(len(temp_processed_data) / image.width / 2)
 
-            return_data = self._raw_channel_color(image, temp_processed_data)
-
+            return_data, width = self._pad(temp_processed_data, image.width)
+            return_data = self._raw_channel_color(image, return_data, width)
             return_data = return_data.astype('uint8')
-            return_data = return_data.reshape((-1, image.width, 3))
+            return_data = return_data.reshape((-1, width, 3))
 
             tmp.append(return_data)
 
@@ -518,7 +521,7 @@ class AbstractParserYUV422PA(AbstractParserYUV422, metaclass=ABCMeta):
         return return_data[up_row:down_row, left_column * 2:right_column * 2]
 
     @abstractmethod
-    def _conversion_func(self, im, height, width):
+    def _convert2RGB(self, im, width):
         pass
 
     @property
@@ -549,8 +552,8 @@ class ParserYUYV422PA(AbstractParserYUV422PA):
     def _order(self):
         return "YUYV"
 
-    def _conversion_func(self, im, height, width):
-        return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_YUYV)
+    def _convert2RGB(self, im, width):
+        return cv.cvtColor(im.reshape(-1, width, 2), cv.COLOR_YUV2RGB_YUYV)
 
 
 class ParserUYVY422PA(AbstractParserYUV422PA):
@@ -560,8 +563,8 @@ class ParserUYVY422PA(AbstractParserYUV422PA):
     def _order(self):
         return "UYVY"
 
-    def _conversion_func(self, im, height, width):
-        return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_UYVY)
+    def _convert2RGB(self, im, width):
+        return cv.cvtColor(im.reshape(-1, width, 2), cv.COLOR_YUV2RGB_UYVY)
 
 
 class ParserVYUY422PA(AbstractParserYUV422PA):
@@ -571,9 +574,9 @@ class ParserVYUY422PA(AbstractParserYUV422PA):
     def _order(self):
         return "VYUY"
 
-    def _conversion_func(self, im, height, width):
+    def _convert2RGB(self, im, width):
         im = im.reshape((-1, 4))[:, [2, 1, 0, 3]]
-        return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_UYVY)
+        return cv.cvtColor(im.reshape(-1, width, 2), cv.COLOR_YUV2RGB_UYVY)
 
 
 class ParserYVYU422PA(AbstractParserYUV422PA):
@@ -583,8 +586,8 @@ class ParserYVYU422PA(AbstractParserYUV422PA):
     def _order(self):
         return "YVYU"
 
-    def _conversion_func(self, im, height, width):
-        return cv.cvtColor(im.reshape(height, width, 2), cv.COLOR_YUV2RGB_YVYU)
+    def _convert2RGB(self, im, width):
+        return cv.cvtColor(im.reshape(-1, width, 2), cv.COLOR_YUV2RGB_YVYU)
 
 
 class ParserYUV422P(AbstractParserYUV422):
@@ -602,7 +605,7 @@ class ParserYUV422P(AbstractParserYUV422):
 
     def get_displayable(self,
                         image,
-                        height,
+                        height=0,
                         channels={
                             "r_y": True,
                             "g_u": True,
@@ -612,51 +615,38 @@ class ParserYUV422P(AbstractParserYUV422):
 
         Returns: Numpy array containing displayable data.
         """
-        conversion_const = None
-        if image.color_format.pixel_format == PixelFormat.YUV:
-            conversion_const = cv.COLOR_YUV2RGB_YUYV
         if height < 1: height = image.height
         tmp = []
         n_frames = self._get_nframes(image, height)
         for i in range(n_frames):
             temp_processed_data = self._preprocess(image, height, i)
             height = math.ceil(len(temp_processed_data) / image.width / 2)
-            return_data = numpy.zeros((height, image.width, 2),
-                                      dtype=numpy.uint8)
-            if image.color_format.pixel_format == PixelFormat.YUV:
-                if not channels["r_y"]:
-                    temp_processed_data[0:height * image.width:] = 0
-                if not channels["g_u"]:
-                    temp_processed_data[height * image.width:height *
-                                        (3 * image.width // 2 +
-                                         image.width % 2)] = 0
-                if not channels["b_v"]:
-                    temp_processed_data[height * (3 * image.width // 2 +
-                                                  image.width % 2):] = 0
-            processed_data = numpy.reshape(
-                temp_processed_data[:(height * image.width)],
-                (height, image.width)).astype('uint8')
-            return_data[:, :, 0] = processed_data
-            chromas_data = numpy.reshape(
-                temp_processed_data[(height * image.width):height *
-                                    (3 * image.width // 2 + image.width % 2)],
-                (height, image.width // 2 + image.width % 2)).astype('uint8')
-            return_data[:, ::2, 1] = chromas_data
-            chromas_data = numpy.reshape(
-                temp_processed_data[height *
-                                    (3 * image.width // 2 + image.width % 2):],
-                (height, image.width // 2)).astype('uint8')
-            return_data[:, 1::2, 1] = chromas_data
-            if not channels["b_v"] and not channels["g_u"] and channels["r_y"]:
-                return_data = cv.cvtColor(return_data[:, :, 0],
-                                          cv.COLOR_GRAY2RGB)
-            else:
-                return_data = self.convert2RGB(temp_processed_data,
-                                               image.width, height,
-                                               conversion_const)
+            temp_processed_data = self._channel_mask(channels, image,
+                                                     temp_processed_data,
+                                                     height)
+            return_data = self._convert(temp_processed_data, image.width,
+                                        height, channels)
             tmp.append(return_data)
 
         return concatenate_frames(tmp)
+
+    def _channel_mask(self, channels, image, im, height):
+        im = im.copy()
+        if image.color_format.pixel_format == PixelFormat.YUV:
+            if not channels["r_y"]:
+                im[0:height * image.width:] = 0
+            if not channels["g_u"]:
+                im[height * image.width:height *
+                   (3 * image.width // 2 + image.width % 2)] = 0
+            if not channels["b_v"]:
+                im[height * (3 * image.width // 2 + image.width % 2):] = 0
+        return im
+
+    def _convert(self, im, width, height, channels):
+        if is_luma_only(channels):
+            return cv.cvtColor(im[:width * height], cv.COLOR_GRAY2RGB)
+        else:
+            return self.convert2RGB(im, width, height)
 
     def raw_coloring(self, image, height=0):
         tmp = []
@@ -694,16 +684,21 @@ class ParserYUV422P(AbstractParserYUV422):
 
         return im
 
-    def convert2RGB(self, processed_data, width, height, conversion):
+    def convert2RGB(self, processed_data, width, height):
         y = processed_data[0:height * width:]
         u = processed_data[height * width:height *
                            (3 * width // 2 + width % 2)]
         v = processed_data[height * (3 * width // 2 + width % 2):]
-        yuv = numpy.empty((height * width, 2), dtype=numpy.uint8)
+        even_width = width + width % 2
+        y = pad_modulo(y, (even_width, ))
+        u = numpy.pad(u, (0, max(y.size // 2 - u.size, 0)))[:y.size // 2]
+        v = numpy.pad(v, (0, max(y.size // 2 - v.size, 0)))[:y.size // 2]
+        yuv = numpy.empty((y.size, 2), dtype=numpy.uint8)
         yuv[:, 0] = y
         yuv[0::2, 1] = u
         yuv[1::2, 1] = v
-        rgb = cv.cvtColor(yuv.reshape((height, width, 2)), conversion)
+        rgb = cv.cvtColor(yuv.reshape((-1, even_width, 2)),
+                          cv.COLOR_YUV2RGB_YUYV)
         return rgb
 
     def get_pixel_raw_components(self, image, row, column, index):
